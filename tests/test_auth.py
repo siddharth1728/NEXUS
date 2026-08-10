@@ -1,4 +1,5 @@
 import pytest
+import time
 from app.models.user import User
 
 def test_health_check(client):
@@ -64,6 +65,8 @@ def test_refresh_token_rotation(client, csrf_token):
     )
     old_access = login_resp.cookies.get("access_token")
     old_refresh = login_resp.cookies.get("refresh_token")
+    
+    time.sleep(1) # Ensure tokens have different timestamps
     
     # Refresh
     refresh_resp = client.post(

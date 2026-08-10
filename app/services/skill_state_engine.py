@@ -92,6 +92,8 @@ def recalculate_user_skills(user_id: int, db: Session) -> None:
             total_artifact_contrib = sum(contribs)
             final_contribution += min(total_artifact_contrib, MAX_CONTRIBUTION_PER_ARTIFACT)
             
+        final_contribution = round(final_contribution, 4)
+            
         # STEP 5: Classify State with strict precedence (STRONG -> DEVELOPING -> WEAK -> MISSING)
         state = SkillState.MISSING
         if final_contribution >= 3.0 and meaningful_evidence_count >= 4 and unique_evidence_types >= 2 and unique_artifacts >= 3:

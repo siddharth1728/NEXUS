@@ -26,6 +26,12 @@ def clear_rate_limit():
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
+    db = TestingSessionLocal()
+    from app.database.database import Base
+    for table in reversed(Base.metadata.sorted_tables):
+        db.execute(table.delete())
+    db.commit()
+    db.close()
     yield
 
 @pytest.fixture

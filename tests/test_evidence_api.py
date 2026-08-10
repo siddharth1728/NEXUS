@@ -35,7 +35,8 @@ def test_get_evidence_by_snapshot(auth_client, db_session, test_user):
 def test_cross_user_evidence_access(auth_client, db_session, test_user):
     # Create another user and their project
     from app.models.user import User
-    other_user = User(email="other@example.com", password_hash="pw")
+    import uuid
+    other_user = User(email=f"other_{uuid.uuid4()}@example.com", password_hash="pw")
     db_session.add(other_user)
     db_session.commit()
     

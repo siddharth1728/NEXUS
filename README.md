@@ -101,4 +101,45 @@ Phase 3 transforms raw observations into structured evidence and maps them to th
 * **Skill State, Gaps, and Next Best Actions are NOT implemented yet.** Evidence is collected and mapped, but aggregate proficiency scores are not calculated.
 * **No automated taxonomy creation**. If a rule maps to a skill that doesn't exist in the database, it is ignored rather than created.
 * **Zero LLMs used** for evidence generation. The engine relies purely on deterministic python-based dictionary lookups.
+
+## Phase 4: Skill State Engine
+
+Phase 4 introduces a deterministic engine that maps raw engineering evidence to four explicit states: MISSING, WEAK, DEVELOPING, and STRONG.
+
+### Algorithm and Anti-Inflation
+The engine uses strict algorithmic aggregation to prevent inflation:
+* **Base Contribution**: `quality_score * freshness_weight`. Older evidence contributes less.
+* **EvidenceType Diversity Cap**: Total contribution from any single evidence type (e.g., API, TESTING) is capped at `1.5`.
+* **Artifact Diversity Cap**: Total contribution from any single artifact (e.g., `app.py`) is capped at `2.0`.
+
+### State Thresholds
+* **MISSING**: Contribution < 0.5 or no meaningful evidence.
+* **WEAK**: Contribution >= 0.5, 1+ meaningful evidence, 1+ unique EvidenceType, 1+ unique Artifact.
+* **DEVELOPING**: Contribution >= 1.5, 2+ meaningful evidence, 1+ unique EvidenceType, 2+ unique Artifacts.
+* **STRONG**: Contribution >= 3.0, 4+ meaningful evidence, 2+ unique EvidenceTypes, 3+ unique Artifacts.
+
+### Evidence Explorer & Privacy
+The API and UI provide an Evidence Explorer that answers "Why this state?" by displaying the metadata (type, quality, freshness, safe source reference) used in the classification. 
+* **Privacy Boundary**: It strictly enforces privacy by never exposing actual source code snippets, GitHub tokens, or credentials. Raw observation text is kept as strictly factual metadata.
+
+> **Note**: Skill State is an evidence-derived classification and is not a measurement of a student's absolute engineering ability.
+
+## Phase 5: Gap Engine
+
+Phase 5 introduces a deterministic engine to identify skill deficiencies by comparing a student's actual `UserSkill` states against the required skills of their chosen `TargetRole` (via `TargetRoleSkill`).
+
+### Features Included
+* **Ordinal State Comparison**: States are mapped to strict ordinal values (`MISSING = 0`, `WEAK = 1`, `DEVELOPING = 2`, `STRONG = 3`). Missing UserSkills are implicitly treated as `MISSING`.
+* **State Distance**: The engine calculates the gap by subtracting the actual state from the required state. If actual >= required, there is no gap.
+* **Deterministic Severity**: The raw distance is multiplied by the `TargetRoleSkill.importance_weight` to calculate a prioritization `severity`.
+* **Deterministic Sorting**: Gaps are strictly sorted by severity DESC, importance_weight DESC, required state DESC, and skill ID ASC.
+* **Derived and Rebuildable**: Gaps are completely derived data. Obsolete gaps automatically disappear as evidence improves a student's Skill State.
+
+### Limitations & Non-Goals
+* **No Next Best Actions**: The Gap Engine strictly identifies "What is missing?". It does NOT fabricate recommendations, learning resources, or say "Build X". That is strictly reserved for Phase 6.
+* **No AI/LLMs**: Everything is deterministic math.
+* **No Readiness Percentages**: The severity score is a sorting priority, NOT a completion percentage or readiness score.
+* **No Vanity Metrics**: GitHub stars, forks, or raw commit counts are entirely excluded from gap analysis.
+
+> **Note**: The Gap Engine identifies evidence-derived skill deficiencies. It does not determine absolute engineering ability and does not generate recommendations.
 # NEXUS

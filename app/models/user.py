@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Enum
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Enum, Float
 from sqlalchemy.orm import relationship
 from app.database.database import Base
 
@@ -54,4 +54,26 @@ class UserSkill(Base):
 
     __table_args__ = (
         UniqueConstraint('user_id', 'skill_id', name='uq_user_skill'),
+    )
+
+class Gap(Base):
+    __tablename__ = "gaps"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    skill_id = Column(Integer, ForeignKey("skills.id", ondelete="CASCADE"), nullable=False, index=True)
+    actual_state = Column(String, nullable=False)
+    required_state = Column(String, nullable=False)
+    state_distance = Column(Integer, nullable=False)
+    importance_weight = Column(Float, nullable=False)
+    severity = Column(Float, nullable=False)
+
+    calculated_at = Column(DateTime(timezone=True), server_default=func.now())
+    calculation_version = Column(String, nullable=False)
+
+    user = relationship("User")
+    skill = relationship("Skill")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "skill_id", name="uq_user_gap"),
     )

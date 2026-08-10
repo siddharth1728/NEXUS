@@ -1,8 +1,8 @@
 from app.database.database import Base
-from app.models.user import User, RefreshSession, UserSkill
+from app.models.user import User, RefreshSession, UserSkill, Gap
 from app.models.profile import StudentProfile
 from app.models.taxonomy import TargetRole, Skill, TargetRoleSkill
 from app.models.project import Project, RepositorySnapshot, Artifact, RawObservation, Evidence, EvidenceSkill
 
 # Ensure all models are imported here so Alembic can discover them
-__all__ = ["Base", "User", "RefreshSession", "UserSkill", "StudentProfile", "TargetRole", "Skill", "TargetRoleSkill", "Project", "RepositorySnapshot", "Artifact", "RawObservation", "Evidence", "EvidenceSkill"]
+__all__ = ["Base", "User", "RefreshSession", "UserSkill", "Gap", "StudentProfile", "TargetRole", "Skill", "TargetRoleSkill", "Project", "RepositorySnapshot", "Artifact", "RawObservation", "Evidence", "EvidenceSkill"]

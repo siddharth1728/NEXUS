@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse, HTMLResponse
 import os
 
-from app.routers import auth, profile, github, projects, snapshots, evidence, skills
+from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps
 
 app = FastAPI(title="NEXUS Phase 1")
 
@@ -22,6 +22,7 @@ app.include_router(projects.router, prefix="/api")
 app.include_router(snapshots.router, prefix="/api")
 app.include_router(evidence.router, prefix="/api")
 app.include_router(skills.router, prefix="/api")
+app.include_router(gaps.router, prefix="/api")
 
 @app.get("/health", tags=["Health"])
 def health_check():

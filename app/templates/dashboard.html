@@ -14,6 +14,12 @@
     <ul id="skills-list">Loading skills...</ul>
 </section>
 
+<section id="gaps-section" class="card" style="margin-bottom: 2rem; background: #fff3f3; border: 1px solid #ffcccc;">
+    <h2>SKILL GAPS</h2>
+    <p><small>The Gap Engine identifies evidence-derived skill deficiencies based on your Target Role. It does not determine absolute engineering ability and does not generate recommendations.</small></p>
+    <ul id="gaps-list">Loading gaps...</ul>
+</section>
+
 <section id="evidence-explorer" style="display: none; margin-bottom: 2rem;" class="card">
     <h3 id="evidence-explorer-title">WHY THIS STATE?</h3>
     <button onclick="document.getElementById('evidence-explorer').style.display='none'">Close</button>
@@ -99,6 +105,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     };
+
+    // Load Gaps
+    async function loadGaps() {
+        const res = await fetch('/api/gaps');
+        if (res.ok) {
+            const gaps = await res.json();
+            const list = document.getElementById('gaps-list');
+            list.innerHTML = '';
+            if (gaps.length === 0) {
+                list.innerHTML = '<li>No skill gaps detected for your current Target Role.</li>';
+            } else {
+                gaps.forEach(g => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${g.skill}</strong><br/>
+                                    Current: ${g.actual_state}<br/>
+                                    Required: ${g.required_state}<br/>
+                                    Gap Distance: ${g.state_distance} levels<br/>
+                                    Importance: ${g.importance_weight}<br/>
+                                    Severity: ${g.severity}`;
+                    list.appendChild(li);
+                });
+            }
+        }
+    }
+    await loadGaps();
 
     // Load Projects
     async function loadProjects() {
