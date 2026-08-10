@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: nexus_db
+    environment:
+      POSTGRES_USER: nexus_user
+      POSTGRES_PASSWORD: nexus_password
+      POSTGRES_DB: nexus_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - nexus_pgdata:/var/lib/postgresql/data
+
+  db_test:
+    image: postgres:15-alpine
+    container_name: nexus_db_test
+    environment:
+      POSTGRES_USER: nexus_user
+      POSTGRES_PASSWORD: nexus_password
+      POSTGRES_DB: nexus_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - nexus_pgdata_test:/var/lib/postgresql/data
+
+volumes:
+  nexus_pgdata:
+  nexus_pgdata_test:

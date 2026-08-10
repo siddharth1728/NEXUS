@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | NEXUS{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <h1>Dashboard</h1>
+    <p>Welcome to NEXUS Phase 1 Foundation.</p>
+</header>
+
+<section id="skills-section" class="card" style="margin-bottom: 2rem;">
+    <h2>YOUR ENGINEERING SKILLS</h2>
+    <p><small>Skill State is derived from available engineering evidence and is not a measurement of absolute engineering ability.</small></p>
+    <ul id="skills-list">Loading skills...</ul>
+</section>
+
+<section id="evidence-explorer" style="display: none; margin-bottom: 2rem;" class="card">
+    <h3 id="evidence-explorer-title">WHY THIS STATE?</h3>
+    <button onclick="document.getElementById('evidence-explorer').style.display='none'">Close</button>
+    <ul id="skill-evidence-items" style="margin-top: 1rem;"></ul>
+</section>
+
+<section class="dashboard-grid">
+    <div class="card" id="projects-section">
+        <h3>My Projects</h3>
+        <ul id="projects-list">Loading projects...</ul>
+    </div>
+    <div class="card" id="github-section">
+        <h3>GitHub Repositories</h3>
+        <button id="fetch-repos-btn">Fetch Public Repositories</button>
+        <div id="repos-container" style="margin-top: 1rem;"></div>
+    </div>
+</section>
+
+<section id="project-detail-section" style="display: none; margin-top: 2rem;">
+    <h2 id="project-title">Project Detail</h2>
+    <button id="sync-project-btn">Sync Now</button>
+    <div id="sync-status" style="margin-top: 1rem; font-weight: bold;"></div>
+    
+    <div class="dashboard-grid" style="margin-top: 1rem;">
+        <div class="card">
+            <h3>Snapshot History</h3>
+            <ul id="snapshot-history"></ul>
+        </div>
+        <div class="card">
+            <h3>Latest Artifacts</h3>
+            <ul id="latest-artifacts"></ul>
+        </div>
+        <div class="card">
+            <h3>Raw Observations</h3>
+            <ul id="raw-observations"></ul>
+        </div>
+        <div class="card">
+            <h3>Evidence</h3>
+            <ul id="evidence-items"></ul>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    let currentProjectId = null;
+
+    // Load Skills
+    async function loadSkills() {
+        const res = await fetch('/api/skills');
+        if (res.ok) {
+            const skills = await res.json();
+            const list = document.getElementById('skills-list');
+            list.innerHTML = '';
+            if (skills.length === 0) {
+                list.innerHTML = '<li>No engineering skills recorded yet.</li>';
+            } else {
+                skills.forEach(s => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${s.skill_name}</strong> — ${s.state} 
+                    <button onclick="viewSkillEvidence(${s.skill_id}, '${s.skill_name}')">View Evidence</button>`;
+                    list.appendChild(li);
+                });
+            }
+        }
+    }
+    await loadSkills();
+
+    window.viewSkillEvidence = async function(skillId, skillName) {
+        document.getElementById('evidence-explorer').style.display = 'block';
+        document.getElementById('evidence-explorer-title').innerText = `WHY THIS STATE? (${skillName})`;
+        const res = await fetch(`/api/skills/${skillId}/evidence`);
+        if (res.ok) {
+            const evidence = await res.json();
+            const list = document.getElementById('skill-evidence-items');
+            list.innerHTML = '';
+            evidence.forEach(e => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>Type:</strong> ${e.type} | <strong>Quality:</strong> ${e.quality_score} | <strong>Freshness:</strong> ${e.freshness_weight}<br/>
+                                <strong>Source Reference:</strong> ${e.source_reference}<br/>
+                                <strong>Observation:</strong> ${e.raw_observation_text}`;
+                list.appendChild(li);
+            });
+        }
+    };
+
+    // Load Projects
+    async function loadProjects() {
+        const res = await fetch('/api/projects/');
+        if (res.ok) {
+            const projects = await res.json();
+            const list = document.getElementById('projects-list');
+            list.innerHTML = '';
+            if (projects.length === 0) {
+                list.innerHTML = '<li>No projects yet.</li>';
+            } else {
+                projects.forEach(p => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="#" onclick="viewProject(${p.id}, '${p.name}'); return false;">${p.name}</a>`;
+                    list.appendChild(li);
+                });
+            }
+        }
+    }
+    await loadProjects();
+
+    // Fetch Repos
+    document.getElementById('fetch-repos-btn').addEventListener('click', async () => {
+        const container = document.getElementById('repos-container');
+        container.innerHTML = 'Fetching...';
+        const res = await fetch('/api/github/repositories');
+        if (res.ok) {
+            const repos = await res.json();
+            container.innerHTML = '';
+            repos.forEach(r => {
+                const div = document.createElement('div');
+                div.innerHTML = `<strong>${r.full_name}</strong> 
+                    <button onclick="createProject(${r.id}, '${r.name}')">Create Project</button>`;
+                container.appendChild(div);
+            });
+        } else {
+            const err = await res.json();
+            container.innerHTML = `<span style="color:red">${err.detail}</span>`;
+        }
+    });
+
+    window.createProject = async function(githubRepoId, name) {
+        const res = await fetch('/api/projects/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({github_repo_id: githubRepoId, name: name})
+        });
+        if (res.ok) {
+            alert('Project created!');
+            await loadProjects();
+        } else {
+            alert('Failed to create project');
+        }
+    };
+
+    window.viewProject = async function(id, name) {
+        currentProjectId = id;
+        document.getElementById('project-detail-section').style.display = 'block';
+        document.getElementById('project-title').innerText = name + " Detail";
+        document.getElementById('sync-status').innerText = '';
+        await loadSnapshots(id);
+    };
+
+    async function loadSnapshots(projectId) {
+        const res = await fetch(`/api/projects/${projectId}/snapshots`);
+        if (res.ok) {
+            const snaps = await res.json();
+            const list = document.getElementById('snapshot-history');
+            list.innerHTML = '';
+            snaps.forEach(s => {
+                const li = document.createElement('li');
+                li.innerHTML = `Snapshot at ${new Date(s.captured_at).toLocaleString()} - ${s.status} 
+                    <button onclick="viewSnapshot(${s.id})">View Details</button>`;
+                list.appendChild(li);
+            });
+            if (snaps.length > 0) {
+                // Auto view latest
+                viewSnapshot(snaps[0].id);
+            } else {
+                document.getElementById('latest-artifacts').innerHTML = 'No artifacts';
+                document.getElementById('raw-observations').innerHTML = 'No observations';
+            }
+        }
+    }
+
+    document.getElementById('sync-project-btn').addEventListener('click', async () => {
+        if (!currentProjectId) return;
+        document.getElementById('sync-status').innerText = 'Syncing... Please wait.';
+        const res = await fetch(`/api/projects/${currentProjectId}/sync`, {method: 'POST'});
+        if (res.ok) {
+            document.getElementById('sync-status').innerText = 'Sync complete!';
+            await loadSnapshots(currentProjectId);
+        } else {
+            const err = await res.json();
+            document.getElementById('sync-status').innerText = `Error: ${err.detail}`;
+        }
+    });
+
+    window.viewSnapshot = async function(snapId) {
+        // Load artifacts
+        const aRes = await fetch(`/api/snapshots/${snapId}/artifacts`);
+        if (aRes.ok) {
+            const artifacts = await aRes.json();
+            const aList = document.getElementById('latest-artifacts');
+            aList.innerHTML = '';
+            artifacts.forEach(a => {
+                const li = document.createElement('li');
+                li.innerText = `${a.file_path} (${a.type})`;
+                aList.appendChild(li);
+            });
+        }
+        
+        // Load observations
+        const oRes = await fetch(`/api/snapshots/${snapId}/observations`);
+        if (oRes.ok) {
+            const obs = await oRes.json();
+            const oList = document.getElementById('raw-observations');
+            oList.innerHTML = '';
+            obs.forEach(o => {
+                const li = document.createElement('li');
+                li.innerText = o.observation_text + (o.line_numbers ? ` (Line ${o.line_numbers})` : '');
+                oList.appendChild(li);
+            });
+        }
+        
+        // Load evidence
+        const eRes = await fetch(`/api/snapshots/${snapId}/evidence`);
+        if (eRes.ok) {
+            const evidence = await eRes.json();
+            const eList = document.getElementById('evidence-items');
+            eList.innerHTML = '';
+            evidence.forEach(e => {
+                const li = document.createElement('li');
+                const skillsText = e.skills.map(s => s.name).join(', ') || 'None';
+                li.innerHTML = `<strong>${e.type}</strong> - Quality: ${e.quality_score} | Freshness: ${e.freshness_weight}<br/>
+                                <small>Source: ${e.source_reference}</small><br/>
+                                <small>Skills: ${skillsText}</small>`;
+                eList.appendChild(li);
+            });
+        }
+    };
+});
+</script>
+{% endblock %}
