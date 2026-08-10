@@ -1,276 +1,707 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard | NEXUS{% endblock %}
+{% block title %}Overview — NEXUS{% endblock %}
 
 {% block content %}
-<header class="page-header">
-    <h1>Dashboard</h1>
-    <p>Welcome to NEXUS Phase 1 Foundation.</p>
-</header>
+<div class="page-container">
 
-<section id="skills-section" class="card" style="margin-bottom: 2rem;">
-    <h2>YOUR ENGINEERING SKILLS</h2>
-    <p><small>Skill State is derived from available engineering evidence and is not a measurement of absolute engineering ability.</small></p>
-    <ul id="skills-list">Loading skills...</ul>
-</section>
-
-<section id="gaps-section" class="card" style="margin-bottom: 2rem; background: #fff3f3; border: 1px solid #ffcccc;">
-    <h2>SKILL GAPS</h2>
-    <p><small>The Gap Engine identifies evidence-derived skill deficiencies based on your Target Role. It does not determine absolute engineering ability and does not generate recommendations.</small></p>
-    <ul id="gaps-list">Loading gaps...</ul>
-</section>
-
-<section id="evidence-explorer" style="display: none; margin-bottom: 2rem;" class="card">
-    <h3 id="evidence-explorer-title">WHY THIS STATE?</h3>
-    <button onclick="document.getElementById('evidence-explorer').style.display='none'">Close</button>
-    <ul id="skill-evidence-items" style="margin-top: 1rem;"></ul>
-</section>
-
-<section class="dashboard-grid">
-    <div class="card" id="projects-section">
-        <h3>My Projects</h3>
-        <ul id="projects-list">Loading projects...</ul>
+  <!-- ── Page Header ────────────────────────────────── -->
+  <header class="page-header" id="page-header">
+    <div class="page-header-left">
+      <div class="page-eyebrow">Your Engineering Profile</div>
+      <h1 class="page-title" id="header-target-role">
+        <span class="skeleton skeleton-title" style="width:280px;display:inline-block;" aria-hidden="true"></span>
+      </h1>
+      <p class="page-subtitle">Evidence-backed insight into what you've actually demonstrated.</p>
     </div>
-    <div class="card" id="github-section">
-        <h3>GitHub Repositories</h3>
-        <button id="fetch-repos-btn">Fetch Public Repositories</button>
-        <div id="repos-container" style="margin-top: 1rem;"></div>
+    <div class="page-header-right" id="header-actions" style="visibility:hidden;">
+      <div class="sync-status" id="sync-status">
+        <span class="status-dot" id="sync-dot"></span>
+        <span id="sync-time-label">–</span>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="sync-btn" style="display:none;" aria-label="Sync GitHub repositories">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path>
+        </svg>
+        Sync GitHub
+      </button>
     </div>
-</section>
+  </header>
 
-<section id="project-detail-section" style="display: none; margin-top: 2rem;">
-    <h2 id="project-title">Project Detail</h2>
-    <button id="sync-project-btn">Sync Now</button>
-    <div id="sync-status" style="margin-top: 1rem; font-weight: bold;"></div>
-    
-    <div class="dashboard-grid" style="margin-top: 1rem;">
-        <div class="card">
-            <h3>Snapshot History</h3>
-            <ul id="snapshot-history"></ul>
-        </div>
-        <div class="card">
-            <h3>Latest Artifacts</h3>
-            <ul id="latest-artifacts"></ul>
-        </div>
-        <div class="card">
-            <h3>Raw Observations</h3>
-            <ul id="raw-observations"></ul>
-        </div>
-        <div class="card">
-            <h3>Evidence</h3>
-            <ul id="evidence-items"></ul>
-        </div>
+  <!-- ── Global Loading ─────────────────────────────── -->
+  <div id="state-loading">
+    <!-- Stats skeleton -->
+    <div class="stats-row" style="margin-bottom:40px;">
+      <div class="skeleton skeleton-stat"></div>
+      <div class="skeleton skeleton-stat"></div>
+      <div class="skeleton skeleton-stat"></div>
+      <div class="skeleton skeleton-stat"></div>
     </div>
-</section>
+    <!-- Card skeleton -->
+    <div class="card" style="margin-bottom:24px;">
+      <div style="display:flex;gap:12px;margin-bottom:20px;">
+        <div class="skeleton" style="height:20px;width:120px;"></div>
+        <div class="skeleton skeleton-badge" style="margin-left:auto;"></div>
+      </div>
+      <div class="skeleton skeleton-text skeleton-full"></div>
+      <div class="skeleton skeleton-text skeleton-3-4"></div>
+      <div class="skeleton skeleton-text skeleton-1-2"></div>
+    </div>
+    <div class="card">
+      <div class="skeleton skeleton-title" style="width:200px;margin-bottom:20px;"></div>
+      <div class="skeleton skeleton-row"></div>
+      <div class="skeleton skeleton-row"></div>
+      <div class="skeleton skeleton-row"></div>
+    </div>
+  </div>
 
+  <!-- ── Empty State (no GitHub / no projects) ──────── -->
+  <div id="state-empty" class="hidden">
+    <div class="empty-state" style="text-align:left;padding:48px;">
+      <div style="margin-bottom:32px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Getting started</div>
+        <h2 style="font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">Build your engineering profile</h2>
+        <p style="font-size:14px;color:var(--text-secondary);max-width:480px;line-height:1.6;">NEXUS analyzes the engineering work you've already built. Connect a GitHub repository and synchronize it — NEXUS will discover evidence and calculate your skill states.</p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:32px;padding:20px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;max-width:400px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">How it works</div>
+        <div style="font-size:13px;color:var(--text-secondary);">① Connect your GitHub username in <a href="/profile" style="color:var(--accent);">Profile</a></div>
+        <div style="font-size:13px;color:var(--text-secondary);">② Add a repository from <a href="/projects" style="color:var(--accent);">Projects</a></div>
+        <div style="font-size:13px;color:var(--text-secondary);">③ Sync — NEXUS observes and records evidence</div>
+        <div style="font-size:13px;color:var(--text-secondary);">④ Skill states, gaps, and next best action appear here</div>
+      </div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="/projects" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Connect Repository
+        </a>
+        <a href="/profile" class="btn btn-secondary">Set GitHub Username</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Error State ─────────────────────────────────── -->
+  <div id="state-error" class="hidden">
+    <div class="error-state">
+      <div class="error-state-title">Unable to load your profile</div>
+      <p class="error-state-desc">Your data is safe. This may be a temporary issue.</p>
+      <button class="btn btn-secondary btn-sm" onclick="window.location.reload()">Try again</button>
+    </div>
+  </div>
+
+  <!-- ── Populated State ────────────────────────────── -->
+  <div id="state-populated" class="hidden">
+
+    <!-- TIER 1: Stats -->
+    <div class="stats-row" id="stats-row">
+      <div class="stat-chip">
+        <div class="stat-value" id="stat-skills">–</div>
+        <div class="stat-label">Skills</div>
+      </div>
+      <div class="stat-chip is-strong">
+        <div class="stat-value" id="stat-strong">–</div>
+        <div class="stat-label">Strong</div>
+      </div>
+      <div class="stat-chip is-developing">
+        <div class="stat-value" id="stat-developing">–</div>
+        <div class="stat-label">Developing</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-value" id="stat-gaps">–</div>
+        <div class="stat-label">Priority Gaps</div>
+      </div>
+    </div>
+
+    <!-- TIER 2: Next Best Action -->
+    <section class="section" id="section-nba">
+      <div class="section-header">
+        <div>
+          <div class="section-label">Next Best Action</div>
+          <div class="section-hint">What to work on to close your most important gap.</div>
+        </div>
+      </div>
+
+      <!-- NBA Loading -->
+      <div id="nba-loading">
+        <div class="nba-card">
+          <div class="skeleton skeleton-title" style="width:160px;margin-bottom:12px;"></div>
+          <div class="skeleton skeleton-text skeleton-full"></div>
+          <div class="skeleton skeleton-text skeleton-3-4"></div>
+          <div style="display:flex;gap:12px;margin-top:16px;">
+            <div class="skeleton" style="height:34px;width:130px;border-radius:6px;"></div>
+            <div class="skeleton" style="height:34px;width:90px;border-radius:6px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NBA Empty -->
+      <div id="nba-empty" class="hidden">
+        <div class="empty-state">
+          <div class="empty-state-title">No action available</div>
+          <p class="empty-state-desc">Synchronize a repository to let NEXUS calculate your next best action based on gap analysis.</p>
+        </div>
+      </div>
+
+      <!-- NBA Card -->
+      <div id="nba-card" class="nba-card hidden">
+        <div class="nba-header">
+          <div>
+            <div class="nba-eyebrow">Recommended Action</div>
+            <div class="nba-title" id="nba-title">–</div>
+            <div class="nba-meta">
+              <span class="badge badge-type" id="nba-skill-badge">–</span>
+              <span id="nba-transition" style="font-size:12px;color:var(--text-muted);">– → –</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="nba-divider"></div>
+
+        <div class="nba-body">
+          <div style="font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Why this?</div>
+          <p id="nba-why" style="font-size:14px;color:var(--text-secondary);line-height:1.6;"></p>
+          <div id="nba-project-context" class="hidden" style="margin-top:12px;padding:12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;font-size:13px;color:var(--text-muted);"></div>
+        </div>
+
+        <div class="nba-traceability" id="nba-traceability"></div>
+
+        <div class="nba-actions">
+          <button class="btn btn-primary" id="nba-complete-btn" onclick="handleNbaAction('complete')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Mark Completed
+          </button>
+          <button class="btn btn-ghost btn-sm" id="nba-dismiss-btn" onclick="handleNbaAction('dismiss')">Dismiss</button>
+        </div>
+
+        <div class="nba-honest-note">
+          Marking this complete records your progress. Your skill state changes only after NEXUS observes new engineering evidence through synchronization.
+        </div>
+      </div>
+
+      <!-- NBA Completion confirmation -->
+      <div id="nba-confirmed" class="hidden">
+        <div class="alert-banner alert-success" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span id="nba-confirmed-msg">Action recorded. Your skill state will update after the next synchronization.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TIER 3: Engineering Signal -->
+    <section class="section" id="section-skills">
+      <div class="section-header">
+        <div>
+          <div class="section-label">Engineering Signal</div>
+          <div class="section-hint">What your existing work has demonstrated.</div>
+        </div>
+        <a href="/skills" class="btn btn-ghost btn-sm" style="flex-shrink:0;">
+          View all
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </a>
+      </div>
+
+      <div class="card" style="padding:8px;">
+        <div class="signal-list" id="skills-list">
+          <div class="skeleton skeleton-signal-item"></div>
+          <div class="skeleton skeleton-signal-item"></div>
+          <div class="skeleton skeleton-signal-item"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TIER 4: Priority Gaps -->
+    <section class="section" id="section-gaps">
+      <div class="section-header">
+        <div>
+          <div class="section-label">Priority Gaps</div>
+          <div class="section-hint">Where your demonstrated skills are below your target role requirements.</div>
+        </div>
+        <a href="/gaps" class="btn btn-ghost btn-sm" style="flex-shrink:0;">
+          View all
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </a>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="table-scroll overflow-x-auto">
+          <table class="data-table" aria-label="Skill gaps">
+            <thead>
+              <tr>
+                <th>Skill</th>
+                <th>Current</th>
+                <th>Required</th>
+                <th>Severity</th>
+              </tr>
+            </thead>
+            <tbody id="gaps-list">
+              <tr><td colspan="4"><div class="skeleton skeleton-text skeleton-full" style="margin:8px 0;"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TIER 5: Projects -->
+    <section class="section" id="section-projects">
+      <div class="section-header">
+        <div>
+          <div class="section-label">Projects</div>
+          <div class="section-hint">Connected repositories that produced this evidence.</div>
+        </div>
+        <a href="/projects" class="btn btn-ghost btn-sm" style="flex-shrink:0;">
+          Manage
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </a>
+      </div>
+      <div id="projects-list"></div>
+    </section>
+
+    <!-- TIER 6: Recent Evidence -->
+    <section class="section" id="section-evidence">
+      <div class="section-header">
+        <div>
+          <div class="section-label">Recent Evidence</div>
+          <div class="section-hint">The latest observations recorded by NEXUS.</div>
+        </div>
+        <a href="/evidence" class="btn btn-ghost btn-sm" style="flex-shrink:0;">
+          View all
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </a>
+      </div>
+      <div class="card" style="padding:0 8px;">
+        <div class="timeline" id="evidence-timeline"></div>
+      </div>
+    </section>
+
+  </div><!-- /#state-populated -->
+</div><!-- /.page-container -->
+{% endblock %}
+
+{% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', async () => {
-    let currentProjectId = null;
+(function() {
+  'use strict';
 
-    // Load Skills
-    async function loadSkills() {
-        const res = await fetch('/api/skills');
-        if (res.ok) {
-            const skills = await res.json();
-            const list = document.getElementById('skills-list');
-            list.innerHTML = '';
-            if (skills.length === 0) {
-                list.innerHTML = '<li>No engineering skills recorded yet.</li>';
-            } else {
-                skills.forEach(s => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<strong>${s.skill_name}</strong> — ${s.state} 
-                    <button onclick="viewSkillEvidence(${s.skill_id}, '${s.skill_name}')">View Evidence</button>`;
-                    list.appendChild(li);
-                });
-            }
-        }
+  // State
+  let _nbaData = null;
+  let _projects = [];
+  let _skills = [];
+
+  // DOM refs
+  const stateLoading   = document.getElementById('state-loading');
+  const stateEmpty     = document.getElementById('state-empty');
+  const stateError     = document.getElementById('state-error');
+  const statePopulated = document.getElementById('state-populated');
+
+  function show(el) { el.classList.remove('hidden'); }
+  function hide(el) { el.classList.add('hidden'); }
+
+  async function loadDashboard() {
+    try {
+      // Load profile
+      let targetRole = '–';
+      try {
+        const profile = await apiFetch('/api/profile');
+        targetRole = profile.target_role || 'Set Target Role';
+      } catch {}
+      document.getElementById('header-target-role').textContent = targetRole;
+
+      // Load projects
+      _projects = await apiFetch('/api/projects/').catch(() => []);
+
+      hide(stateLoading);
+
+      if (_projects.length === 0) {
+        show(stateEmpty);
+        document.getElementById('header-actions').style.visibility = 'visible';
+        return;
+      }
+
+      show(statePopulated);
+      document.getElementById('header-actions').style.visibility = 'visible';
+      document.getElementById('sync-btn').style.display = 'inline-flex';
+
+      // Bind global sync to first project
+      document.getElementById('sync-btn').onclick = () => syncProject(_projects[0].id);
+
+      // Run all data loads in parallel
+      await Promise.all([
+        loadSkillsAndStats(),
+        loadNBA(),
+        loadGaps(),
+        renderProjects(),
+      ]);
+
+    } catch (err) {
+      hide(stateLoading);
+      show(stateError);
+      console.error('Dashboard load error:', err);
     }
-    await loadSkills();
+  }
 
-    window.viewSkillEvidence = async function(skillId, skillName) {
-        document.getElementById('evidence-explorer').style.display = 'block';
-        document.getElementById('evidence-explorer-title').innerText = `WHY THIS STATE? (${skillName})`;
-        const res = await fetch(`/api/skills/${skillId}/evidence`);
-        if (res.ok) {
-            const evidence = await res.json();
-            const list = document.getElementById('skill-evidence-items');
-            list.innerHTML = '';
-            evidence.forEach(e => {
-                const li = document.createElement('li');
-                li.innerHTML = `<strong>Type:</strong> ${e.type} | <strong>Quality:</strong> ${e.quality_score} | <strong>Freshness:</strong> ${e.freshness_weight}<br/>
-                                <strong>Source Reference:</strong> ${e.source_reference}<br/>
-                                <strong>Observation:</strong> ${e.raw_observation_text}`;
-                list.appendChild(li);
-            });
-        }
-    };
+  async function loadSkillsAndStats() {
+    _skills = await apiFetch('/api/skills').catch(() => []);
+    const gaps = await apiFetch('/api/gaps').catch(() => []);
 
-    // Load Gaps
-    async function loadGaps() {
-        const res = await fetch('/api/gaps');
-        if (res.ok) {
-            const gaps = await res.json();
-            const list = document.getElementById('gaps-list');
-            list.innerHTML = '';
-            if (gaps.length === 0) {
-                list.innerHTML = '<li>No skill gaps detected for your current Target Role.</li>';
-            } else {
-                gaps.forEach(g => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<strong>${g.skill}</strong><br/>
-                                    Current: ${g.actual_state}<br/>
-                                    Required: ${g.required_state}<br/>
-                                    Gap Distance: ${g.state_distance} levels<br/>
-                                    Importance: ${g.importance_weight}<br/>
-                                    Severity: ${g.severity}`;
-                    list.appendChild(li);
-                });
-            }
-        }
+    document.getElementById('stat-skills').textContent = _skills.length;
+    document.getElementById('stat-strong').textContent = _skills.filter(s => s.state === 'STRONG').length;
+    document.getElementById('stat-developing').textContent = _skills.filter(s => s.state === 'DEVELOPING').length;
+    document.getElementById('stat-gaps').textContent = gaps.length;
+
+    renderSkills();
+    renderEvidence();
+  }
+
+  function renderSkills() {
+    const list = document.getElementById('skills-list');
+    list.innerHTML = '';
+
+    if (_skills.length === 0) {
+      showEmptyState(list, 'No Skills Recorded', 'Synchronize a repository to generate engineering evidence and skill states.', '');
+      return;
     }
-    await loadGaps();
 
-    // Load Projects
-    async function loadProjects() {
-        const res = await fetch('/api/projects/');
-        if (res.ok) {
-            const projects = await res.json();
-            const list = document.getElementById('projects-list');
-            list.innerHTML = '';
-            if (projects.length === 0) {
-                list.innerHTML = '<li>No projects yet.</li>';
-            } else {
-                projects.forEach(p => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<a href="#" onclick="viewProject(${p.id}, '${p.name}'); return false;">${p.name}</a>`;
-                    list.appendChild(li);
-                });
-            }
-        }
-    }
-    await loadProjects();
-
-    // Fetch Repos
-    document.getElementById('fetch-repos-btn').addEventListener('click', async () => {
-        const container = document.getElementById('repos-container');
-        container.innerHTML = 'Fetching...';
-        const res = await fetch('/api/github/repositories');
-        if (res.ok) {
-            const repos = await res.json();
-            container.innerHTML = '';
-            repos.forEach(r => {
-                const div = document.createElement('div');
-                div.innerHTML = `<strong>${r.full_name}</strong> 
-                    <button onclick="createProject(${r.id}, '${r.name}')">Create Project</button>`;
-                container.appendChild(div);
-            });
-        } else {
-            const err = await res.json();
-            container.innerHTML = `<span style="color:red">${err.detail}</span>`;
-        }
+    _skills.slice(0, 8).forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'signal-item';
+      div.setAttribute('role', 'button');
+      div.setAttribute('tabindex', '0');
+      div.setAttribute('aria-label', `${s.skill_name} — ${s.state}. Click to explore evidence.`);
+      div.innerHTML = `
+        <div class="signal-item-left">
+          <div class="signal-skill-name">${s.skill_name}</div>
+        </div>
+        <div class="signal-item-right">
+          ${renderStateBadge(s.state)}
+          <svg class="signal-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      `;
+      div.addEventListener('click', () => openEvidenceExplorer(s.skill_id, s.skill_name, s.state));
+      div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openEvidenceExplorer(s.skill_id, s.skill_name, s.state); });
+      list.appendChild(div);
     });
+  }
 
-    window.createProject = async function(githubRepoId, name) {
-        const res = await fetch('/api/projects/', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({github_repo_id: githubRepoId, name: name})
-        });
-        if (res.ok) {
-            alert('Project created!');
-            await loadProjects();
-        } else {
-            alert('Failed to create project');
-        }
-    };
+  async function renderEvidence() {
+    const timeline = document.getElementById('evidence-timeline');
+    timeline.innerHTML = '<div class="skeleton skeleton-text skeleton-full" style="margin:8px;"></div>';
 
-    window.viewProject = async function(id, name) {
-        currentProjectId = id;
-        document.getElementById('project-detail-section').style.display = 'block';
-        document.getElementById('project-title').innerText = name + " Detail";
-        document.getElementById('sync-status').innerText = '';
-        await loadSnapshots(id);
-    };
-
-    async function loadSnapshots(projectId) {
-        const res = await fetch(`/api/projects/${projectId}/snapshots`);
-        if (res.ok) {
-            const snaps = await res.json();
-            const list = document.getElementById('snapshot-history');
-            list.innerHTML = '';
-            snaps.forEach(s => {
-                const li = document.createElement('li');
-                li.innerHTML = `Snapshot at ${new Date(s.captured_at).toLocaleString()} - ${s.status} 
-                    <button onclick="viewSnapshot(${s.id})">View Details</button>`;
-                list.appendChild(li);
-            });
-            if (snaps.length > 0) {
-                // Auto view latest
-                viewSnapshot(snaps[0].id);
-            } else {
-                document.getElementById('latest-artifacts').innerHTML = 'No artifacts';
-                document.getElementById('raw-observations').innerHTML = 'No observations';
-            }
-        }
+    // Collect evidence from all skills
+    let allEvidence = [];
+    for (const s of _skills) {
+      try {
+        const evs = await apiFetch(`/api/skills/${s.skill_id}/evidence`);
+        evs.forEach(e => { e._skill_name = s.skill_name; });
+        allEvidence = allEvidence.concat(evs);
+      } catch {}
     }
 
-    document.getElementById('sync-project-btn').addEventListener('click', async () => {
-        if (!currentProjectId) return;
-        document.getElementById('sync-status').innerText = 'Syncing... Please wait.';
-        const res = await fetch(`/api/projects/${currentProjectId}/sync`, {method: 'POST'});
-        if (res.ok) {
-            document.getElementById('sync-status').innerText = 'Sync complete!';
-            await loadSnapshots(currentProjectId);
-        } else {
-            const err = await res.json();
-            document.getElementById('sync-status').innerText = `Error: ${err.detail}`;
-        }
-    });
+    allEvidence.sort((a, b) => b.id - a.id);
+    const recent = allEvidence.slice(0, 8);
+    timeline.innerHTML = '';
 
-    window.viewSnapshot = async function(snapId) {
-        // Load artifacts
-        const aRes = await fetch(`/api/snapshots/${snapId}/artifacts`);
-        if (aRes.ok) {
-            const artifacts = await aRes.json();
-            const aList = document.getElementById('latest-artifacts');
-            aList.innerHTML = '';
-            artifacts.forEach(a => {
-                const li = document.createElement('li');
-                li.innerText = `${a.file_path} (${a.type})`;
-                aList.appendChild(li);
-            });
+    if (recent.length === 0) {
+      showEmptyState(timeline, 'No Evidence Yet', 'Evidence will appear here after syncing a repository.', '');
+      return;
+    }
+
+    recent.forEach(e => {
+      const item = document.createElement('div');
+      item.className = 'timeline-item';
+      const path = (e.source_reference || '').split(/[\/\\]/).pop() || e.source_reference;
+      item.innerHTML = `
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-text">${e.raw_observation_text || '–'}</div>
+          <div class="timeline-meta">
+            <span class="badge badge-type">${e.type || '–'}</span>
+            <span class="timeline-meta-item mono">${path || '–'}</span>
+          </div>
+        </div>
+      `;
+      timeline.appendChild(item);
+    });
+  }
+
+  async function loadNBA() {
+    const nbaLoading = document.getElementById('nba-loading');
+    const nbaEmpty = document.getElementById('nba-empty');
+    const nbaCard = document.getElementById('nba-card');
+
+    try {
+      _nbaData = await apiFetch('/api/next-best-action');
+      hide(nbaLoading);
+      show(nbaCard);
+      renderNBACard(_nbaData);
+    } catch (err) {
+      hide(nbaLoading);
+      if (err.status === 404) {
+        show(nbaEmpty);
+      } else {
+        document.getElementById('section-nba').innerHTML = '';
+      }
+    }
+  }
+
+  function renderNBACard(nba) {
+    document.getElementById('nba-title').textContent = nba.title || '–';
+    document.getElementById('nba-skill-badge').textContent = nba.target_skill || '–';
+
+    const currentState = nba.current_state || '–';
+    const requiredState = nba.required_state || '–';
+    document.getElementById('nba-transition').textContent = `${currentState} → ${requiredState}`;
+
+    // Why this
+    const why = nba.traceability?.why_this_action || `This addresses a gap in ${nba.target_skill}.`;
+    document.getElementById('nba-why').textContent = why;
+
+    // Project context
+    const projCtx = nba.traceability?.why_this_project;
+    if (projCtx) {
+      const projEl = document.getElementById('nba-project-context');
+      projEl.textContent = projCtx;
+      projEl.classList.remove('hidden');
+    }
+
+    // Traceability grid
+    const t = nba.traceability || {};
+    const traces = [
+      { label: 'Gap Severity', value: t.gap_severity != null ? t.gap_severity.toFixed(2) : '–' },
+      { label: 'Evidence Potential', value: t.evidence_potential != null ? t.evidence_potential.toFixed(2) : '–' },
+      { label: 'Effort', value: nba.effort != null ? `${nba.effort}/5` : '–' },
+      { label: 'Priority Score', value: nba.priority_score != null ? nba.priority_score.toFixed(3) : '–' },
+    ];
+    const traceGrid = document.getElementById('nba-traceability');
+    traceGrid.innerHTML = traces.map(tr => `
+      <div class="nba-trace-item">
+        <div class="nba-trace-label">${tr.label}</div>
+        <div class="nba-trace-value">${tr.value}</div>
+      </div>
+    `).join('');
+
+    // Store for action handlers
+    window._currentNbaKey = nba.action_key;
+    window._currentNbaProjectId = nba.project_id || null;
+  }
+
+  async function loadGaps() {
+    const tbody = document.getElementById('gaps-list');
+    try {
+      const gaps = await apiFetch('/api/gaps');
+      tbody.innerHTML = '';
+      if (gaps.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px;">No priority gaps — your skills match your target role requirements.</td></tr>`;
+        return;
+      }
+      gaps.slice(0, 6).forEach(g => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="cell-primary">${g.skill}</td>
+          <td>${renderStateBadge(g.actual_state)}</td>
+          <td>${renderStateBadge(g.required_state)}</td>
+          <td>${renderSeverityBadge(g.severity)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">Unable to load gaps.</td></tr>`;
+    }
+  }
+
+  async function renderProjects() {
+    const list = document.getElementById('projects-list');
+    list.innerHTML = '';
+
+    for (const p of _projects) {
+      let snapshotStatus = null;
+      let syncedAgo = 'Never';
+      let artifactCount = 0;
+      let observationCount = 0;
+      let evidenceCount = 0;
+
+      try {
+        const snaps = await apiFetch(`/api/projects/${p.id}/snapshots`);
+        if (snaps.length > 0) {
+          const snap = snaps[0];
+          snapshotStatus = snap.status;
+          syncedAgo = formatRelativeTime(snap.captured_at);
+          artifactCount = snap.artifact_count || 0;
+          observationCount = snap.observation_count || 0;
         }
-        
-        // Load observations
-        const oRes = await fetch(`/api/snapshots/${snapId}/observations`);
-        if (oRes.ok) {
-            const obs = await oRes.json();
-            const oList = document.getElementById('raw-observations');
-            oList.innerHTML = '';
-            obs.forEach(o => {
-                const li = document.createElement('li');
-                li.innerText = o.observation_text + (o.line_numbers ? ` (Line ${o.line_numbers})` : '');
-                oList.appendChild(li);
-            });
+      } catch {}
+
+      const isSynced = snapshotStatus === 'COMPLETED';
+      const isAnalyzing = snapshotStatus === 'ANALYZING';
+      const dotClass = isSynced ? 'synced' : isAnalyzing ? 'analyzing' : snapshotStatus === 'FAILED' ? 'error' : 'pending';
+      const statusLabel = isSynced ? 'Synced' : isAnalyzing ? 'Analyzing…' : snapshotStatus === 'FAILED' ? 'Sync Failed' : 'Not synced';
+
+      // Sync button updates header sync time on completion
+      const updateSyncTime = () => {
+        document.getElementById('sync-time-label').textContent = `Last synced ${formatRelativeTime(new Date())}`;
+        document.getElementById('sync-dot').className = 'status-dot synced';
+      };
+
+      const card = document.createElement('div');
+      card.className = 'project-card';
+      card.innerHTML = `
+        <div class="project-info">
+          <div class="project-name">${p.name}</div>
+          <div class="project-repo">github.com / ${p.name}</div>
+          <div class="project-counts">
+            <div class="project-count">
+              <div class="project-count-value">${artifactCount}</div>
+              <div class="project-count-label">Artifacts</div>
+            </div>
+            <div class="project-count">
+              <div class="project-count-value">${observationCount}</div>
+              <div class="project-count-label">Observations</div>
+            </div>
+          </div>
+        </div>
+        <div class="project-actions">
+          <div class="project-sync-status">
+            <span class="status-dot ${dotClass}"></span>
+            <span style="font-size:12px;color:var(--text-muted);">${statusLabel} · ${syncedAgo}</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="syncProject(${p.id})" id="sync-project-${p.id}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path></svg>
+            Sync
+          </button>
+        </div>
+      `;
+      list.appendChild(card);
+    }
+
+    // Update sync status header
+    if (_projects.length > 0) {
+      try {
+        const snaps = await apiFetch(`/api/projects/${_projects[0].id}/snapshots`);
+        if (snaps.length > 0 && snaps[0].captured_at) {
+          document.getElementById('sync-time-label').textContent = `Last synced ${formatRelativeTime(snaps[0].captured_at)}`;
+          const isSynced = snaps[0].status === 'COMPLETED';
+          document.getElementById('sync-dot').className = `status-dot ${isSynced ? 'synced' : ''}`;
+        } else {
+          document.getElementById('sync-time-label').textContent = 'Not yet synced';
         }
-        
-        // Load evidence
-        const eRes = await fetch(`/api/snapshots/${snapId}/evidence`);
-        if (eRes.ok) {
-            const evidence = await eRes.json();
-            const eList = document.getElementById('evidence-items');
-            eList.innerHTML = '';
-            evidence.forEach(e => {
-                const li = document.createElement('li');
-                const skillsText = e.skills.map(s => s.name).join(', ') || 'None';
-                li.innerHTML = `<strong>${e.type}</strong> - Quality: ${e.quality_score} | Freshness: ${e.freshness_weight}<br/>
-                                <small>Source: ${e.source_reference}</small><br/>
-                                <small>Skills: ${skillsText}</small>`;
-                eList.appendChild(li);
-            });
+      } catch {}
+    }
+  }
+
+  // ── Evidence Explorer ──────────────────────────────
+  window.openEvidenceExplorer = async function(skillId, skillName, state) {
+    document.getElementById('drawer-skill-name').textContent = skillName;
+    document.getElementById('drawer-state-badge').innerHTML = renderStateBadge(state);
+
+    const body = document.getElementById('evidence-drawer-body');
+    body.innerHTML = `
+      <div class="skeleton skeleton-text skeleton-full mb-4"></div>
+      <div class="skeleton skeleton-text skeleton-3-4 mb-4"></div>
+      <div class="skeleton skeleton-text skeleton-1-2"></div>
+    `;
+
+    openDrawer('evidence-explorer-drawer');
+
+    try {
+      const evidence = await apiFetch(`/api/skills/${skillId}/evidence`);
+      body.innerHTML = '';
+
+      if (evidence.length === 0) {
+        showEmptyState(body, 'No Evidence Available', `NEXUS has not yet recorded evidence for ${skillName}. Sync a repository to generate observations.`, '');
+        return;
+      }
+
+      // Evidence count summary
+      const summary = document.createElement('p');
+      summary.style.cssText = 'font-size:13px;color:var(--text-muted);margin-bottom:20px;';
+      summary.textContent = `${evidence.length} evidence signal${evidence.length !== 1 ? 's' : ''} contributing to this state.`;
+      body.appendChild(summary);
+
+      evidence.forEach(e => {
+        const item = document.createElement('div');
+        item.className = 'evidence-item';
+        const path = (e.source_reference || '').split(/[\/\\]/).pop() || e.source_reference;
+        item.innerHTML = `
+          <div class="evidence-item-text">${e.raw_observation_text || '–'}</div>
+          <div class="evidence-item-meta">
+            <span class="badge badge-type">${e.type || '–'}</span>
+            <code class="evidence-source">${path || '–'}</code>
+            <span class="evidence-score">Quality ${(e.quality_score || 0).toFixed(2)}</span>
+            <span class="evidence-score">Freshness ${(e.freshness_weight || 0).toFixed(2)}</span>
+          </div>
+        `;
+        body.appendChild(item);
+      });
+    } catch {
+      showError(body, 'Failed to Load Evidence', 'Unable to retrieve evidence details. Please try again.', null);
+    }
+  };
+
+  // ── Sync Project ───────────────────────────────────
+  window.syncProject = async function(projectId) {
+    const btn = document.getElementById('sync-project-' + projectId) || document.getElementById('sync-btn');
+    const originalHtml = btn?.innerHTML;
+    if (btn) { btn.classList.add('btn-loading'); btn.disabled = true; }
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/sync`, { method: 'POST' });
+      if (res.ok) {
+        showToast('Repository synchronized successfully.', 'success');
+        setTimeout(() => window.location.reload(), 1200);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 400 && data.detail?.includes('GitHub username')) {
+          showToast('Set your GitHub username in Profile first.', 'warning');
+        } else if (res.status === 429) {
+          showToast('GitHub rate limit reached. Try again in a few minutes.', 'warning');
+        } else {
+          showToast('Sync failed. Check your GitHub username and try again.', 'error');
         }
-    };
-});
+        if (btn) { btn.classList.remove('btn-loading'); btn.disabled = false; if (originalHtml) btn.innerHTML = originalHtml; }
+      }
+    } catch {
+      showToast('Network error. Check your connection.', 'error');
+      if (btn) { btn.classList.remove('btn-loading'); btn.disabled = false; if (originalHtml) btn.innerHTML = originalHtml; }
+    }
+  };
+
+  // ── NBA Actions ────────────────────────────────────
+  window.handleNbaAction = async function(action) {
+    if (!window._currentNbaKey) return;
+
+    const btn = action === 'complete'
+      ? document.getElementById('nba-complete-btn')
+      : document.getElementById('nba-dismiss-btn');
+    if (btn) { btn.classList.add('btn-loading'); btn.disabled = true; }
+
+    try {
+      const endpoint = action === 'complete' ? '/api/next-best-action/complete' : '/api/next-best-action/dismiss';
+      await apiFetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action_key: window._currentNbaKey, project_id: window._currentNbaProjectId })
+      });
+
+      hide(document.getElementById('nba-card'));
+      show(document.getElementById('nba-confirmed'));
+
+      const msg = action === 'complete'
+        ? 'Action marked complete. Your skill state updates after the next synchronization.'
+        : 'Action dismissed. NEXUS will suggest the next most impactful action.';
+      document.getElementById('nba-confirmed-msg').textContent = msg;
+
+      showToast(action === 'complete' ? 'Action marked complete.' : 'Action dismissed.', 'success');
+    } catch (err) {
+      showToast('Failed to record action. Please try again.', 'error');
+      if (btn) { btn.classList.remove('btn-loading'); btn.disabled = false; }
+    }
+  };
+
+  // Boot
+  loadDashboard();
+})();
 </script>
 {% endblock %}

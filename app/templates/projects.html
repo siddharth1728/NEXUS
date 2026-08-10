@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Projects — NEXUS{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-eyebrow">Projects</div>
+      <h1 class="page-title">Connected Repositories</h1>
+      <p class="page-subtitle">Engineering work that NEXUS has analyzed for evidence.</p>
+    </div>
+    <div class="page-header-right">
+      <button class="btn btn-primary" id="connect-repo-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Connect Repository
+      </button>
+    </div>
+  </header>
+
+  <!-- Loading -->
+  <div id="projects-loading">
+    <div class="project-card" style="margin-bottom:12px;">
+      <div style="flex:1;">
+        <div class="skeleton skeleton-title" style="width:200px;margin-bottom:8px;"></div>
+        <div class="skeleton skeleton-text" style="width:140px;"></div>
+      </div>
+      <div class="skeleton" style="height:32px;width:80px;border-radius:6px;"></div>
+    </div>
+    <div class="project-card">
+      <div style="flex:1;">
+        <div class="skeleton skeleton-title" style="width:160px;margin-bottom:8px;"></div>
+        <div class="skeleton skeleton-text" style="width:120px;"></div>
+      </div>
+      <div class="skeleton" style="height:32px;width:80px;border-radius:6px;"></div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div id="projects-error" class="hidden">
+    <div class="error-state">
+      <div class="error-state-title">Unable to Load Projects</div>
+      <p class="error-state-desc">We couldn't retrieve your projects. Please try again.</p>
+      <button class="btn btn-secondary btn-sm" onclick="window.location.reload()">Try again</button>
+    </div>
+  </div>
+
+  <!-- Empty -->
+  <div id="projects-empty" class="hidden">
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"></path>
+        </svg>
+      </div>
+      <div class="empty-state-title">No Projects Connected</div>
+      <p class="empty-state-desc">
+        Connect a GitHub repository to let NEXUS analyze your engineering work.
+        Artifacts, observations, and evidence will appear after the first sync.
+      </p>
+      <button class="btn btn-primary" onclick="openConnectModal()">Connect Repository</button>
+    </div>
+  </div>
+
+  <!-- Projects list -->
+  <div id="projects-list" class="hidden"></div>
+
+</div><!-- /.page-container -->
+
+<!-- Connect Repository Modal -->
+<div class="modal-overlay" id="connect-modal" role="dialog" aria-modal="true" aria-labelledby="connect-modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="connect-modal-title">Connect Repository</div>
+      <button class="modal-close" onclick="closeModal('connect-modal')" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="connect-modal-body">
+      <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;line-height:1.5;">
+        NEXUS will fetch your public repositories from GitHub and let you choose which to analyze.
+      </p>
+      <div class="alert-banner alert-error hidden" id="connect-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        <span id="connect-error-text">Could not fetch repositories.</span>
+      </div>
+      <div id="repos-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('connect-modal')">Cancel</button>
+      <button class="btn btn-primary" id="fetch-repos-btn" onclick="fetchRepositories()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        Fetch Repositories
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  'use strict';
+
+  let _projects = [];
+
+  // Boot
+  async function loadProjects() {
+    const loading = document.getElementById('projects-loading');
+    const error = document.getElementById('projects-error');
+    const empty = document.getElementById('projects-empty');
+    const list = document.getElementById('projects-list');
+
+    try {
+      _projects = await apiFetch('/api/projects/');
+
+      loading.classList.add('hidden');
+
+      if (_projects.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      list.classList.remove('hidden');
+
+      for (const p of _projects) {
+        const card = await buildProjectCard(p);
+        list.appendChild(card);
+      }
+    } catch {
+      loading.classList.add('hidden');
+      error.classList.remove('hidden');
+    }
+  }
+
+  async function buildProjectCard(p) {
+    let snapshots = [];
+    let latestSnap = null;
+    let artifactCount = 0;
+    let observationCount = 0;
+
+    try {
+      snapshots = await apiFetch(`/api/projects/${p.id}/snapshots`);
+      if (snapshots.length > 0) {
+        latestSnap = snapshots[0];
+        artifactCount = latestSnap.artifact_count || 0;
+        observationCount = latestSnap.observation_count || 0;
+      }
+    } catch {}
+
+    const status = latestSnap?.status || null;
+    const syncedAgo = latestSnap?.captured_at ? formatRelativeTime(latestSnap.captured_at) : 'Never';
+    const dotClass = status === 'COMPLETED' ? 'synced' : status === 'ANALYZING' ? 'analyzing' : status === 'FAILED' ? 'error' : 'pending';
+    const statusLabel = status === 'COMPLETED' ? 'Synced' : status === 'ANALYZING' ? 'Analyzing…' : status === 'FAILED' ? 'Failed' : 'Not synced';
+
+    const div = document.createElement('div');
+    div.className = 'project-card';
+    div.innerHTML = `
+      <div class="project-info">
+        <div class="project-name">${p.name}</div>
+        <div class="project-repo" style="margin-bottom:16px;">github.com / ${p.name}</div>
+        <div class="project-counts">
+          <div class="project-count">
+            <div class="project-count-value">${artifactCount}</div>
+            <div class="project-count-label">Artifacts</div>
+          </div>
+          <div class="project-count">
+            <div class="project-count-value">${observationCount}</div>
+            <div class="project-count-label">Observations</div>
+          </div>
+          <div class="project-count">
+            <div class="project-count-value">${snapshots.length}</div>
+            <div class="project-count-label">Snapshots</div>
+          </div>
+        </div>
+      </div>
+      <div class="project-actions">
+        <div class="project-sync-status">
+          <span class="status-dot ${dotClass}"></span>
+          <span style="font-size:12px;color:var(--text-muted);">${statusLabel}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);">${syncedAgo}</div>
+        ${status === 'FAILED' ? `<div class="badge badge-severity-high" style="font-size:10px;">Sync failed</div>` : ''}
+        <button class="btn btn-secondary btn-sm" id="sync-btn-${p.id}" onclick="syncProject(${p.id})">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path></svg>
+          Sync
+        </button>
+      </div>
+    `;
+    return div;
+  }
+
+  window.openConnectModal = function() {
+    // Reset modal
+    document.getElementById('repos-list').innerHTML = '';
+    document.getElementById('connect-error').classList.add('hidden');
+    document.getElementById('fetch-repos-btn').style.display = 'inline-flex';
+    openModal('connect-modal');
+  };
+
+  document.getElementById('connect-repo-btn').addEventListener('click', window.openConnectModal);
+
+  window.fetchRepositories = async function() {
+    const btn = document.getElementById('fetch-repos-btn');
+    const errorBanner = document.getElementById('connect-error');
+    const errorText = document.getElementById('connect-error-text');
+    const reposList = document.getElementById('repos-list');
+
+    btn.classList.add('btn-loading');
+    btn.disabled = true;
+    errorBanner.classList.add('hidden');
+    reposList.innerHTML = `
+      <div class="skeleton skeleton-text skeleton-full" style="margin-bottom:8px;"></div>
+      <div class="skeleton skeleton-text skeleton-3-4" style="margin-bottom:8px;"></div>
+      <div class="skeleton skeleton-text skeleton-full"></div>
+    `;
+
+    try {
+      const repos = await apiFetch('/api/github/repositories');
+      btn.classList.remove('btn-loading');
+      btn.disabled = false;
+      btn.style.display = 'none';
+      reposList.innerHTML = '';
+
+      if (repos.length === 0) {
+        reposList.innerHTML = `<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:24px;">No public repositories found for your GitHub username.</p>`;
+        return;
+      }
+
+      // Filter out already-added projects
+      const addedIds = new Set(_projects.map(p => p.github_repo_id));
+
+      repos.forEach(r => {
+        const alreadyAdded = addedIds.has(r.id);
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--border-subtle);';
+        row.innerHTML = `
+          <div>
+            <div style="font-size:14px;font-weight:500;color:var(--text-primary);">${r.name}</div>
+            <div style="font-size:12px;color:var(--text-muted);">${r.full_name}</div>
+          </div>
+          ${alreadyAdded
+            ? `<span class="badge badge-strong" style="font-size:10px;">Added</span>`
+            : `<button class="btn btn-secondary btn-sm" onclick="addProject(${r.id}, '${r.name}', this)">Add</button>`
+          }
+        `;
+        reposList.appendChild(row);
+      });
+    } catch (err) {
+      btn.classList.remove('btn-loading');
+      btn.disabled = false;
+      reposList.innerHTML = '';
+      if (err.status === 400) {
+        errorText.textContent = 'Set your GitHub username in Profile before connecting repositories.';
+      } else {
+        errorText.textContent = 'Could not fetch repositories. Check your GitHub username in Profile.';
+      }
+      errorBanner.classList.remove('hidden');
+    }
+  };
+
+  window.addProject = async function(githubRepoId, name, btn) {
+    btn.classList.add('btn-loading');
+    btn.disabled = true;
+    try {
+      await apiFetch('/api/projects/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ github_repo_id: githubRepoId, name })
+      });
+      btn.classList.remove('btn-loading');
+      btn.outerHTML = `<span class="badge badge-strong" style="font-size:10px;">Added</span>`;
+      showToast(`${name} added. Sync it to generate evidence.`, 'success');
+
+      // Reload the projects list
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err) {
+      btn.classList.remove('btn-loading');
+      btn.disabled = false;
+      showToast(err.detail || 'Failed to add project. Please try again.', 'error');
+    }
+  };
+
+  window.syncProject = async function(projectId) {
+    const btn = document.getElementById('sync-btn-' + projectId);
+    if (btn) { btn.classList.add('btn-loading'); btn.disabled = true; }
+
+    try {
+      await apiFetch(`/api/projects/${projectId}/sync`, { method: 'POST' });
+      showToast('Repository synchronized successfully.', 'success');
+      setTimeout(() => window.location.reload(), 1200);
+    } catch (err) {
+      if (err.status === 400) {
+        showToast('Set your GitHub username in Profile first.', 'warning');
+      } else if (err.status === 429) {
+        showToast('GitHub rate limit reached. Try again in a few minutes.', 'warning');
+      } else {
+        showToast('Sync failed. Please try again.', 'error');
+      }
+      if (btn) { btn.classList.remove('btn-loading'); btn.disabled = false; }
+    }
+  };
+
+  loadProjects();
+})();
+</script>
+{% endblock %}

@@ -1,32 +1,256 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}NEXUS{% endblock %}</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <!-- CSRF Token for JavaScript fetches -->
-    <meta name="csrf-token" content="{{ csrf_token }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}NEXUS{% endblock %}</title>
+  <meta name="description" content="Evidence-driven engineering intelligence platform.">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/static/css/style.css">
+  {% block head %}{% endblock %}
 </head>
 <body>
-    <nav class="sidebar">
-        <div class="logo">NEXUS</div>
-        <ul class="nav-links">
-            <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/profile">Profile</a></li>
-            <!-- Placeholders for future phases -->
-            <li class="disabled"><a href="#" title="Coming in Phase 2">Evidence</a></li>
-            <li class="disabled"><a href="#" title="Coming in Phase 2">Projects</a></li>
-            <li class="disabled"><a href="#" title="Coming in Phase 2">Skills Graph</a></li>
-        </ul>
-        <div class="nav-footer">
-            <button id="logout-btn">Logout</button>
+
+<div class="app-shell">
+
+  <!-- ══════════════════════════════════════════════════
+       DESKTOP SIDEBAR — hidden on mobile via CSS
+       ══════════════════════════════════════════════════ -->
+  <nav class="sidebar" aria-label="Main navigation">
+
+    <!-- Brand -->
+    <div class="sidebar-header">
+      <a href="/dashboard" class="sidebar-brand" aria-label="NEXUS home">
+        <span class="sidebar-wordmark">NEXUS</span>
+        <span class="sidebar-descriptor">Engineering Intelligence</span>
+      </a>
+    </div>
+
+    <!-- Nav -->
+    <div class="sidebar-nav">
+      <div class="nav-group">
+        <span class="nav-group-label">Overview</span>
+
+        <a href="/dashboard"
+           class="nav-item{% if request.url.path in ['/dashboard', '/'] %} active{% endif %}">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </span>
+          Overview
+        </a>
+
+        <a href="/evidence"
+           class="nav-item{% if request.url.path == '/evidence' %} active{% endif %}">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+          </span>
+          Evidence
+        </a>
+
+        <a href="/projects"
+           class="nav-item{% if request.url.path == '/projects' %} active{% endif %}">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"></path>
+            </svg>
+          </span>
+          Projects
+        </a>
+
+        <a href="/skills"
+           class="nav-item{% if request.url.path == '/skills' %} active{% endif %}">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </span>
+          Skills
+        </a>
+
+        <a href="/gaps"
+           class="nav-item{% if request.url.path == '/gaps' %} active{% endif %}">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </span>
+          Gaps
+        </a>
+      </div>
+
+      <div class="nav-divider" role="separator"></div>
+
+      <div class="nav-group">
+        <span class="nav-group-label">Account</span>
+
+        <a href="/profile"
+           class="nav-item{% if request.url.path == '/profile' %} active{% endif %}">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </span>
+          Profile
+        </a>
+
+        <a href="/settings"
+           class="nav-item{% if request.url.path == '/settings' %} active{% endif %}">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="4" y1="6" x2="20" y2="6"></line>
+              <line x1="4" y1="12" x2="20" y2="12"></line>
+              <line x1="4" y1="18" x2="20" y2="18"></line>
+            </svg>
+          </span>
+          Settings
+        </a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebar-user-avatar" aria-hidden="true">–</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebar-user-name">Loading…</div>
+          <div class="user-email" id="sidebar-user-email"></div>
         </div>
-    </nav>
-    <main class="content">
-        {% block content %}{% endblock %}
-    </main>
-    <script src="/static/js/main.js"></script>
-    {% block scripts %}{% endblock %}
+      </div>
+      <button class="logout-btn" data-action="logout" aria-label="Log out of NEXUS">
+        <span class="logout-btn-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </span>
+        Log out
+      </button>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════
+       MOBILE TOPBAR — display:none on desktop,
+       display:flex on ≤768px (set in media query)
+       ══════════════════════════════════════════════════ -->
+  <div class="mobile-topbar" id="mobile-topbar" aria-label="Mobile header">
+    <span class="mobile-brand">NEXUS</span>
+    <button class="mobile-hamburger" id="mobile-hamburger"
+            aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav-drawer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ── MAIN CONTENT AREA ───────────────────────────── -->
+  <main class="main-content" id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+</div><!-- /.app-shell -->
+
+<!-- ══════════════════════════════════════════════════════
+     MOBILE NAV OVERLAY + DRAWER
+     Outside app-shell so they don't affect flex layout.
+     Both are position:fixed.
+     ══════════════════════════════════════════════════════ -->
+<div class="mobile-nav-overlay" id="mobile-nav-overlay" aria-hidden="true"></div>
+
+<nav class="mobile-nav-drawer" id="mobile-nav-drawer"
+     role="dialog" aria-label="Mobile navigation" aria-modal="true">
+  <div class="mobile-nav-header">
+    <span class="mobile-brand">NEXUS</span>
+    <button class="mobile-hamburger" id="mobile-nav-close" aria-label="Close navigation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+  <div class="mobile-nav-body">
+    <div class="nav-group">
+      <span class="nav-group-label">Overview</span>
+      <a href="/dashboard" class="nav-item{% if request.url.path in ['/dashboard', '/'] %} active{% endif %}">Overview</a>
+      <a href="/evidence"  class="nav-item{% if request.url.path == '/evidence' %} active{% endif %}">Evidence</a>
+      <a href="/projects"  class="nav-item{% if request.url.path == '/projects' %} active{% endif %}">Projects</a>
+      <a href="/skills"    class="nav-item{% if request.url.path == '/skills' %} active{% endif %}">Skills</a>
+      <a href="/gaps"      class="nav-item{% if request.url.path == '/gaps' %} active{% endif %}">Gaps</a>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">Account</span>
+      <a href="/profile"   class="nav-item{% if request.url.path == '/profile' %} active{% endif %}">Profile</a>
+      <a href="/settings"  class="nav-item{% if request.url.path == '/settings' %} active{% endif %}">Settings</a>
+    </div>
+  </div>
+  <div class="mobile-nav-footer">
+    <button class="logout-btn" data-action="logout" aria-label="Log out">
+      <span class="logout-btn-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </span>
+      Log out
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════
+     EVIDENCE EXPLORER DRAWER (global, right-side)
+     ══════════════════════════════════════════════════════ -->
+<div class="drawer-overlay" id="drawer-overlay" aria-hidden="true"></div>
+
+<aside class="drawer" id="evidence-explorer-drawer"
+       role="dialog" aria-modal="true" aria-labelledby="drawer-skill-name">
+  <div class="drawer-header">
+    <div class="drawer-title-area">
+      <div class="drawer-eyebrow">WHY THIS STATE?</div>
+      <div class="drawer-title" id="drawer-skill-name">–</div>
+      <div class="drawer-state" id="drawer-state-badge"></div>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer('evidence-explorer-drawer')"
+            aria-label="Close evidence explorer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="evidence-drawer-body">
+    <!-- populated by openEvidenceExplorer() in JS -->
+  </div>
+  <div class="drawer-footer">
+    <p style="font-size:11px; color:var(--text-muted); line-height:1.5;">
+      Skill state is derived from available engineering evidence.
+      It reflects what NEXUS has observed — not your absolute ability.
+    </p>
+  </div>
+</aside>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+<script src="/static/js/main.js"></script>
+{% block scripts %}{% endblock %}
+
 </body>
 </html>

@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Evidence — NEXUS{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-eyebrow">Engineering Evidence</div>
+      <h1 class="page-title">Evidence</h1>
+      <p class="page-subtitle">Technical signals extracted from your connected engineering work. Click any skill to understand why it has its current state.</p>
+    </div>
+  </header>
+
+  <!-- Summary stats bar -->
+  <div class="stats-row" id="evidence-stats" style="margin-bottom:var(--space-6);">
+    <div class="stat-chip"><div class="stat-value" id="stat-total">–</div><div class="stat-label">Evidence Signals</div></div>
+    <div class="stat-chip"><div class="stat-value" id="stat-skills-observed">–</div><div class="stat-label">Skills Observed</div></div>
+    <div class="stat-chip"><div class="stat-value" id="stat-projects-stat">–</div><div class="stat-label">Projects</div></div>
+  </div>
+
+  <!-- Filter row -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap;" role="group" aria-label="Filter by evidence type">
+    <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-right:4px;">Filter:</span>
+    <button class="btn btn-secondary btn-sm filter-type-btn active" data-type="ALL" onclick="filterByType('ALL')">All</button>
+    <div id="type-filter-btns" style="display:contents;"></div>
+  </div>
+
+  <!-- Loading -->
+  <div id="evidence-loading">
+    <div class="card" style="padding:0;">
+      <table class="data-table">
+        <thead><tr><th>Observation</th><th>Type</th><th>Skill</th><th>Quality</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td colspan="5"><div class="skeleton skeleton-text skeleton-full" style="margin:8px 0;"></div></td></tr>
+          <tr><td colspan="5"><div class="skeleton skeleton-text skeleton-3-4" style="margin:8px 0;"></div></td></tr>
+          <tr><td colspan="5"><div class="skeleton skeleton-text skeleton-full" style="margin:8px 0;"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div id="evidence-error" class="hidden">
+    <div class="error-state">
+      <div class="error-state-title">Unable to Load Evidence</div>
+      <p class="error-state-desc">We couldn't retrieve your engineering evidence. Please try again.</p>
+      <button class="btn btn-secondary btn-sm" onclick="window.location.reload()">Try again</button>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div id="evidence-empty" class="hidden">
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+      </div>
+      <div class="empty-state-title">No Engineering Evidence Yet</div>
+      <p class="empty-state-desc">
+        Connect a GitHub repository and sync it.
+        NEXUS will analyze the engineering signals it can actually observe and record them here.
+      </p>
+      <a href="/projects" class="btn btn-primary">Connect Repository</a>
+    </div>
+  </div>
+
+  <!-- Evidence table -->
+  <div id="evidence-container" class="hidden">
+    <div class="card" style="padding:0;">
+      <div class="table-wrap">
+        <table class="data-table" aria-label="Engineering evidence">
+          <thead>
+            <tr>
+              <th style="min-width:240px;">Observation</th>
+              <th>Type</th>
+              <th>Skill</th>
+              <th>Quality</th>
+              <th style="min-width:160px;">Source</th>
+            </tr>
+          </thead>
+          <tbody id="evidence-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Show more -->
+    <div id="show-more-row" class="hidden" style="text-align:center;margin-top:16px;">
+      <button class="btn btn-ghost btn-sm" id="show-more-btn">Show more</button>
+    </div>
+  </div>
+
+</div><!-- /.page-container -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  'use strict';
+
+  let _allEvidence = [];  // flat list of {observation, type, skillName, quality, source, skillId, state}
+  let _allSkills = [];
+  let _currentType = 'ALL';
+  let _shownCount = 40;
+  const PAGE_SIZE = 40;
+
+  async function loadEvidence() {
+    const loading   = document.getElementById('evidence-loading');
+    const errorEl   = document.getElementById('evidence-error');
+    const emptyEl   = document.getElementById('evidence-empty');
+    const container = document.getElementById('evidence-container');
+
+    try {
+      // Get projects count
+      const projects = await apiFetch('/api/projects/').catch(() => []);
+
+      // Get skills
+      _allSkills = await apiFetch('/api/skills').catch(() => []);
+
+      // Gather evidence from all skills
+      for (const s of _allSkills) {
+        try {
+          const evs = await apiFetch(`/api/skills/${s.skill_id}/evidence`);
+          evs.forEach(function(e) {
+            _allEvidence.push({
+              observation: e.raw_observation_text || '–',
+              type:        e.type || '–',
+              skillId:     s.skill_id,
+              skillName:   s.skill_name,
+              state:       s.state,
+              quality:     e.quality_score || 0,
+              source:      e.source_reference || '–',
+              id:          e.id,
+            });
+          });
+        } catch {}
+      }
+
+      loading.classList.add('hidden');
+
+      if (_allEvidence.length === 0) {
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      // Stats
+      document.getElementById('stat-total').textContent = _allEvidence.length;
+      document.getElementById('stat-skills-observed').textContent = _allSkills.length;
+      document.getElementById('stat-projects-stat').textContent = projects.length;
+
+      // Build type filter buttons
+      const types = [...new Set(_allEvidence.map(e => e.type))].filter(t => t && t !== '–').sort();
+      const typeBar = document.getElementById('type-filter-btns');
+      types.forEach(function(t) {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-ghost btn-sm filter-type-btn';
+        btn.dataset.type = t;
+        btn.textContent = t;
+        btn.onclick = function() { filterByType(t); };
+        typeBar.appendChild(btn);
+      });
+
+      container.classList.remove('hidden');
+      renderTable(_allEvidence);
+
+    } catch (err) {
+      loading.classList.add('hidden');
+      errorEl.classList.remove('hidden');
+    }
+  }
+
+  function renderTable(evidence) {
+    const tbody = document.getElementById('evidence-tbody');
+    const showMoreRow = document.getElementById('show-more-row');
+    tbody.innerHTML = '';
+
+    const slice = evidence.slice(0, _shownCount);
+
+    if (slice.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px;">No evidence matches this filter.</td></tr>`;
+      showMoreRow.classList.add('hidden');
+      return;
+    }
+
+    slice.forEach(function(e) {
+      const srcFile = (e.source || '').split(/[\/\\]/).pop() || e.source;
+      const qualityPct = (e.quality * 100).toFixed(0) + '%';
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        `<td class="cell-primary" style="max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${e.observation}">${e.observation}</td>` +
+        `<td><span class="badge badge-type">${e.type}</span></td>` +
+        `<td>
+          <span class="signal-item" style="display:inline-flex;align-items:center;gap:6px;padding:0;border:none;background:none;cursor:pointer;"
+                onclick="openEvidenceExplorer('${e.skillId}','${e.skillName}','${e.state}')"
+                role="button" tabindex="0"
+                aria-label="Explore evidence for ${e.skillName}">
+            <span style="font-size:13px;color:var(--text-primary);font-weight:500;">${e.skillName}</span>
+            ${renderStateBadge(e.state)}
+          </span>
+        </td>` +
+        `<td style="font-size:12px;color:var(--text-secondary);">${qualityPct}</td>` +
+        `<td class="cell-mono" style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${e.source}">${srcFile}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    if (evidence.length > _shownCount) {
+      showMoreRow.classList.remove('hidden');
+      document.getElementById('show-more-btn').textContent = `Show more (${evidence.length - _shownCount} remaining)`;
+    } else {
+      showMoreRow.classList.add('hidden');
+    }
+  }
+
+  window.filterByType = function(type) {
+    _currentType = type;
+    _shownCount = PAGE_SIZE;
+
+    document.querySelectorAll('.filter-type-btn').forEach(function(btn) {
+      const isActive = btn.dataset.type === type;
+      btn.classList.toggle('btn-secondary', isActive);
+      btn.classList.toggle('active', isActive);
+      btn.classList.toggle('btn-ghost', !isActive);
+    });
+
+    const filtered = type === 'ALL' ? _allEvidence : _allEvidence.filter(e => e.type === type);
+    renderTable(filtered);
+  };
+
+  document.getElementById('show-more-btn').addEventListener('click', function() {
+    _shownCount += PAGE_SIZE;
+    const filtered = _currentType === 'ALL' ? _allEvidence : _allEvidence.filter(e => e.type === _currentType);
+    renderTable(filtered);
+  });
+
+  loadEvidence();
+})();
+</script>
+{% endblock %}

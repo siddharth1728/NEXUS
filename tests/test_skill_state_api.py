@@ -3,6 +3,9 @@ from app.models.taxonomy import Skill
 from app.models.user import UserSkill, SkillState
 
 def test_get_user_skills(auth_client, db_session, test_user):
+    db_session.query(UserSkill).filter(UserSkill.user_id == test_user.id).delete()
+    db_session.commit()
+    
     skill = Skill(name="ApiTestSkill", category="Test")
     db_session.add(skill)
     db_session.commit()

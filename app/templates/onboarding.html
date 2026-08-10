@@ -1,24 +1,258 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Up Your Profile — NEXUS</title>
+  <meta name="description" content="Set up your NEXUS engineering profile.">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
 
-{% block title %}Onboarding | NEXUS{% endblock %}
+<div class="onboarding-root">
 
-{% block content %}
-<div class="onboarding-container">
-    <h2>Complete Your Profile</h2>
-    <form id="onboarding-form">
-        <div class="form-group">
-            <label for="target_role">Target Role</label>
-            <select id="target_role" required>
-                <option value="">Select a role...</option>
-                <option value="1">Backend Engineer</option>
-            </select>
+  <a href="/dashboard" class="onboarding-brand" aria-label="NEXUS">NEXUS</a>
+
+  <!-- Step indicator -->
+  <div class="onboarding-steps" role="tablist" aria-label="Onboarding steps">
+    <div class="onboarding-step-dot">
+      <div class="step-num active" id="step-num-1" role="tab" aria-selected="true">01</div>
+    </div>
+    <div class="step-connector" id="connector-1"></div>
+    <div class="onboarding-step-dot">
+      <div class="step-num" id="step-num-2" role="tab" aria-selected="false">02</div>
+    </div>
+    <div class="step-connector" id="connector-2"></div>
+    <div class="onboarding-step-dot">
+      <div class="step-num" id="step-num-3" role="tab" aria-selected="false">03</div>
+    </div>
+  </div>
+
+  <!-- Onboarding card -->
+  <div class="onboarding-card">
+
+    <!-- Error banner -->
+    <div class="alert-banner alert-error hidden" id="onboarding-error" role="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+      <span id="onboarding-error-text"></span>
+    </div>
+
+    <!-- Step 1: Target Role -->
+    <div class="onboarding-panel active" id="panel-1">
+      <div class="onboarding-step-title">Where are you headed?</div>
+      <p class="onboarding-step-desc">
+        NEXUS uses your target role to determine which skills matter most and identify gaps in your engineering profile.
+      </p>
+      <div class="form-group">
+        <label class="form-label" for="target-role">Target role</label>
+        <select class="form-select" id="target-role" required>
+          <option value="">Select a role…</option>
+          <option value="Backend Engineer">Backend Engineer</option>
+        </select>
+        <div class="form-error" id="target-role-error">Please select your target role.</div>
+      </div>
+    </div>
+
+    <!-- Step 2: GitHub Username -->
+    <div class="onboarding-panel" id="panel-2">
+      <div class="onboarding-step-title">Connect your engineering work.</div>
+      <p class="onboarding-step-desc">
+        NEXUS analyzes public repositories associated with your GitHub username. Your code is never stored.
+      </p>
+      <div class="form-group">
+        <label class="form-label" for="github-username">GitHub username</label>
+        <input
+          class="form-input"
+          type="text"
+          id="github-username"
+          placeholder="e.g. torvalds"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <div class="form-hint">Optional — you can add this later from your profile.</div>
+        <div class="form-error hidden" id="github-error">Please enter a valid GitHub username.</div>
+      </div>
+    </div>
+
+    <!-- Step 3: Final -->
+    <div class="onboarding-panel" id="panel-3">
+      <div class="onboarding-step-title">You're ready.</div>
+      <p class="onboarding-step-desc">
+        NEXUS will analyze your repositories when you connect them from the dashboard.
+        You'll see engineering evidence, skill states, and gaps immediately after the first sync.
+      </p>
+
+      <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:8px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">What happens next</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div style="width:20px;height:20px;border-radius:50%;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+              <span style="font-size:10px;font-weight:600;color:var(--accent);">1</span>
+            </div>
+            <span style="font-size:13px;color:var(--text-secondary);line-height:1.5;">Connect a GitHub repository from the dashboard</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div style="width:20px;height:20px;border-radius:50%;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+              <span style="font-size:10px;font-weight:600;color:var(--accent);">2</span>
+            </div>
+            <span style="font-size:13px;color:var(--text-secondary);line-height:1.5;">NEXUS observes and records engineering evidence</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div style="width:20px;height:20px;border-radius:50%;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+              <span style="font-size:10px;font-weight:600;color:var(--accent);">3</span>
+            </div>
+            <span style="font-size:13px;color:var(--text-secondary);line-height:1.5;">Skill states, gaps, and next best action appear</span>
+          </div>
         </div>
-        <div class="form-group">
-            <label for="github_username">GitHub Username (Optional)</label>
-            <input type="text" id="github_username">
-        </div>
-        <button type="submit">Complete Setup</button>
-        <p id="error-msg" class="error"></p>
-    </form>
-</div>
-{% endblock %}
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="onboarding-nav">
+      <button class="btn btn-ghost btn-sm" id="back-btn" style="visibility:hidden;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Back
+      </button>
+      <button class="btn btn-primary" id="next-btn">
+        Next
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    </div>
+  </div>
+
+</div><!-- /.onboarding-root -->
+
+<script src="/static/js/main.js"></script>
+<script>
+(function() {
+  let currentStep = 1;
+  const totalSteps = 3;
+
+  const errorBanner = document.getElementById('onboarding-error');
+  const errorText = document.getElementById('onboarding-error-text');
+
+  function showError(msg) {
+    errorText.textContent = msg;
+    errorBanner.classList.remove('hidden');
+  }
+  function clearError() { errorBanner.classList.add('hidden'); }
+
+  function updateStepUI(step) {
+    for (let i = 1; i <= totalSteps; i++) {
+      const num = document.getElementById('step-num-' + i);
+      num.classList.remove('active', 'done');
+      if (i < step) num.classList.add('done');
+      else if (i === step) num.classList.add('active');
+    }
+    for (let i = 1; i < totalSteps; i++) {
+      const conn = document.getElementById('connector-' + i);
+      if (conn) conn.classList.toggle('done', i < step);
+    }
+    // Panels
+    for (let i = 1; i <= totalSteps; i++) {
+      const panel = document.getElementById('panel-' + i);
+      panel.classList.toggle('active', i === step);
+    }
+    // Back button
+    const backBtn = document.getElementById('back-btn');
+    backBtn.style.visibility = step > 1 ? 'visible' : 'hidden';
+
+    // Next button text
+    const nextBtn = document.getElementById('next-btn');
+    if (step === totalSteps) {
+      nextBtn.innerHTML = `Build My Engineering Profile
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+    } else {
+      nextBtn.innerHTML = `Next
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+    }
+  }
+
+  async function saveAndFinish() {
+    const role = document.getElementById('target-role').value;
+    const github = document.getElementById('github-username').value.trim();
+
+    const nextBtn = document.getElementById('next-btn');
+    nextBtn.classList.add('btn-loading');
+    nextBtn.disabled = true;
+
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target_role: role || null,
+          github_username: github || null
+        })
+      });
+      if (res.ok) {
+        window.location.href = '/dashboard';
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showError(data.detail || 'Failed to save profile. Please try again.');
+        nextBtn.classList.remove('btn-loading');
+        nextBtn.disabled = false;
+      }
+    } catch {
+      showError('Unable to connect. Check your network and try again.');
+      nextBtn.classList.remove('btn-loading');
+      nextBtn.disabled = false;
+    }
+  }
+
+  document.getElementById('next-btn').addEventListener('click', () => {
+    clearError();
+    if (currentStep === 1) {
+      const role = document.getElementById('target-role').value;
+      if (!role) {
+        document.getElementById('target-role-error').classList.add('visible');
+        document.getElementById('target-role').classList.add('is-error');
+        return;
+      }
+      document.getElementById('target-role-error').classList.remove('visible');
+      document.getElementById('target-role').classList.remove('is-error');
+      currentStep = 2;
+      updateStepUI(currentStep);
+    } else if (currentStep === 2) {
+      currentStep = 3;
+      updateStepUI(currentStep);
+    } else if (currentStep === 3) {
+      saveAndFinish();
+    }
+  });
+
+  document.getElementById('back-btn').addEventListener('click', () => {
+    if (currentStep > 1) {
+      currentStep--;
+      updateStepUI(currentStep);
+    }
+  });
+
+  // Pre-fill if profile exists
+  (async () => {
+    try {
+      const profile = await apiFetch('/api/profile');
+      if (profile.target_role) {
+        const sel = document.getElementById('target-role');
+        sel.value = profile.target_role;
+        if (!sel.value) {
+          const opt = document.createElement('option');
+          opt.value = profile.target_role;
+          opt.textContent = profile.target_role;
+          sel.appendChild(opt);
+          sel.value = profile.target_role;
+        }
+      }
+      if (profile.github_username) {
+        document.getElementById('github-username').value = profile.github_username;
+      }
+    } catch {}
+  })();
+})();
+</script>
+</body>
+</html>

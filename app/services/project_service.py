@@ -115,10 +115,12 @@ async def sync_project(db: Session, project_id: int, user_id: int, github_userna
         if tree_data.get("truncated"):
             snapshot.error_message = "Warning: Repository tree was truncated by GitHub API. Analysis may be incomplete."
             
-        from app.services import evidence_engine, skill_state_engine
+        from app.services import evidence_engine, skill_state_engine, gap_engine, nba_engine
         evidence_engine.rebuild_snapshot_evidence(snapshot.id, db)
         skill_state_engine.recalculate_user_skills(project.user_id, db)
-            
+        gap_engine.recalculate_user_gaps(project.user_id, db)
+        nba_engine.recalculate_next_best_action(project.user_id, db)
+        
         snapshot.status = SnapshotStatus.COMPLETED
         db.commit()
         

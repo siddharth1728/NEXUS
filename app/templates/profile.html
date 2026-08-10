@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — NEXUS{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-eyebrow">Account</div>
+      <h1 class="page-title">Profile</h1>
+      <p class="page-subtitle">Your identity and engineering target. Changes here affect how NEXUS interprets your work.</p>
+    </div>
+  </header>
+
+  <!-- Save banner -->
+  <div class="alert-banner alert-success hidden" id="save-success" role="status">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span>Profile updated successfully.</span>
+  </div>
+
+  <div class="alert-banner alert-error hidden" id="save-error" role="alert">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+    <span id="save-error-text">Failed to save profile.</span>
+  </div>
+
+  <form id="profile-form" novalidate>
+
+    <!-- Section 1: Identity -->
+    <div class="form-section">
+      <div class="form-section-title">Identity</div>
+      <div class="form-section-desc">Your name and contact information.</div>
+
+      <div class="form-group">
+        <label class="form-label" for="name">Full name</label>
+        <input class="form-input" type="text" id="name" name="name"
+               placeholder="Your full name" autocomplete="name">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email address</label>
+        <input class="form-input" type="email" id="email" name="email"
+               placeholder="you@example.com" autocomplete="email">
+        <div class="form-hint">Used to log in. Contact support to change your email.</div>
+      </div>
+    </div>
+
+    <!-- Section 2: GitHub -->
+    <div class="form-section">
+      <div class="form-section-title">GitHub</div>
+      <div class="form-section-desc">
+        NEXUS analyzes public repositories associated with your GitHub username.
+        Your code is never stored.
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="github-username">GitHub username</label>
+        <input class="form-input" type="text" id="github-username" name="github_username"
+               placeholder="e.g. torvalds" autocomplete="off" spellcheck="false">
+        <div class="form-hint" id="github-hint">Used to discover and analyze your public repositories.</div>
+      </div>
+    </div>
+
+    <!-- Section 3: Target Role -->
+    <div class="form-section">
+      <div class="form-section-title">Target Role</div>
+      <div class="form-section-desc">
+        NEXUS uses this to determine which skills matter for your gap analysis and
+        next best action recommendations.
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="target-role">Target role</label>
+        <select class="form-select" id="target-role" name="target_role">
+          <option value="">Not set</option>
+          <option value="Backend Engineer">Backend Engineer</option>
+        </select>
+      </div>
+
+      <!-- Role requirements preview -->
+      <div id="role-requirements" class="hidden" style="margin-top:4px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Required skills for this role</div>
+        <div id="role-skills-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+    </div>
+
+    <!-- Save -->
+    <div style="display:flex;align-items:center;gap:12px;padding-top:var(--space-4);">
+      <button type="submit" class="btn btn-primary" id="save-btn">Save Changes</button>
+      <button type="button" class="btn btn-ghost" id="cancel-btn">Cancel</button>
+    </div>
+
+  </form>
+
+  <!-- Section 4: Danger Zone -->
+  <div style="margin-top:var(--space-10);padding-top:var(--space-8);border-top:1px solid var(--border);">
+    <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">Account</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:var(--space-5);">Session and security actions.</div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);">
+      <div>
+        <div style="font-size:14px;font-weight:500;color:var(--text-primary);margin-bottom:2px;">Log out</div>
+        <div style="font-size:12px;color:var(--text-muted);">End your current session.</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" data-action="logout">Log out</button>
+    </div>
+  </div>
+
+</div><!-- /.page-container -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  'use strict';
+
+  let _originalValues = {};
+
+  async function loadProfile() {
+    try {
+      const profile = await apiFetch('/api/profile');
+
+      const nameInput = document.getElementById('name');
+      const emailInput = document.getElementById('email');
+      const githubInput = document.getElementById('github-username');
+      const roleSelect = document.getElementById('target-role');
+
+      if (nameInput)   nameInput.value   = profile.name || '';
+      if (emailInput)  emailInput.value  = profile.email || '';
+      if (githubInput) githubInput.value = profile.github_username || '';
+
+      if (roleSelect && profile.target_role) {
+        // Try to select existing option
+        let found = false;
+        for (const opt of roleSelect.options) {
+          if (opt.value === profile.target_role) { opt.selected = true; found = true; break; }
+        }
+        if (!found) {
+          const opt = document.createElement('option');
+          opt.value = profile.target_role;
+          opt.textContent = profile.target_role;
+          opt.selected = true;
+          roleSelect.appendChild(opt);
+        }
+        loadRoleRequirements(profile.target_role);
+      }
+
+      // Capture original values for cancel
+      _originalValues = {
+        name: profile.name || '',
+        email: profile.email || '',
+        github_username: profile.github_username || '',
+        target_role: profile.target_role || '',
+      };
+
+      // Email field is read-only for now
+      if (emailInput) {
+        emailInput.readOnly = true;
+        emailInput.style.opacity = '0.6';
+        emailInput.style.cursor = 'not-allowed';
+      }
+
+    } catch (err) {
+      showToast('Could not load profile. Please refresh.', 'error');
+    }
+  }
+
+  async function loadRoleRequirements(role) {
+    if (!role) {
+      document.getElementById('role-requirements').classList.add('hidden');
+      return;
+    }
+
+    try {
+      const gaps = await apiFetch('/api/gaps').catch(() => []);
+      const skills = await apiFetch('/api/skills').catch(() => []);
+
+      // Show all skills that have a required_state (come from the role)
+      const roleSkills = skills.filter(s => s.skill_name);
+      const roleReqEl = document.getElementById('role-requirements');
+      const roleSkillsList = document.getElementById('role-skills-list');
+
+      if (skills.length === 0) {
+        roleReqEl.classList.add('hidden');
+        return;
+      }
+
+      roleSkillsList.innerHTML = skills.slice(0, 12).map(function(s) {
+        return `<span class="badge ${s.state === 'STRONG' ? 'badge-strong' : s.state === 'DEVELOPING' ? 'badge-developing' : s.state === 'WEAK' ? 'badge-weak' : 'badge-missing'}">${s.skill_name}</span>`;
+      }).join('');
+
+      roleReqEl.classList.remove('hidden');
+    } catch {}
+  }
+
+  // Role change
+  document.getElementById('target-role').addEventListener('change', function() {
+    loadRoleRequirements(this.value);
+  });
+
+  // Save
+  document.getElementById('profile-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const saveBtn = document.getElementById('save-btn');
+    const successBanner = document.getElementById('save-success');
+    const errorBanner = document.getElementById('save-error');
+    const errorText = document.getElementById('save-error-text');
+
+    successBanner.classList.add('hidden');
+    errorBanner.classList.add('hidden');
+
+    saveBtn.classList.add('btn-loading');
+    saveBtn.disabled = true;
+
+    const name = document.getElementById('name').value.trim();
+    const github_username = document.getElementById('github-username').value.trim();
+    const target_role = document.getElementById('target-role').value;
+
+    try {
+      await apiFetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name || null,
+          github_username: github_username || null,
+          target_role: target_role || null,
+        })
+      });
+
+      saveBtn.classList.remove('btn-loading');
+      saveBtn.disabled = false;
+      successBanner.classList.remove('hidden');
+
+      // Update sidebar name
+      const sidebarName = document.getElementById('sidebar-user-name');
+      if (sidebarName && name) sidebarName.textContent = name;
+
+      const sidebarAvatar = document.getElementById('sidebar-user-avatar');
+      if (sidebarAvatar && name) {
+        const initials = name.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase();
+        sidebarAvatar.textContent = initials;
+      }
+
+      setTimeout(function() { successBanner.classList.add('hidden'); }, 4000);
+    } catch (err) {
+      saveBtn.classList.remove('btn-loading');
+      saveBtn.disabled = false;
+      errorText.textContent = err.detail || 'Failed to save profile. Please try again.';
+      errorBanner.classList.remove('hidden');
+    }
+  });
+
+  // Cancel
+  document.getElementById('cancel-btn').addEventListener('click', function() {
+    document.getElementById('name').value           = _originalValues.name;
+    document.getElementById('github-username').value = _originalValues.github_username;
+    const sel = document.getElementById('target-role');
+    for (const opt of sel.options) {
+      if (opt.value === _originalValues.target_role) { opt.selected = true; break; }
+    }
+    document.getElementById('save-success').classList.add('hidden');
+    document.getElementById('save-error').classList.add('hidden');
+  });
+
+  loadProfile();
+})();
+</script>
+{% endblock %}

@@ -1,22 +1,232 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — NEXUS</title>
+  <meta name="description" content="Create your NEXUS engineering intelligence account.">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
 
-{% block title %}Register | NEXUS{% endblock %}
+<div class="auth-root">
 
-{% block content %}
-<div class="auth-container">
-    <h2>Join NEXUS</h2>
-    <form id="register-form">
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" required>
+  <!-- Left brand panel -->
+  <div class="auth-left">
+    <div class="auth-grid" aria-hidden="true"></div>
+    <div class="auth-left-content">
+      <div class="auth-brand">NEXUS</div>
+      <div class="auth-brand-descriptor">Engineering Intelligence</div>
+
+      <h1 class="auth-headline">Build your engineering profile from real work.</h1>
+      <p class="auth-desc">
+        Connect your GitHub repositories. NEXUS analyzes the engineering work you've actually built and gives you evidence-backed insight into what you've demonstrated.
+      </p>
+
+      <div style="display:flex;flex-direction:column;gap:16px;margin-top:8px;">
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;padding:16px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">The process</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="font-size:13px;color:var(--text-secondary);">01 — Connect GitHub</div>
+            <div style="font-size:13px;color:var(--text-secondary);">02 — NEXUS observes your repositories</div>
+            <div style="font-size:13px;color:var(--text-secondary);">03 — Evidence becomes skill states</div>
+            <div style="font-size:13px;color:var(--text-secondary);">04 — Gaps against your target role</div>
+            <div style="font-size:13px;color:var(--text-secondary);">05 — Next best action to improve</div>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right auth panel -->
+  <div class="auth-right">
+    <div>
+      <h2 class="auth-card-title">Build your engineering profile.</h2>
+      <p class="auth-card-subtitle">Connect the work you've already built and see what it demonstrates.</p>
+
+      <!-- Error banner -->
+      <div class="alert-banner alert-error hidden" id="register-error" role="alert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+        <span id="register-error-text">Registration failed. Please try again.</span>
+      </div>
+
+      <form id="register-form" novalidate>
         <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" minlength="8" required>
+          <label class="form-label" for="name">Full name</label>
+          <input
+            class="form-input"
+            type="text"
+            id="name"
+            name="name"
+            autocomplete="name"
+            placeholder="Your full name"
+            required
+          >
+          <div class="form-error" id="name-error">Please enter your full name.</div>
         </div>
-        <button type="submit">Register</button>
-        <p id="error-msg" class="error"></p>
-    </form>
-    <p>Already have an account? <a href="/login">Login</a></p>
-</div>
-{% endblock %}
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email address</label>
+          <input
+            class="form-input"
+            type="email"
+            id="email"
+            name="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            required
+          >
+          <div class="form-error" id="email-error">Please enter a valid email address.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input
+            class="form-input"
+            type="password"
+            id="password"
+            name="password"
+            autocomplete="new-password"
+            placeholder="At least 8 characters"
+            minlength="8"
+            required
+          >
+          <div class="form-error" id="password-error">Password must be at least 8 characters.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirm-password">Confirm password</label>
+          <input
+            class="form-input"
+            type="password"
+            id="confirm-password"
+            name="confirm-password"
+            autocomplete="new-password"
+            placeholder="Repeat your password"
+            required
+          >
+          <div class="form-error" id="confirm-error">Passwords do not match.</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full" id="submit-btn" style="margin-top:8px; justify-content:center;">
+          Create account
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Already have an account? <a href="/login">Sign in</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.auth-root -->
+
+<script src="/static/js/main.js"></script>
+<script>
+(function() {
+  const form = document.getElementById('register-form');
+  const btn = document.getElementById('submit-btn');
+  const errorBanner = document.getElementById('register-error');
+  const errorText = document.getElementById('register-error-text');
+
+  function showError(message) {
+    errorText.textContent = message;
+    errorBanner.classList.remove('hidden');
+    btn.classList.remove('btn-loading');
+    btn.disabled = false;
+    btn.textContent = 'Create account';
+  }
+
+  function clearError() { errorBanner.classList.add('hidden'); }
+
+  function setFieldError(id, show) {
+    const el = document.getElementById(id + '-error');
+    const input = document.getElementById(id === 'confirm' ? 'confirm-password' : id);
+    if (el) el.classList.toggle('visible', show);
+    if (input) input.classList.toggle('is-error', show);
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearError();
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm-password').value;
+
+    // Validation
+    let valid = true;
+
+    if (!name) { setFieldError('name', true); valid = false; }
+    else setFieldError('name', false);
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setFieldError('email', true); valid = false; }
+    else setFieldError('email', false);
+
+    if (!password || password.length < 8) { setFieldError('password', true); valid = false; }
+    else setFieldError('password', false);
+
+    if (!confirm || confirm !== password) { setFieldError('confirm', true); valid = false; }
+    else setFieldError('confirm', false);
+
+    if (!valid) return;
+
+    // Submit
+    btn.textContent = 'Creating account…';
+    btn.classList.add('btn-loading');
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+
+      if (res.ok) {
+        // Auto-login after registration
+        const loginRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        window.location.href = loginRes.ok ? '/onboarding' : '/login';
+      } else {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 409 || (data.detail && data.detail.toLowerCase().includes('exist'))) {
+          showError('An account with this email already exists. Sign in instead.');
+        } else {
+          showError(data.detail || 'Registration failed. Please try again.');
+        }
+      }
+    } catch {
+      showError('Unable to connect. Check your network and try again.');
+    }
+  });
+
+  // Live validation clear on input
+  ['name', 'email', 'password'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', () => setFieldError(id, false));
+  });
+  document.getElementById('confirm-password')?.addEventListener('input', () => setFieldError('confirm', false));
+
+  // Password match live check
+  document.getElementById('confirm-password')?.addEventListener('blur', () => {
+    const pw = document.getElementById('password').value;
+    const cp = document.getElementById('confirm-password').value;
+    if (cp && cp !== pw) setFieldError('confirm', true);
+    else setFieldError('confirm', false);
+  });
+})();
+</script>
+</body>
+</html>
