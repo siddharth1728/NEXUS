@@ -98,9 +98,18 @@ function showToast(message, type, duration) {
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.setAttribute('role', 'alert');
-  toast.innerHTML =
-    `<span class="toast-icon">${_TOAST_ICONS[type] || _TOAST_ICONS.info}</span>` +
-    `<span class="toast-text">${message}</span>`;
+
+  // Use controlled SVG for icon (static string only), textContent for message (XSS-safe)
+  const iconSpan = document.createElement('span');
+  iconSpan.className = 'toast-icon';
+  iconSpan.innerHTML = _TOAST_ICONS[type] || _TOAST_ICONS.info; // safe: only static SVG constants
+
+  const textSpan = document.createElement('span');
+  textSpan.className = 'toast-text';
+  textSpan.textContent = message; // safe: textContent never interprets HTML
+
+  toast.appendChild(iconSpan);
+  toast.appendChild(textSpan);
 
   const dismiss = function() {
     toast.classList.add('removing');
@@ -319,13 +328,33 @@ window.openEvidenceExplorer = async function(skillId, skillName, state) {
       item.className = 'evidence-item';
       const path = (e.source_reference || '').split(/[\/\\]/).pop() || e.source_reference || '–';
       const quality = ((e.quality_score || 0) * 100).toFixed(0);
-      item.innerHTML =
-        `<div class="evidence-item-text">${e.raw_observation_text || '–'}</div>` +
-        `<div class="evidence-item-meta">` +
-        `<span class="badge badge-type">${e.type || '–'}</span>` +
-        `<code class="evidence-source">${path}</code>` +
-        `<span class="evidence-score">Quality ${quality}%</span>` +
-        `</div>`;
+
+      // Use textContent for all server-derived values to prevent XSS
+      const textDiv = document.createElement('div');
+      textDiv.className = 'evidence-item-text';
+      textDiv.textContent = e.raw_observation_text || '–';
+
+      const metaDiv = document.createElement('div');
+      metaDiv.className = 'evidence-item-meta';
+
+      const typeBadge = document.createElement('span');
+      typeBadge.className = 'badge badge-type';
+      typeBadge.textContent = e.type || '–';
+
+      const sourceCode = document.createElement('code');
+      sourceCode.className = 'evidence-source';
+      sourceCode.textContent = path;
+
+      const scoreSpan = document.createElement('span');
+      scoreSpan.className = 'evidence-score';
+      scoreSpan.textContent = `Quality ${quality}%`;
+
+      metaDiv.appendChild(typeBadge);
+      metaDiv.appendChild(sourceCode);
+      metaDiv.appendChild(scoreSpan);
+
+      item.appendChild(textDiv);
+      item.appendChild(metaDiv);
       body.appendChild(item);
     });
   } catch (err) {
@@ -340,3 +369,5 @@ document.addEventListener('DOMContentLoaded', function() {
   _initSidebarUser();
   _initDrawerOverlay();
 });
+
+/* Note: showToast is fully defined above. No duplicate needed. */

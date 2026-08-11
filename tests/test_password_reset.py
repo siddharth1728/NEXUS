@@ -6,10 +6,21 @@ from app.core.security import get_password_hash, verify_password
 import secrets
 import hashlib
 
-def test_forgot_password_valid_email(client, csrf_token, test_user, db_session):
+@pytest.fixture
+def pw_test_user(db_session):
+    user = User(
+        email=f"pw_reset_{secrets.token_hex(4)}@example.com",
+        password_hash=get_password_hash("password123")
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+def test_forgot_password_valid_email(client, csrf_token, pw_test_user, db_session):
     response = client.post(
         "/api/auth/forgot-password",
-        json={"email": test_user.email},
+        json={"email": pw_test_user.email},
         headers={"X-CSRF-Token": csrf_token},
         cookies={"csrf_token": csrf_token}
     )
@@ -17,7 +28,7 @@ def test_forgot_password_valid_email(client, csrf_token, test_user, db_session):
     assert "If an account exists" in response.json()["message"]
     
     # Verify token was created
-    token = db_session.query(PasswordResetToken).filter(PasswordResetToken.user_id == test_user.id).first()
+    token = db_session.query(PasswordResetToken).filter(PasswordResetToken.user_id == pw_test_user.id).first()
     assert token is not None
     assert token.used_at is None
     # Token hash should not be in the response
@@ -34,24 +45,24 @@ def test_forgot_password_invalid_email(client, csrf_token):
     assert response.status_code == 200
     assert "If an account exists" in response.json()["message"]
 
-def test_forgot_password_no_token_leak(client, csrf_token, test_user):
+def test_forgot_password_no_token_leak(client, csrf_token, pw_test_user):
     response = client.post(
         "/api/auth/forgot-password",
-        json={"email": test_user.email},
+        json={"email": pw_test_user.email},
         headers={"X-CSRF-Token": csrf_token},
         cookies={"csrf_token": csrf_token}
     )
     assert "token=" not in response.text
 
-def test_reset_password_success_and_invalidates_sessions(client, csrf_token, db_session, test_user):
+def test_reset_password_success_and_invalidates_sessions(client, csrf_token, db_session, pw_test_user):
     # Setup: Create a refresh session
     client.post(
         "/api/auth/login",
-        json={"email": test_user.email, "password": "password123"},
+        json={"email": pw_test_user.email, "password": "password123"},
         headers={"X-CSRF-Token": csrf_token},
         cookies={"csrf_token": csrf_token}
     )
-    active_sessions = db_session.query(RefreshSession).filter(RefreshSession.user_id == test_user.id, RefreshSession.revoked_at == None).count()
+    active_sessions = db_session.query(RefreshSession).filter(RefreshSession.user_id == pw_test_user.id, RefreshSession.revoked_at == None).count()
     assert active_sessions > 0
     
     # Generate token directly
@@ -59,7 +70,7 @@ def test_reset_password_success_and_invalidates_sessions(client, csrf_token, db_
     token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
     
     reset_token = PasswordResetToken(
-        user_id=test_user.id,
+        user_id=pw_test_user.id,
         token_hash=token_hash,
         expires_at=datetime.utcnow() + timedelta(minutes=30)
     )
@@ -77,32 +88,32 @@ def test_reset_password_success_and_invalidates_sessions(client, csrf_token, db_
     assert response.status_code == 200
     
     # Verify password changed
-    db_session.refresh(test_user)
-    assert verify_password(new_password, test_user.password_hash)
+    db_session.refresh(pw_test_user)
+    assert verify_password(new_password, pw_test_user.password_hash)
     
     # Verify token used
     db_session.refresh(reset_token)
     assert reset_token.used_at is not None
     
     # Verify ALL refresh sessions are revoked
-    active_sessions = db_session.query(RefreshSession).filter(RefreshSession.user_id == test_user.id, RefreshSession.revoked_at == None).count()
+    active_sessions = db_session.query(RefreshSession).filter(RefreshSession.user_id == pw_test_user.id, RefreshSession.revoked_at == None).count()
     assert active_sessions == 0
     
     # Verify old password fails
     login_response = client.post(
         "/api/auth/login",
-        json={"email": test_user.email, "password": "password123"},
+        json={"email": pw_test_user.email, "password": "password123"},
         headers={"X-CSRF-Token": csrf_token},
         cookies={"csrf_token": csrf_token}
     )
     assert login_response.status_code == 401
 
-def test_reset_password_single_use(client, csrf_token, db_session, test_user):
+def test_reset_password_single_use(client, csrf_token, db_session, pw_test_user):
     raw_token = secrets.token_urlsafe(32)
     token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
     
     reset_token = PasswordResetToken(
-        user_id=test_user.id,
+        user_id=pw_test_user.id,
         token_hash=token_hash,
         expires_at=datetime.utcnow() + timedelta(minutes=30)
     )
@@ -128,13 +139,13 @@ def test_reset_password_single_use(client, csrf_token, db_session, test_user):
     assert response2.status_code == 400
     assert "already used" in response2.json()["detail"].lower()
 
-def test_reset_password_expired(client, csrf_token, db_session, test_user):
+def test_reset_password_expired(client, csrf_token, db_session, pw_test_user):
     raw_token = secrets.token_urlsafe(32)
     token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
     
     # Set expiration in the past
     reset_token = PasswordResetToken(
-        user_id=test_user.id,
+        user_id=pw_test_user.id,
         token_hash=token_hash,
         expires_at=datetime.utcnow() - timedelta(minutes=1)
     )
@@ -150,13 +161,13 @@ def test_reset_password_expired(client, csrf_token, db_session, test_user):
     assert response.status_code == 400
     assert "expired" in response.json()["detail"].lower()
 
-def test_reset_password_invalidates_other_outstanding(client, csrf_token, db_session, test_user):
+def test_reset_password_invalidates_other_outstanding(client, csrf_token, db_session, pw_test_user):
     # Token 1
     raw1 = secrets.token_urlsafe(32)
-    t1 = PasswordResetToken(user_id=test_user.id, token_hash=hashlib.sha256(raw1.encode()).hexdigest(), expires_at=datetime.utcnow() + timedelta(minutes=30))
+    t1 = PasswordResetToken(user_id=pw_test_user.id, token_hash=hashlib.sha256(raw1.encode()).hexdigest(), expires_at=datetime.utcnow() + timedelta(minutes=30))
     # Token 2
     raw2 = secrets.token_urlsafe(32)
-    t2 = PasswordResetToken(user_id=test_user.id, token_hash=hashlib.sha256(raw2.encode()).hexdigest(), expires_at=datetime.utcnow() + timedelta(minutes=30))
+    t2 = PasswordResetToken(user_id=pw_test_user.id, token_hash=hashlib.sha256(raw2.encode()).hexdigest(), expires_at=datetime.utcnow() + timedelta(minutes=30))
     
     db_session.add_all([t1, t2])
     db_session.commit()
@@ -192,12 +203,12 @@ def test_anonymous_csrf(client):
     )
     assert post_resp.status_code == 200
 
-def test_reset_password_short_password(client, csrf_token, db_session, test_user):
+def test_reset_password_short_password(client, csrf_token, db_session, pw_test_user):
     raw_token = secrets.token_urlsafe(32)
     token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
     
     reset_token = PasswordResetToken(
-        user_id=test_user.id,
+        user_id=pw_test_user.id,
         token_hash=token_hash,
         expires_at=datetime.utcnow() + timedelta(minutes=30)
     )

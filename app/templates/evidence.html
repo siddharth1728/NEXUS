@@ -70,28 +70,13 @@
     </div>
   </div>
 
-  <!-- Evidence table -->
+  <!-- Evidence Feed -->
   <div id="evidence-container" class="hidden">
-    <div class="card" style="padding:0;">
-      <div class="table-wrap">
-        <table class="data-table" aria-label="Engineering evidence">
-          <thead>
-            <tr>
-              <th style="min-width:240px;">Observation</th>
-              <th>Type</th>
-              <th>Skill</th>
-              <th>Quality</th>
-              <th style="min-width:160px;">Source</th>
-            </tr>
-          </thead>
-          <tbody id="evidence-tbody"></tbody>
-        </table>
-      </div>
-    </div>
+    <div id="evidence-feed" style="display: flex; flex-direction: column; gap: var(--space-4);"></div>
 
     <!-- Show more -->
-    <div id="show-more-row" class="hidden" style="text-align:center;margin-top:16px;">
-      <button class="btn btn-ghost btn-sm" id="show-more-btn">Show more</button>
+    <div id="show-more-row" class="hidden" style="text-align:center;margin-top:var(--space-6);">
+      <button class="btn btn-secondary btn-sm" id="show-more-btn">Load more evidence</button>
     </div>
   </div>
 
@@ -175,14 +160,14 @@
   }
 
   function renderTable(evidence) {
-    const tbody = document.getElementById('evidence-tbody');
+    const feed = document.getElementById('evidence-feed');
     const showMoreRow = document.getElementById('show-more-row');
-    tbody.innerHTML = '';
+    feed.innerHTML = '';
 
     const slice = evidence.slice(0, _shownCount);
 
     if (slice.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px;">No evidence matches this filter.</td></tr>`;
+      feed.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px;background:var(--bg-elevated);border-radius:var(--radius);border:1px solid var(--border);">No evidence matches this filter.</div>`;
       showMoreRow.classList.add('hidden');
       return;
     }
@@ -190,25 +175,36 @@
     slice.forEach(function(e) {
       const srcFile = (e.source || '').split(/[\/\\]/).pop() || e.source;
       const qualityPct = (e.quality * 100).toFixed(0) + '%';
-      const tr = document.createElement('tr');
-      tr.innerHTML =
-        `<td class="cell-primary" style="max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${e.observation}">${e.observation}</td>` +
-        `<td><span class="badge badge-type">${e.type}</span></td>` +
-        `<td>
-          <span class="signal-item" style="display:inline-flex;align-items:center;gap:6px;padding:0;border:none;background:none;cursor:pointer;"
-                onclick="openEvidenceExplorer('${e.skillId}','${e.skillName}','${e.state}')"
-                role="button" tabindex="0"
-                aria-label="Explore evidence for ${e.skillName}">
-            <span style="font-size:13px;color:var(--text-primary);font-weight:500;">${e.skillName}</span>
-            ${renderStateBadge(e.state)}
+      
+      const card = document.createElement('div');
+      card.style.cssText = 'background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-4); transition: border-color var(--transition-fast); cursor: pointer;';
+      card.onclick = () => openEvidenceExplorer(e.skillId, e.skillName, e.state);
+      
+      // Hover effect via JS
+      card.onmouseover = () => card.style.borderColor = 'var(--accent)';
+      card.onmouseout = () => card.style.borderColor = 'var(--border)';
+
+      card.innerHTML = `
+        <div style="font-size:15px; font-weight:500; color:var(--text-primary); margin-bottom:var(--space-3); line-height:1.5;">
+          ${e.observation}
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:var(--space-3); align-items:center; font-size:12px;">
+          <span class="badge badge-type" style="background:var(--bg-surface); border:1px solid var(--border);">${e.type}</span>
+          <span style="color:var(--text-secondary); display:flex; align-items:center; gap:4px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            ${e.skillName}
           </span>
-        </td>` +
-        `<td style="font-size:12px;color:var(--text-secondary);">${qualityPct}</td>` +
-        `<td class="cell-mono" style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${e.source}">${srcFile}</td>`;
-      tbody.appendChild(tr);
+          <span style="color:var(--text-muted); display:flex; align-items:center; gap:4px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"></path></svg>
+            ${srcFile}
+          </span>
+          <span style="color:var(--text-muted); margin-left:auto;">Signal Quality: ${qualityPct}</span>
+        </div>
+      `;
+      feed.appendChild(card);
     });
 
-    if (evidence.length > _shownCount) {
+    if (_shownCount < evidence.length) {
       showMoreRow.classList.remove('hidden');
       document.getElementById('show-more-btn').textContent = `Show more (${evidence.length - _shownCount} remaining)`;
     } else {

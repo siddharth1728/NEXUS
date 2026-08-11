@@ -117,59 +117,32 @@
       </div>
     </section>
 
-    <!-- TIER 3: Skills to Strengthen -->
-    <section class="section" id="section-gaps" style="margin-bottom:64px;">
+    <!-- SKILLS TO STRENGTHEN -->
+    <section class="section" id="section-skills-to-strengthen" style="margin-bottom:64px;">
       <div class="section-header">
         <div>
           <div class="section-label">SKILLS TO STRENGTHEN</div>
-          <div class="section-hint">What am I missing? (Gap analysis)</div>
+          <div class="section-hint">What am I missing?</div>
         </div>
-        <a href="/gaps" class="btn btn-ghost btn-sm">View all</a>
+        <a href="/gaps" class="btn btn-ghost btn-sm">View all gaps</a>
       </div>
 
-      <div class="card" style="padding:0;overflow:hidden;">
-        <div class="table-scroll overflow-x-auto">
-          <table class="data-table" aria-label="Skill gaps">
-            <thead>
-              <tr>
-                <th>Skill</th>
-                <th>Current</th>
-                <th>Required</th>
-                <th>Severity</th>
-              </tr>
-            </thead>
-            <tbody id="gaps-list">
-              <tr><td colspan="4"><div class="skeleton skeleton-text skeleton-full" style="margin:8px 0;"></div></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TIER 4: Your Next Step -->
-    <section class="section" id="section-nba" style="margin-bottom:64px;">
-      <div class="section-header">
-        <div>
-          <div class="section-label">YOUR NEXT STEP</div>
-          <div class="section-hint">What should I do?</div>
-        </div>
-      </div>
-
+      <!-- NBA Card inside Skills to Strengthen -->
       <div id="nba-loading">
-        <div class="nba-card">
+        <div class="nba-card" style="margin-bottom: 24px;">
           <div class="skeleton skeleton-title" style="width:160px;margin-bottom:12px;"></div>
           <div class="skeleton skeleton-text skeleton-full"></div>
         </div>
       </div>
 
       <div id="nba-empty" class="hidden">
-        <div class="empty-state">
+        <div class="empty-state" style="margin-bottom: 24px;">
           <div class="empty-state-title">No action available</div>
           <p class="empty-state-desc">Synchronize a repository to let NEXUS calculate your next best action based on gap analysis.</p>
         </div>
       </div>
 
-      <div id="nba-card" class="nba-card hidden">
+      <div id="nba-card" class="nba-card hidden" style="margin-bottom: 24px;">
         <div class="nba-header">
           <div>
             <div class="nba-eyebrow">Recommended Action</div>
@@ -192,61 +165,66 @@
         </div>
       </div>
       
-      <div id="nba-confirmed" class="hidden">
+      <div id="nba-confirmed" class="hidden" style="margin-bottom: 24px;">
         <div class="alert-banner alert-success" role="alert">
           <span id="nba-confirmed-msg">Action recorded. Your skill state will update after the next synchronization.</span>
         </div>
       </div>
-    </section>
 
-    <!-- TIER 5: Projects -->
-    <section class="section" id="section-projects" style="margin-bottom:64px;">
-      <div class="section-header">
-        <div>
-          <div class="section-label">PROJECTS</div>
-          <div class="section-hint">What did I build?</div>
+      <!-- Priority Gaps List -->
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="table-scroll overflow-x-auto">
+          <table class="data-table" aria-label="Skill gaps">
+            <thead>
+              <tr>
+                <th>Priority Gap</th>
+                <th>Current</th>
+                <th>Required</th>
+                <th>Severity</th>
+              </tr>
+            </thead>
+            <tbody id="gaps-list">
+              <tr><td colspan="4"><div class="skeleton skeleton-text skeleton-full" style="margin:8px 0;"></div></td></tr>
+            </tbody>
+          </table>
         </div>
-        <a href="/projects" class="btn btn-ghost btn-sm">Manage</a>
-      </div>
-      <div id="projects-list"></div>
-    </section>
-
-    <!-- TIER 6: What We Found -->
-    <section class="section" id="section-evidence" style="margin-bottom:64px;">
-      <div class="section-header">
-        <div>
-          <div class="section-label">WHAT WE FOUND</div>
-          <div class="section-hint">Why does NEXUS believe this? (Raw observations)</div>
-        </div>
-        <a href="/evidence" class="btn btn-ghost btn-sm">View all</a>
-      </div>
-      <div class="card" style="padding:0 8px;">
-        <div class="timeline" id="evidence-timeline"></div>
       </div>
     </section>
 
-    <!-- TIER 7: Trust Note -->
-    <section class="section" id="section-trust" style="margin-bottom:64px;">
+    <!-- ENGINEERING EVIDENCE -->
+    <section class="section" id="section-engineering-evidence" style="margin-bottom:64px;">
       <div class="section-header">
         <div>
-          <div class="section-label">HOW YOUR PROFILE IS BUILT</div>
-          <div class="section-hint">Understanding NEXUS analysis</div>
+          <div class="section-label">ENGINEERING EVIDENCE</div>
+          <div class="section-hint">What have I actually demonstrated?</div>
+        </div>
+        <div style="display:flex; gap: 8px;">
+          <a href="/projects" class="btn btn-ghost btn-sm">Projects</a>
+          <a href="/evidence" class="btn btn-ghost btn-sm">Timeline</a>
         </div>
       </div>
-      <div style="display:flex; flex-direction:column; gap: 16px; padding: 24px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius);">
-        <div style="display:flex; justify-content: space-between; align-items: center; max-width: 600px; color: var(--text-secondary); font-size: 13px; flex-wrap: wrap; gap:8px;">
-          <span>Your GitHub projects</span>
-          <span style="color: var(--border);">→</span>
-          <span>What we found</span>
-          <span style="color: var(--border);">→</span>
-          <span>Evidence</span>
-          <span style="color: var(--border);">→</span>
-          <span>Skill signals</span>
-          <span style="color: var(--border);">→</span>
-          <span style="color: var(--text-primary); font-weight: 500;">Your engineering profile</span>
+
+      <style>
+        @media (min-width: 900px) {
+          .evidence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+        }
+        @media (max-width: 899px) {
+          .evidence-grid { display: flex; flex-direction: column; gap: 24px; }
+        }
+      </style>
+      <div class="evidence-grid">
+        <!-- Left: Projects -->
+        <div>
+          <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px;">Source Repositories</div>
+          <div id="projects-list"></div>
         </div>
-        <div style="font-size: 14px; color: var(--text-muted); line-height: 1.6;">
-          NEXUS evaluates what you've demonstrated in your projects. It does not claim to measure your absolute engineering ability.
+
+        <!-- Right: Timeline -->
+        <div>
+          <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px;">Recent Observations</div>
+          <div class="card" style="padding:0 8px;">
+            <div class="timeline" id="evidence-timeline"></div>
+          </div>
         </div>
       </div>
     </section>

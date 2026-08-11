@@ -4,242 +4,265 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Account — NEXUS</title>
-  <meta name="description" content="Create your NEXUS engineering intelligence account.">
+  <meta name="description" content="Create a NEXUS engineering intelligence account.">
   <meta name="csrf-token" content="{{ csrf_token }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    /* Local styles specific to the form */
+    .form-group { margin-bottom: var(--space-4); }
+    .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: var(--space-2); }
+    .form-input {
+      width: 100%;
+      height: 40px;
+      padding: 0 var(--space-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      transition: all var(--transition-fast);
+      font-size: 14px;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .password-wrapper { position: relative; display: flex; align-items: center; }
+    .password-toggle {
+      position: absolute; right: 12px; background: none; border: none; color: var(--text-muted);
+      cursor: pointer; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+      transition: color var(--transition-fast);
+    }
+    .password-toggle:hover, .password-toggle:focus-visible { color: var(--text-primary); outline: none; }
+    .password-toggle:focus-visible { box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent); }
+    
+    .btn-full { width: 100%; height: 44px; display: flex; align-items: center; justify-content: center; margin-top: var(--space-6); font-size: 14px; gap: 8px; }
+    .btn-full svg { transition: transform var(--transition-fast); }
+    .btn-full:hover:not(:disabled) svg { transform: translateX(2px); }
+    
+    .form-meta { display: flex; justify-content: center; align-items: center; margin-top: var(--space-6); font-size: 13px; gap: 6px; }
+    .form-meta span { color: var(--text-secondary); }
+    .form-link-accent { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .form-link-accent:hover { text-decoration: underline; text-underline-offset: 4px; }
+    
+    .auth-error {
+      background: var(--severity-high-bg);
+      border: 1px solid rgba(230, 106, 91, 0.3);
+      border-radius: var(--radius-sm);
+      padding: var(--space-4);
+      margin-bottom: var(--space-6);
+      display: none;
+      gap: var(--space-3);
+      align-items: flex-start;
+    }
+    .auth-error.show { display: flex; }
+    .auth-error-icon { color: var(--severity-high); margin-top: 2px; flex-shrink: 0; }
+    .auth-error-title { font-size: 13px; font-weight: 600; color: #9F1239; margin-bottom: 2px; }
+    .auth-error-desc { font-size: 13px; color: #BE123C; line-height: 1.4; }
+  </style>
 </head>
 <body>
 
-<div class="auth-root">
-
-  <!-- Left brand panel -->
-  <div class="auth-left">
-    <div class="auth-grid" aria-hidden="true"></div>
-    <div class="auth-left-content">
-      <div class="auth-brand">NEXUS</div>
-      <div class="auth-brand-descriptor">Engineering Intelligence</div>
-
-      <h1 class="auth-headline" style="font-size: 40px; line-height: 1.1; margin-bottom: 24px;">BUILD PROOF.<br>NOT JUST A RESUME.</h1>
-      <p class="auth-desc" style="font-size: 16px; color: var(--text-secondary); max-width: 440px; margin-bottom: 48px;">
-        NEXUS analyzes the engineering work you've actually built and gives you evidence-backed insight into what you've demonstrated.
-      </p>
-
-      <div style="display:flex;flex-direction:column;gap:16px;">
-        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);padding-bottom:12px;width:280px;">HOW IT WORKS</div>
-        <div style="display:flex;flex-direction:column;gap:16px;">
-          <div style="display:flex; gap:12px; align-items:flex-start;">
-            <div style="color:var(--accent); font-weight:600; font-size:13px; margin-top:2px;">01</div>
-            <div style="font-size:14px;color:var(--text-primary); font-weight:500;">Connect GitHub</div>
-          </div>
-          <div style="display:flex; gap:12px; align-items:flex-start;">
-            <div style="color:var(--text-muted); font-weight:600; font-size:13px; margin-top:2px;">02</div>
-            <div style="font-size:14px;color:var(--text-secondary);">NEXUS observes your repositories</div>
-          </div>
-          <div style="display:flex; gap:12px; align-items:flex-start;">
-            <div style="color:var(--text-muted); font-weight:600; font-size:13px; margin-top:2px;">03</div>
-            <div style="font-size:14px;color:var(--text-secondary);">Evidence becomes skill states</div>
-          </div>
-          <div style="display:flex; gap:12px; align-items:flex-start;">
-            <div style="color:var(--text-muted); font-weight:600; font-size:13px; margin-top:2px;">04</div>
-            <div style="font-size:14px;color:var(--text-secondary);">Gaps against your target role</div>
-          </div>
-          <div style="display:flex; gap:12px; align-items:flex-start;">
-            <div style="color:var(--text-muted); font-weight:600; font-size:13px; margin-top:2px;">05</div>
-            <div style="font-size:14px;color:var(--text-secondary);">Next best action to improve</div>
-          </div>
-        </div>
+<div class="auth-split-layout">
+  
+  <div class="auth-split-left">
+    <div class="auth-split-brand">
+      <span>NEXUS</span>
+      <span style="font-size: 10px; color: var(--text-muted);">Engineering OS</span>
+    </div>
+    
+    <div class="auth-split-hero">
+      <h1>BUILD YOUR<br>ENGINEERING<br>PROFILE.</h1>
+      <p>Connect the work you've already built. NEXUS turns it into evidence you can understand.</p>
+      
+      <div class="auth-split-process" aria-hidden="true" style="margin-bottom: var(--space-10);">
+        <span>GitHub</span> <span style="color:var(--border);">→</span>
+        <span>Evidence</span> <span style="color:var(--border);">→</span>
+        <span>Skills</span> <span style="color:var(--border);">→</span>
+        <span class="active">Action</span>
       </div>
+      
+      <ul style="list-style: none; padding: 0; margin: 0; color: var(--text-secondary); font-size: 14px; font-weight: 500; line-height: 2;">
+        <li><span style="color: var(--accent); margin-right: 8px;">●</span> Real work</li>
+        <li><span style="color: var(--accent); margin-right: 8px;">●</span> Deterministic</li>
+        <li><span style="color: var(--accent); margin-right: 8px;">●</span> Explainable</li>
+      </ul>
     </div>
   </div>
+  
+  <div class="auth-split-right">
+    <div class="auth-form-container">
+      <h2 style="font-size: 24px; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-2); letter-spacing: -0.02em;">Create account</h2>
+      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--space-8);">Start building your engineering profile today.</p>
 
-  <!-- Right auth panel -->
-  <div class="auth-right">
-    <div>
-      <h2 class="auth-card-title">Build your engineering profile.</h2>
-      <p class="auth-card-subtitle">Connect the work you've already built and see what it demonstrates.</p>
-
-      <!-- Error banner -->
-      <div class="alert-banner alert-error hidden" id="register-error" role="alert">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <div id="register-error" class="auth-error" aria-live="assertive" role="alert">
+        <svg class="auth-error-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="10"></circle>
-          <line x1="15" y1="9" x2="9" y2="15"></line>
-          <line x1="9" y1="9" x2="15" y2="15"></line>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
-        <span id="register-error-text">Registration failed. Please try again.</span>
+        <div>
+          <div class="auth-error-title" id="register-error-title">Registration Failed</div>
+          <div class="auth-error-desc" id="register-error-message">Unable to create account.</div>
+        </div>
       </div>
 
       <form id="register-form" novalidate>
         <div class="form-group">
-          <label class="form-label" for="name">Full name</label>
-          <input
-            class="form-input"
-            type="text"
-            id="name"
-            name="name"
-            autocomplete="name"
-            placeholder="Your full name"
-            required
-          >
-          <div class="form-error" id="name-error">Please enter your full name.</div>
+          <label class="form-label" for="full_name">Full Name</label>
+          <input type="text" id="full_name" class="form-input" required autocomplete="name" spellcheck="false">
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="email">Email address</label>
-          <input
-            class="form-input"
-            type="email"
-            id="email"
-            name="email"
-            autocomplete="email"
-            placeholder="you@example.com"
-            required
-          >
-          <div class="form-error" id="email-error">Please enter a valid email address.</div>
+          <label class="form-label" for="email">Email</label>
+          <input type="email" id="email" class="form-input" required autocomplete="username" spellcheck="false">
         </div>
 
         <div class="form-group">
           <label class="form-label" for="password">Password</label>
-          <input
-            class="form-input"
-            type="password"
-            id="password"
-            name="password"
-            autocomplete="new-password"
-            placeholder="At least 8 characters"
-            minlength="8"
-            required
-          >
-          <div class="form-error" id="password-error">Password must be at least 8 characters.</div>
+          <div class="password-wrapper">
+            <input type="password" id="password" class="form-input" required autocomplete="new-password" style="padding-right: 40px;">
+            <button type="button" class="password-toggle" id="toggle-password" aria-label="Show password" aria-pressed="false">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="icon-eye">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="confirm-password">Confirm password</label>
-          <input
-            class="form-input"
-            type="password"
-            id="confirm-password"
-            name="confirm-password"
-            autocomplete="new-password"
-            placeholder="Repeat your password"
-            required
-          >
-          <div class="form-error" id="confirm-error">Passwords do not match.</div>
+          <label class="form-label" for="confirm_password">Confirm password</label>
+          <div class="password-wrapper">
+            <input type="password" id="confirm_password" class="form-input" required autocomplete="new-password" style="padding-right: 40px;">
+          </div>
         </div>
 
-        <button type="submit" class="btn btn-primary w-full" id="submit-btn" style="margin-top:8px; justify-content:center;">
+        <button type="submit" class="btn btn-primary btn-full" id="submit-btn">
           Create account
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
         </button>
       </form>
 
-      <div class="auth-footer">
-        Already have an account? <a href="/login">Sign in</a>
+      <div class="form-meta">
+        <span>Already have an account?</span>
+        <a href="/login" class="form-link-accent">Sign in</a>
       </div>
     </div>
   </div>
-
-</div><!-- /.auth-root -->
+  
+</div>
 
 <script src="/static/js/main.js"></script>
 <script>
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('register-form');
-  const btn = document.getElementById('submit-btn');
-  const errorBanner = document.getElementById('register-error');
-  const errorText = document.getElementById('register-error-text');
-
-  function showError(message) {
-    errorText.textContent = message;
-    errorBanner.classList.remove('hidden');
-    btn.classList.remove('btn-loading');
-    btn.disabled = false;
-    btn.textContent = 'Create account';
-  }
-
-  function clearError() { errorBanner.classList.add('hidden'); }
-
-  function setFieldError(id, show) {
-    const el = document.getElementById(id + '-error');
-    const input = document.getElementById(id === 'confirm' ? 'confirm-password' : id);
-    if (el) el.classList.toggle('visible', show);
-    if (input) input.classList.toggle('is-error', show);
-  }
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearError();
-
-    const name = document.getElementById('name').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const confirm = document.getElementById('confirm-password').value;
-
-    // Validation
-    let valid = true;
-
-    if (!name) { setFieldError('name', true); valid = false; }
-    else setFieldError('name', false);
-
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setFieldError('email', true); valid = false; }
-    else setFieldError('email', false);
-
-    if (!password || password.length < 8) { setFieldError('password', true); valid = false; }
-    else setFieldError('password', false);
-
-    if (!confirm || confirm !== password) { setFieldError('confirm', true); valid = false; }
-    else setFieldError('confirm', false);
-
-    if (!valid) return;
-
-    // Submit
-    btn.textContent = 'Creating account…';
-    btn.classList.add('btn-loading');
-    btn.disabled = true;
-
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-
-      if (res.ok) {
-        // Auto-login after registration
-        const loginRes = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        window.location.href = loginRes.ok ? '/onboarding' : '/login';
-      } else {
-        const data = await res.json().catch(() => ({}));
-        if (res.status === 409 || (data.detail && data.detail.toLowerCase().includes('exist'))) {
-          showError('An account with this email already exists. Sign in instead.');
-        } else {
-          showError(data.detail || 'Registration failed. Please try again.');
-        }
-      }
-    } catch {
-      showError('Unable to connect. Check your network and try again.');
+  const nameInput = document.getElementById('full_name');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const confirmPasswordInput = document.getElementById('confirm_password');
+  const submitBtn = document.getElementById('submit-btn');
+  
+  const errorContainer = document.getElementById('register-error');
+  const errorMessage = document.getElementById('register-error-message');
+  const errorTitle = document.getElementById('register-error-title');
+  const togglePasswordBtn = document.getElementById('toggle-password');
+  
+  // Password Visibility Toggle
+  togglePasswordBtn.addEventListener('click', function() {
+    const isPassword = passwordInput.type === 'password';
+    passwordInput.type = isPassword ? 'text' : 'password';
+    confirmPasswordInput.type = isPassword ? 'text' : 'password';
+    this.setAttribute('aria-pressed', isPassword);
+    this.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+    
+    if (isPassword) {
+      this.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+    } else {
+      this.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     }
   });
 
-  // Live validation clear on input
-  ['name', 'email', 'password'].forEach(id => {
-    document.getElementById(id)?.addEventListener('input', () => setFieldError(id, false));
-  });
-  document.getElementById('confirm-password')?.addEventListener('input', () => setFieldError('confirm', false));
+  const showError = (title, message) => {
+    errorTitle.textContent = title;
+    errorMessage.textContent = message;
+    errorContainer.classList.add('show');
+    submitBtn.classList.remove('btn-loading');
+    submitBtn.disabled = false;
+  };
 
-  // Password match live check
-  document.getElementById('confirm-password')?.addEventListener('blur', () => {
-    const pw = document.getElementById('password').value;
-    const cp = document.getElementById('confirm-password').value;
-    if (cp && cp !== pw) setFieldError('confirm', true);
-    else setFieldError('confirm', false);
+  const hideError = () => {
+    errorContainer.classList.remove('show');
+  };
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    hideError();
+
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    if (!name || !email || !password || !confirmPassword) {
+      showError("Incomplete fields", "Please fill out all fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showError("Passwords mismatch", "The passwords you entered do not match.");
+      return;
+    }
+
+    if (password.length < 8) {
+      showError("Weak password", "Password must be at least 8 characters long.");
+      return;
+    }
+
+    submitBtn.classList.add('btn-loading');
+    submitBtn.disabled = true;
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (response.ok) {
+        // Auto-login after registration
+        const loginRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken
+          },
+          body: JSON.stringify({ email, password })
+        });
+        if (loginRes.ok) {
+          window.location.href = '/onboarding';
+        } else {
+          window.location.href = '/login';
+        }
+      } else {
+        const data = await response.json();
+        showError("Registration Failed", data.detail || "Unable to create account.");
+      }
+    } catch (err) {
+      showError("Connection Error", "Unable to connect to the server. Please check your network and try again.");
+    }
   });
-})();
+});
 </script>
 </body>
 </html>

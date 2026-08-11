@@ -8,62 +8,65 @@
 /* ── 1. TOKENS ───────────────────────────────────────── */
 :root {
   /* Warm Ivory Palette */
-  --bg-base:       #F6F5F2; /* Canvas */
-  --bg-surface:    #FAFAF8; /* Secondary Surface */
-  --bg-elevated:   #FFFFFF; /* Primary Surface */
-  --bg-hover:      #F0F1EE; /* Muted Surface */
-  --border:        #E5E3DE;
-  --border-subtle: #F0F1EE;
-  --text-primary:   #18181B; /* Charcoal */
-  --text-secondary: #686A70;
-  --text-muted:     #96979D;
-  --accent:         #5367F5; /* Primary Accent */
-  --accent-hover:   #4355D4;
-  --accent-soft:    #E9EDFF; /* Soft Blue */
-  --lavender:       #8B7CF6;
-  --lavender-soft:  #F0EDFF;
+  --bg-base:       #F3F1EB; /* Canvas */
+  --bg-surface:    #FAF9F6; /* Surface */
+  --bg-elevated:   #FFFFFF; /* Elevated Surface */
+  --bg-hover:      #E8E6E0; /* Muted Surface Hover */
+  --border:        #D9D7D0;
+  --border-subtle: #E8E6E0;
+  --text-primary:  #171717; /* Ink */
+  --text-secondary:#6F706F; /* Secondary Text */
+  --text-muted:    #96979D;
+  --accent:        #4F46E5; /* Primary Indigo */
+  --accent-hover:  #4338CA;
+  --accent-soft:   #EEF2FF;
   
-  /* State Colors */
-  --state-strong:      #35B99A; /* Mint */
-  --state-strong-bg:   #E7F7F2; /* Soft Mint */
-  --state-developing:  #5367F5; /* Blue */
-  --state-developing-bg: #E9EDFF; /* Soft Blue */
-  --state-weak:        #D99A2B; /* Amber */
-  --state-weak-bg:     #FFF3D8; /* Soft Amber */
-  --state-missing:     #96979D; /* Neutral */
-  --state-missing-bg:  #F0F1EE;
-  
-  /* Severity Colors */
-  --severity-high:   #E47791; /* Coral */
-  --severity-high-bg: #FCEBF0; /* Soft Coral */
-  --severity-medium: #D99A2B;
-  --severity-medium-bg: #FFF3D8;
-  --severity-low:    #96979D;
-  --severity-low-bg: #F0F1EE;
+  --deep-ink:      #202124; /* Deep Ink Panel */
+
+  /* State Colors (Strictly enforced globally) */
+  --state-missing:     #96979D; /* Gray - No meaningful evidence */
+  --state-missing-bg:  #F4F4F5;
+  --state-weak:        #E59A3A; /* Amber/Coral - Early evidence */
+  --state-weak-bg:     #FFFBEB;
+  --state-developing:  #4F46E5; /* Indigo - Meaningful evidence */
+  --state-developing-bg: #EEF2FF;
+  --state-strong:      #2FBF9F; /* Mint - Strong demonstrated evidence */
+  --state-strong-bg:   #ECFDF5;
+
+  /* Severity Colors (Mapped to State colors for simplicity) */
+  --severity-high:   #E66A5B; /* Coral */
+  --severity-high-bg:#FEF2F2;
+  --severity-medium: var(--state-weak);
+  --severity-medium-bg: var(--state-weak-bg);
+  --severity-low:    var(--state-missing);
+  --severity-low-bg: var(--state-missing-bg);
 
   /* Standard System Colors */
-  --success: #35B99A;
-  --warning: #D99A2B;
-  --danger:  #E47791;
-  --info:    #5367F5;
+  --success: var(--state-strong);
+  --warning: var(--state-weak);
+  --danger:  var(--severity-high);
+  --info:    var(--state-developing);
   
-  /* 8px Spacing System */
-  --space-1: 4px;   /* micro */
-  --space-2: 8px;   /* tight */
-  --space-3: 12px;
-  --space-4: 16px;  /* normal */
-  --space-5: 20px;
-  --space-6: 24px;  /* section internal */
-  --space-8: 32px;  /* section separation */
+  /* Flexible Spacing System (8px foundation, optimized for rhythm) */
+  --space-1: 4px;   
+  --space-2: 8px;   
+  --space-3: 12px;  /* metadata gap */
+  --space-4: 16px;  
+  --space-5: 18px;  /* text spacing */
+  --space-6: 24px;  
+  --space-7: 28px;  /* section spacing */
+  --space-8: 32px;  
   --space-10: 40px;
-  --space-12: 48px; /* major separation */
-  --space-16: 64px; /* hero/editorial */
+  --space-12: 48px; 
+  --space-13: 52px; /* hero spacing */
+  --space-16: 64px; 
+  --space-20: 80px; 
   --space-24: 96px;
   
   --radius-sm: 6px;
   --radius:    8px;
   --radius-lg: 12px;
-  --sidebar-width: 248px;
+  --sidebar-width: 250px;
   --transition-fast: 150ms ease;
   --transition-mid:  220ms ease;
 }
@@ -1702,3 +1705,24 @@ table { border-collapse: collapse; }
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* ── TOAST NOTIFICATIONS ── */
+.toast-container { position: fixed; bottom: var(--space-6); right: var(--space-6); z-index: 9999; display: flex; flex-direction: column; gap: var(--space-2); }
+.toast { background: var(--text-primary); color: var(--bg-base); padding: var(--space-3) var(--space-4); border-radius: var(--radius); font-size: 13px; font-weight: 500; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); opacity: 0; transform: translateY(10px); transition: all var(--transition-mid); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-width: 250px; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast-close { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; padding: 2px; transition: color var(--transition-fast); }
+.toast-close:hover { color: var(--bg-elevated); }
+
+/* ── EDITORIAL AUTH LAYOUT ── */
+.auth-split-layout { display: flex; min-height: 100vh; background: var(--bg-base); }
+.auth-split-left { flex: 1; display: none; padding: var(--space-10); flex-direction: column; justify-content: space-between; background: var(--bg-surface); border-right: 1px solid var(--border); }
+@media (min-width: 900px) { .auth-split-left { display: flex; } }
+.auth-split-brand { font-size: 14px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; }
+.auth-split-hero { max-width: 480px; margin-top: auto; margin-bottom: auto; }
+.auth-split-hero h1 { font-size: 52px; font-weight: 700; line-height: 1.1; letter-spacing: -1px; margin-bottom: var(--space-6); color: var(--text-primary); }
+.auth-split-hero p { font-size: 18px; line-height: 1.6; color: var(--text-secondary); margin-bottom: var(--space-10); }
+.auth-split-process { display: flex; align-items: center; gap: var(--space-3); font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.auth-split-process span.active { color: var(--accent); }
+.auth-split-right { flex: 1; display: flex; align-items: center; justify-content: center; padding: var(--space-6); }
+.auth-form-container { width: 100%; max-width: 400px; }

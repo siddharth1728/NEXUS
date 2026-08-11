@@ -11,384 +11,220 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="/static/css/style.css">
   <style>
-    /* Responsive tweaks for the polish pass */
-    .auth-brand-polished {
-      font-size: 19px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      color: var(--text-primary);
-      margin-bottom: 2px;
-    }
-    .auth-brand-desc-polished {
-      font-size: 10.5px;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: #717686; /* muted blue-gray */
-      margin-bottom: 96px;
-    }
-    .auth-headline-polished {
-      font-size: clamp(32px, 4vw, 44px);
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      line-height: 1.05;
-      color: var(--text-primary);
-      margin-bottom: 24px;
-    }
-    .auth-desc-polished {
-      font-size: 16px;
-      color: var(--text-secondary);
-      max-width: 420px;
-      line-height: 1.6;
-      margin-bottom: 48px;
-    }
-    .product-flow {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      flex-wrap: wrap;
-    }
-    .product-flow-arrow {
-      color: var(--border);
-    }
-    .password-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    .password-toggle {
-      position: absolute;
-      right: 12px;
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: color var(--transition-fast);
-    }
-    .password-toggle:hover, .password-toggle:focus-visible {
-      color: var(--text-primary);
-      outline: none;
-    }
-    .password-toggle:focus-visible {
-      box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent);
-    }
+    /* Local styles specific to the form */
+    .form-group { margin-bottom: var(--space-4); }
+    .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: var(--space-2); }
     .form-input {
-      height: 40px; /* Comfortable height */
-      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+      width: 100%;
+      height: 40px;
+      padding: 0 var(--space-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      transition: all var(--transition-fast);
+      font-size: 14px;
     }
     .form-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent);
       outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
     }
-    
-    .btn-polish {
-      transition: all 150ms ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    .btn-polish:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      background-color: #27272A; /* slightly lighter charcoal */
-    }
-    .btn-polish svg {
-      transition: transform 150ms ease;
-    }
-    .btn-polish:hover:not(:disabled) svg {
-      transform: translateX(2px);
-    }
-    
-    .register-link {
-      color: var(--accent);
-      font-weight: 600;
+    .password-wrapper { position: relative; display: flex; align-items: center; }
+    .password-toggle {
+      position: absolute; right: 12px; background: none; border: none; color: var(--text-muted);
+      cursor: pointer; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
       transition: color var(--transition-fast);
-      text-decoration: none;
     }
-    .register-link:hover {
-      text-decoration: underline;
-      text-decoration-thickness: 1.5px;
-      text-underline-offset: 4px;
-    }
-
-    .polished-error-container {
+    .password-toggle:hover, .password-toggle:focus-visible { color: var(--text-primary); outline: none; }
+    .password-toggle:focus-visible { box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent); }
+    
+    .btn-full { width: 100%; height: 44px; display: flex; align-items: center; justify-content: center; margin-top: var(--space-6); font-size: 14px; gap: 8px; }
+    .btn-full svg { transition: transform var(--transition-fast); }
+    .btn-full:hover:not(:disabled) svg { transform: translateX(2px); }
+    
+    .form-meta { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-6); font-size: 13px; }
+    .form-link { color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color var(--transition-fast); }
+    .form-link:hover { color: var(--text-primary); }
+    .form-link-accent { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .form-link-accent:hover { text-decoration: underline; text-underline-offset: 4px; }
+    
+    .auth-error {
       background: var(--severity-high-bg);
-      border: 1px solid rgba(228, 119, 145, 0.3); /* Subtle coral border */
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 24px;
-      display: flex;
-      gap: 12px;
+      border: 1px solid rgba(230, 106, 91, 0.3);
+      border-radius: var(--radius-sm);
+      padding: var(--space-4);
+      margin-bottom: var(--space-6);
+      display: none;
+      gap: var(--space-3);
       align-items: flex-start;
     }
-    .polished-error-icon {
-      color: var(--severity-high);
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-    .polished-error-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #9F1239; /* Deep red for contrast */
-      margin-bottom: 4px;
-    }
-    .polished-error-desc {
-      font-size: 13px;
-      color: #BE123C;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 768px) {
-      .auth-root { flex-direction: column; }
-      .auth-left { border-right: none; border-bottom: 1px solid var(--border); padding: 48px 24px; flex: 0 0 auto; }
-      .auth-right { width: 100%; padding: 48px 24px; }
-      .auth-brand-desc-polished { margin-bottom: 48px; }
-      .auth-headline-polished { margin-bottom: 16px; }
-    }
+    .auth-error.show { display: flex; }
+    .auth-error-icon { color: var(--severity-high); margin-top: 2px; flex-shrink: 0; }
+    .auth-error-title { font-size: 13px; font-weight: 600; color: #9F1239; margin-bottom: 2px; }
+    .auth-error-desc { font-size: 13px; color: #BE123C; line-height: 1.4; }
   </style>
 </head>
 <body>
 
-<div class="auth-root">
-
-  <!-- Left brand panel -->
-  <div class="auth-left">
-    <div class="auth-grid" aria-hidden="true"></div>
-    <div class="auth-left-content">
-      <div class="auth-brand-polished">NEXUS</div>
-      <div class="auth-brand-desc-polished">Engineering Intelligence</div>
-
-      <h1 class="auth-headline-polished">BUILD PROOF.<br>NOT JUST A RESUME.</h1>
+<div class="auth-split-layout">
+  
+  <div class="auth-split-left">
+    <div class="auth-split-brand">
+      <span>NEXUS</span>
+      <span style="font-size: 10px; color: var(--text-muted);">Engineering OS</span>
+    </div>
+    
+    <div class="auth-split-hero">
+      <h1>BUILD PROOF.<br>NOT JUST A<br>RESUME.</h1>
+      <p>Your engineering work becomes evidence.</p>
       
-      <p class="auth-desc-polished">
-        NEXUS analyzes your actual GitHub repositories and converts engineering work into evidence, skill states, and actionable gaps — with no guesswork.
-      </p>
-
-      <div class="product-flow" aria-hidden="true">
-        <span>GITHUB</span>
-        <span class="product-flow-arrow">→</span>
-        <span>EVIDENCE</span>
-        <span class="product-flow-arrow">→</span>
-        <span>SKILLS</span>
-        <span class="product-flow-arrow">→</span>
-        <span>GAPS</span>
-        <span class="product-flow-arrow">→</span>
-        <span>ACTION</span>
+      <div class="auth-split-process" aria-hidden="true" style="margin-bottom: var(--space-10);">
+        <span>GitHub</span> <span style="color:var(--border);">→</span>
+        <span class="active">Evidence</span> <span style="color:var(--border);">→</span>
+        <span>Skills</span> <span style="color:var(--border);">→</span>
+        <span>Gaps</span>
       </div>
+      
+      <ul style="list-style: none; padding: 0; margin: 0; color: var(--text-secondary); font-size: 14px; font-weight: 500; line-height: 2;">
+        <li><span style="color: var(--accent); margin-right: 8px;">●</span> Real work</li>
+        <li><span style="color: var(--accent); margin-right: 8px;">●</span> Deterministic</li>
+        <li><span style="color: var(--accent); margin-right: 8px;">●</span> Explainable</li>
+      </ul>
     </div>
   </div>
+  
+  <div class="auth-split-right">
+    <div class="auth-form-container">
+      <h2 style="font-size: 24px; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-2); letter-spacing: -0.02em;">Welcome back</h2>
+      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--space-8);">Continue building your engineering profile.</p>
 
-  <!-- Right auth panel -->
-  <div class="auth-right">
-    <div style="max-width: 360px; width: 100%; margin: 0 auto;">
-      <h2 class="auth-card-title" style="font-size:24px; margin-bottom:8px;">Welcome back</h2>
-      <p class="auth-card-subtitle" style="font-size:14px; margin-bottom:32px;">Continue building your engineering profile.</p>
-
-      <!-- Polished Error state -->
-      <div class="polished-error-container hidden" id="login-error" aria-live="assertive" role="alert">
-        <svg class="polished-error-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <div id="login-error" class="auth-error" aria-live="assertive" role="alert">
+        <svg class="auth-error-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
         <div>
-          <div class="polished-error-title" id="login-error-title">Unable to sign in</div>
-          <div class="polished-error-desc" id="login-error-text">The email or password doesn't match our records. Please check your details and try again.</div>
+          <div class="auth-error-title" id="login-error-title">Authentication Failed</div>
+          <div class="auth-error-desc" id="login-error-message">Invalid email or password.</div>
         </div>
       </div>
 
       <form id="login-form" novalidate>
-        <div class="form-group" style="margin-bottom: 20px;">
-          <label class="form-label" for="email">Email address</label>
-          <input
-            class="form-input"
-            type="email"
-            id="email"
-            name="email"
-            autocomplete="email"
-            placeholder="you@example.com"
-            required
-          >
-          <div class="form-error" id="email-error">Please enter a valid email address.</div>
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input type="email" id="email" class="form-input" required autocomplete="username" spellcheck="false">
         </div>
 
-        <div class="form-group" style="margin-bottom: 28px;">
-          <div style="display: flex; justify-content: space-between; align-items: baseline;">
-            <label class="form-label" for="password" style="margin-bottom: 0;">Password</label>
-            <a href="/forgot-password" class="register-link" style="font-size: 13px; font-weight: 500;">Forgot password?</a>
-          </div>
-          <div class="password-wrapper" style="margin-top: 8px;">
-            <input
-              class="form-input"
-              type="password"
-              id="password"
-              name="password"
-              autocomplete="current-password"
-              placeholder="Your password"
-              style="padding-right: 40px; width: 100%;"
-              required
-            >
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="password" class="form-input" required autocomplete="current-password" style="padding-right: 40px;">
             <button type="button" class="password-toggle" id="toggle-password" aria-label="Show password" aria-pressed="false">
-              <svg id="eye-icon-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="icon-eye">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
-              <svg id="eye-icon-hide" class="hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
             </button>
           </div>
-          <div class="form-error" id="password-error">Password is required.</div>
         </div>
 
-        <button type="submit" class="btn btn-primary w-full btn-polish" id="submit-btn" style="height: 40px; font-weight: 500;">
-          <span id="submit-text">Sign in</span>
-          <svg id="submit-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <button type="submit" class="btn btn-primary btn-full" id="submit-btn">
+          Sign in
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="5" y1="12" x2="19" y2="12"></line>
             <polyline points="12 5 19 12 12 19"></polyline>
           </svg>
         </button>
       </form>
 
-      <div class="auth-footer" style="margin-top: 32px; font-size: 14px;">
-        Don't have an account? <a href="/register" class="register-link">Create account</a>
+      <div class="form-meta">
+        <a href="/forgot-password" class="form-link">Forgot password?</a>
+        <a href="/register" class="form-link-accent">Create account</a>
       </div>
     </div>
   </div>
+  
+</div>
 
-</div><!-- /.auth-root -->
-
+<script src="/static/js/main.js"></script>
 <script>
-(function() {
-  'use strict';
-
+document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('login-form');
-  const btn = document.getElementById('submit-btn');
-  const submitText = document.getElementById('submit-text');
-  const submitArrow = document.getElementById('submit-arrow');
-  const errorBanner = document.getElementById('login-error');
-  const errorTitle = document.getElementById('login-error-title');
-  const errorText = document.getElementById('login-error-text');
-  const togglePasswordBtn = document.getElementById('toggle-password');
+  const emailInput = document.getElementById('email');
   const passwordInput = document.getElementById('password');
-  const eyeShow = document.getElementById('eye-icon-show');
-  const eyeHide = document.getElementById('eye-icon-hide');
-
+  const submitBtn = document.getElementById('submit-btn');
+  const errorContainer = document.getElementById('login-error');
+  const errorMessage = document.getElementById('login-error-message');
+  const errorTitle = document.getElementById('login-error-title');
+  const togglePasswordBtn = document.getElementById('toggle-password');
+  
   // Password Visibility Toggle
-  togglePasswordBtn.addEventListener('click', () => {
+  togglePasswordBtn.addEventListener('click', function() {
     const isPassword = passwordInput.type === 'password';
     passwordInput.type = isPassword ? 'text' : 'password';
-    togglePasswordBtn.setAttribute('aria-pressed', String(isPassword));
-    togglePasswordBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+    this.setAttribute('aria-pressed', isPassword);
+    this.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
     
     if (isPassword) {
-      eyeShow.classList.add('hidden');
-      eyeHide.classList.remove('hidden');
+      this.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
     } else {
-      eyeHide.classList.add('hidden');
-      eyeShow.classList.remove('hidden');
+      this.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     }
   });
 
-  function setError(title, message) {
+  const showError = (title, message) => {
     errorTitle.textContent = title;
-    errorText.textContent = message;
-    errorBanner.classList.remove('hidden');
-    
-    // Reset button
-    btn.classList.remove('btn-loading');
-    btn.disabled = false;
-    submitText.textContent = 'Sign in';
-    submitArrow.style.display = 'inline-block';
-  }
+    errorMessage.textContent = message;
+    errorContainer.classList.add('show');
+    submitBtn.classList.remove('btn-loading');
+    submitBtn.disabled = false;
+  };
 
-  function clearError() {
-    errorBanner.classList.add('hidden');
-  }
+  const hideError = () => {
+    errorContainer.classList.remove('show');
+  };
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
-    clearError();
+    hideError();
 
-    const email = document.getElementById('email').value.trim();
+    const email = emailInput.value.trim();
     const password = passwordInput.value;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    // Client-side validation
-    let valid = true;
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      document.getElementById('email-error').classList.add('visible');
-      document.getElementById('email').classList.add('is-error');
-      valid = false;
-    } else {
-      document.getElementById('email-error').classList.remove('visible');
-      document.getElementById('email').classList.remove('is-error');
+    if (!email || !password) {
+      showError("Incomplete fields", "Please enter both your email and password.");
+      if (!email) emailInput.focus();
+      else passwordInput.focus();
+      return;
     }
-    if (!password) {
-      document.getElementById('password-error').classList.add('visible');
-      passwordInput.classList.add('is-error');
-      valid = false;
-    } else {
-      document.getElementById('password-error').classList.remove('visible');
-      passwordInput.classList.remove('is-error');
-    }
-    
-    if (!valid) return;
 
-    // Submit state
-    submitText.textContent = 'Signing in…';
-    submitArrow.style.display = 'none';
-    btn.classList.add('btn-loading');
-    btn.disabled = true;
+    submitBtn.classList.add('btn-loading');
+    submitBtn.disabled = true;
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
         body: JSON.stringify({ email, password })
       });
 
-      if (res.ok) {
+      if (response.ok) {
         window.location.href = '/dashboard';
       } else {
-        const data = await res.json().catch(() => ({}));
-        if (res.status === 429) {
-          setError('Too many attempts', 'Please wait a moment and try again.');
-        } else if (res.status === 401 || res.status === 403 || res.status === 404) {
-          setError('Unable to sign in', 'The email or password doesn\'t match our records. Please check your details and try again.');
-        } else {
-          setError('Authentication failed', 'An unexpected error occurred. Please try again later.');
-        }
+        const data = await response.json();
+        showError("Authentication Failed", data.detail || "Invalid email or password.");
       }
-    } catch {
-      setError('Connection error', 'Unable to connect to the server. Check your network and try again.');
+    } catch (err) {
+      showError("Connection Error", "Unable to connect to the server. Please check your network and try again.");
     }
   });
-
-  // Clear field errors on input
-  document.getElementById('email').addEventListener('input', () => {
-    document.getElementById('email-error').classList.remove('visible');
-    document.getElementById('email').classList.remove('is-error');
-    clearError();
-  });
-  passwordInput.addEventListener('input', () => {
-    document.getElementById('password-error').classList.remove('visible');
-    passwordInput.classList.remove('is-error');
-    clearError();
-  });
-})();
+});
 </script>
 </body>
 </html>

@@ -8,155 +8,203 @@
   <meta name="csrf-token" content="{{ csrf_token }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    /* Local overrides for onboarding */
+    .form-group { margin-bottom: var(--space-4); }
+    .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: var(--space-2); }
+    .form-input, .form-select {
+      width: 100%; height: 40px; padding: 0 var(--space-3);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg-elevated); color: var(--text-primary);
+      transition: all var(--transition-fast); font-size: 14px;
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    
+    .btn-full { width: 100%; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; gap: 8px; }
+    
+    /* Stepper */
+    .stepper { display: flex; gap: var(--space-3); margin-bottom: var(--space-10); }
+    .step-dot {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--border-subtle); color: var(--text-muted);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; transition: all var(--transition-mid);
+    }
+    .step-dot.active { background: var(--accent); color: var(--bg-base); }
+    .step-dot.done { background: var(--state-strong-bg); color: var(--state-strong); }
+    
+    .onboarding-panel { display: none; flex-direction: column; height: 100%; }
+    .onboarding-panel.active { display: flex; animation: fade-in var(--transition-mid) forwards; }
+    
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .auth-error {
+      background: var(--severity-high-bg); border: 1px solid rgba(230, 106, 91, 0.3);
+      border-radius: var(--radius-sm); padding: var(--space-4); margin-bottom: var(--space-6);
+      display: none; gap: var(--space-3); align-items: flex-start;
+    }
+    .auth-error.show { display: flex; }
+    .auth-error-icon { color: var(--severity-high); margin-top: 2px; flex-shrink: 0; }
+    .auth-error-title { font-size: 13px; font-weight: 600; color: #9F1239; margin-bottom: 2px; }
+    .auth-error-desc { font-size: 13px; color: #BE123C; line-height: 1.4; }
+  </style>
 </head>
 <body>
 
-<div class="onboarding-root">
-
-  <a href="/dashboard" class="onboarding-brand" aria-label="NEXUS">NEXUS</a>
-
-  <!-- Step indicator -->
-  <div class="onboarding-steps" role="tablist" aria-label="Onboarding steps">
-    <div class="onboarding-step-dot">
-      <div class="step-num active" id="step-num-1" role="tab" aria-selected="true">01</div>
+<div class="auth-split-layout">
+  
+  <div class="auth-split-left">
+    <div class="auth-split-brand">
+      <span>NEXUS</span>
+      <span style="font-size: 10px; color: var(--text-muted);">Engineering OS</span>
     </div>
-    <div class="step-connector" id="connector-1"></div>
-    <div class="onboarding-step-dot">
-      <div class="step-num" id="step-num-2" role="tab" aria-selected="false">02</div>
-    </div>
-    <div class="step-connector" id="connector-2"></div>
-    <div class="onboarding-step-dot">
-      <div class="step-num" id="step-num-3" role="tab" aria-selected="false">03</div>
+    
+    <div class="auth-split-hero">
+      <h1 id="hero-title">WHERE ARE<br>YOU HEADED?</h1>
+      <p id="hero-desc">Set your target role so NEXUS can identify the skills you need.</p>
     </div>
   </div>
-
-  <!-- Onboarding card -->
-  <div class="onboarding-card">
-
-    <!-- Error banner -->
-    <div class="alert-banner alert-error hidden" id="onboarding-error" role="alert">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-      <span id="onboarding-error-text"></span>
-    </div>
-
-    <!-- Step 1: Target Role -->
-    <div class="onboarding-panel active" id="panel-1">
-      <div class="onboarding-step-title">Where are you headed?</div>
-      <p class="onboarding-step-desc">
-        NEXUS uses your target role to determine which skills matter most and identify gaps in your engineering profile.
-      </p>
-      <div class="form-group">
-        <label class="form-label" for="target-role">Target role</label>
-        <select class="form-select" id="target-role" required>
-          <option value="">Select a role…</option>
-          <option value="Backend Engineer">Backend Engineer</option>
-        </select>
-        <div class="form-error" id="target-role-error">Please select your target role.</div>
-      </div>
-    </div>
-
-    <!-- Step 2: GitHub Username -->
-    <div class="onboarding-panel" id="panel-2">
-      <div class="onboarding-step-title">Connect your engineering work.</div>
-      <p class="onboarding-step-desc">
-        NEXUS analyzes public repositories associated with your GitHub username. Your code is never stored.
-      </p>
-      <div class="form-group">
-        <label class="form-label" for="github-username">GitHub username</label>
-        <input
-          class="form-input"
-          type="text"
-          id="github-username"
-          placeholder="e.g. torvalds"
-          autocomplete="off"
-          spellcheck="false"
-        >
-        <div class="form-hint">Optional — you can add this later from your profile.</div>
-        <div class="form-error hidden" id="github-error">Please enter a valid GitHub username.</div>
-      </div>
-    </div>
-
-    <!-- Step 3: Final -->
-    <div class="onboarding-panel" id="panel-3">
-      <div class="onboarding-step-title">You're ready.</div>
-      <p class="onboarding-step-desc">
-        NEXUS will analyze your repositories when you connect them from the dashboard.
-        You'll see engineering evidence, skill states, and gaps immediately after the first sync.
-      </p>
-
-      <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:8px;">
-        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">What happens next</div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div style="display:flex;align-items:flex-start;gap:12px;">
-            <div style="width:20px;height:20px;border-radius:50%;background:var(--state-developing-bg);border:1px solid var(--state-developing);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
-              <span style="font-size:10px;font-weight:600;color:var(--accent);">1</span>
-            </div>
-            <span style="font-size:13px;color:var(--text-secondary);line-height:1.5;">Connect a GitHub repository from the dashboard</span>
+  
+  <div class="auth-split-right">
+    <div class="auth-form-container" style="display: flex; flex-direction: column; height: 100%; max-height: 500px; justify-content: space-between;">
+      
+      <div>
+        <div class="stepper" aria-label="Onboarding steps">
+          <div class="step-dot active" id="step-1">1</div>
+          <div class="step-dot" id="step-2">2</div>
+          <div class="step-dot" id="step-3">3</div>
+        </div>
+        
+        <div id="onboarding-error" class="auth-error" aria-live="assertive" role="alert">
+          <svg class="auth-error-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div>
+            <div class="auth-error-title">Setup Failed</div>
+            <div class="auth-error-desc" id="onboarding-error-text">Unable to save profile.</div>
           </div>
-          <div style="display:flex;align-items:flex-start;gap:12px;">
-            <div style="width:20px;height:20px;border-radius:50%;background:var(--state-developing-bg);border:1px solid var(--state-developing);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
-              <span style="font-size:10px;font-weight:600;color:var(--accent);">2</span>
-            </div>
-            <span style="font-size:13px;color:var(--text-secondary);line-height:1.5;">NEXUS observes and records engineering evidence</span>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="onboarding-panel active" id="panel-1">
+          <h2 style="font-size: 24px; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-2); letter-spacing: -0.02em;">Target Role</h2>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--space-8);">NEXUS uses this to determine which skills matter most.</p>
+          
+          <div class="form-group">
+            <label class="form-label" for="target-role">Target role</label>
+            <select class="form-select" id="target-role" required>
+              <option value="">Select a role…</option>
+              <option value="Backend Engineer">Backend Engineer</option>
+              <option value="Frontend Engineer">Frontend Engineer</option>
+              <option value="Full Stack Engineer">Full Stack Engineer</option>
+              <option value="Data Engineer">Data Engineer</option>
+            </select>
           </div>
-          <div style="display:flex;align-items:flex-start;gap:12px;">
-            <div style="width:20px;height:20px;border-radius:50%;background:var(--state-developing-bg);border:1px solid var(--state-developing);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
-              <span style="font-size:10px;font-weight:600;color:var(--accent);">3</span>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="onboarding-panel" id="panel-2">
+          <h2 style="font-size: 24px; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-2); letter-spacing: -0.02em;">Connect Work</h2>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--space-8);">NEXUS analyzes public repositories associated with your GitHub username. Your code is never stored.</p>
+          
+          <div class="form-group">
+            <label class="form-label" for="github-username">GitHub username</label>
+            <input class="form-input" type="text" id="github-username" placeholder="e.g. torvalds" autocomplete="off" spellcheck="false">
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: var(--space-2);">Optional — you can add this later.</p>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="onboarding-panel" id="panel-3">
+          <h2 style="font-size: 24px; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-2); letter-spacing: -0.02em;">You're ready.</h2>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--space-6);">Your profile is set up. Next, we will analyze your repositories to generate your engineering signature.</p>
+          
+          <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-4);">
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-4);">What happens next</div>
+            <div style="display:flex;flex-direction:column;gap:var(--space-3);">
+              <div style="display:flex;align-items:flex-start;gap:var(--space-3);">
+                <div style="width:20px;height:20px;border-radius:50%;background:var(--state-developing-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:600;">1</div>
+                <span style="font-size:13px;color:var(--text-secondary);line-height:1.4;">NEXUS observes and records engineering evidence</span>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:var(--space-3);">
+                <div style="width:20px;height:20px;border-radius:50%;background:var(--state-developing-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:600;">2</div>
+                <span style="font-size:13px;color:var(--text-secondary);line-height:1.4;">Skill states, gaps, and next best action appear</span>
+              </div>
             </div>
-            <span style="font-size:13px;color:var(--text-secondary);line-height:1.5;">Skill states, gaps, and next best action appear</span>
           </div>
         </div>
       </div>
-    </div>
+      
+      <div style="display:flex; gap:var(--space-3); margin-top: auto;">
+        <button class="btn btn-ghost" id="back-btn" style="visibility:hidden; height:44px;">
+          Back
+        </button>
+        <button class="btn btn-primary btn-full" id="next-btn" style="margin-top: 0;">
+          Next
+        </button>
+      </div>
 
-    <!-- Navigation -->
-    <div class="onboarding-nav">
-      <button class="btn btn-ghost btn-sm" id="back-btn" style="visibility:hidden;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        Back
-      </button>
-      <button class="btn btn-primary" id="next-btn">
-        Next
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
-      </button>
     </div>
   </div>
-
-</div><!-- /.onboarding-root -->
+  
+</div>
 
 <script src="/static/js/main.js"></script>
 <script>
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
   let currentStep = 1;
   const totalSteps = 3;
 
   const errorBanner = document.getElementById('onboarding-error');
   const errorText = document.getElementById('onboarding-error-text');
+  
+  const heroTitle = document.getElementById('hero-title');
+  const heroDesc = document.getElementById('hero-desc');
+
+  const stepContents = [
+    { title: "WHERE ARE<br>YOU HEADED?", desc: "Set your target role so NEXUS can identify the skills you need." },
+    { title: "CONNECT YOUR<br>WORK.", desc: "Link your GitHub to build evidence automatically." },
+    { title: "ENGINEERING<br>SIGNATURE.", desc: "Your skills will be mapped to the constellation." }
+  ];
 
   function showError(msg) {
     errorText.textContent = msg;
-    errorBanner.classList.remove('hidden');
+    errorBanner.classList.add('show');
   }
-  function clearError() { errorBanner.classList.add('hidden'); }
+  function clearError() { errorBanner.classList.remove('show'); }
 
   function updateStepUI(step) {
     for (let i = 1; i <= totalSteps; i++) {
-      const num = document.getElementById('step-num-' + i);
-      num.classList.remove('active', 'done');
-      if (i < step) num.classList.add('done');
-      else if (i === step) num.classList.add('active');
+      const dot = document.getElementById('step-' + i);
+      dot.classList.remove('active', 'done');
+      if (i < step) {
+        dot.classList.add('done');
+        dot.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+      }
+      else if (i === step) {
+        dot.classList.add('active');
+        dot.innerHTML = i;
+      }
+      else {
+        dot.innerHTML = i;
+      }
     }
-    for (let i = 1; i < totalSteps; i++) {
-      const conn = document.getElementById('connector-' + i);
-      if (conn) conn.classList.toggle('done', i < step);
-    }
+    
     // Panels
     for (let i = 1; i <= totalSteps; i++) {
       const panel = document.getElementById('panel-' + i);
       panel.classList.toggle('active', i === step);
     }
+    
     // Back button
     const backBtn = document.getElementById('back-btn');
     backBtn.style.visibility = step > 1 ? 'visible' : 'hidden';
@@ -164,12 +212,14 @@
     // Next button text
     const nextBtn = document.getElementById('next-btn');
     if (step === totalSteps) {
-      nextBtn.innerHTML = `Build My Engineering Profile
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+      nextBtn.innerHTML = `Build Profile`;
     } else {
-      nextBtn.innerHTML = `Next
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+      nextBtn.innerHTML = `Next`;
     }
+    
+    // Hero Text
+    heroTitle.innerHTML = stepContents[step-1].title;
+    heroDesc.innerHTML = stepContents[step-1].desc;
   }
 
   async function saveAndFinish() {
@@ -198,7 +248,7 @@
         nextBtn.disabled = false;
       }
     } catch {
-      showError('Unable to connect. Check your network and try again.');
+      showError('Network error. Please try again.');
       nextBtn.classList.remove('btn-loading');
       nextBtn.disabled = false;
     }
@@ -209,16 +259,13 @@
     if (currentStep === 1) {
       const role = document.getElementById('target-role').value;
       if (!role) {
-        document.getElementById('target-role-error').classList.add('visible');
-        document.getElementById('target-role').classList.add('is-error');
+        showError('Please select a target role.');
         return;
       }
-      document.getElementById('target-role-error').classList.remove('visible');
-      document.getElementById('target-role').classList.remove('is-error');
-      currentStep = 2;
+      currentStep++;
       updateStepUI(currentStep);
     } else if (currentStep === 2) {
-      currentStep = 3;
+      currentStep++;
       updateStepUI(currentStep);
     } else if (currentStep === 3) {
       saveAndFinish();
@@ -226,33 +273,13 @@
   });
 
   document.getElementById('back-btn').addEventListener('click', () => {
+    clearError();
     if (currentStep > 1) {
       currentStep--;
       updateStepUI(currentStep);
     }
   });
-
-  // Pre-fill if profile exists
-  (async () => {
-    try {
-      const profile = await apiFetch('/api/profile');
-      if (profile.target_role) {
-        const sel = document.getElementById('target-role');
-        sel.value = profile.target_role;
-        if (!sel.value) {
-          const opt = document.createElement('option');
-          opt.value = profile.target_role;
-          opt.textContent = profile.target_role;
-          sel.appendChild(opt);
-          sel.value = profile.target_role;
-        }
-      }
-      if (profile.github_username) {
-        document.getElementById('github-username').value = profile.github_username;
-      }
-    } catch {}
-  })();
-})();
+});
 </script>
 </body>
 </html>

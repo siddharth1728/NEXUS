@@ -174,12 +174,6 @@
     </svg>
     <span>Overview</span>
   </a>
-  <a href="/projects" class="mobile-nav-item{% if request.url.path == '/projects' %} active{% endif %}" aria-label="Projects">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"></path>
-    </svg>
-    <span>Projects</span>
-  </a>
   <a href="/evidence" class="mobile-nav-item{% if request.url.path == '/evidence' %} active{% endif %}" aria-label="Evidence">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
@@ -189,12 +183,17 @@
     </svg>
     <span>Evidence</span>
   </a>
-  <a href="/profile" class="mobile-nav-item{% if request.url.path == '/profile' %} active{% endif %}" aria-label="Profile">
+  <a href="/projects" class="mobile-nav-item{% if request.url.path == '/projects' %} active{% endif %}" aria-label="Projects">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
-      <circle cx="12" cy="7" r="4"></circle>
+      <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"></path>
     </svg>
-    <span>Profile</span>
+    <span>Projects</span>
+  </a>
+  <a href="/skills" class="mobile-nav-item{% if request.url.path == '/skills' %} active{% endif %}" aria-label="Skills">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+    </svg>
+    <span>Skills</span>
   </a>
 </nav>
 
