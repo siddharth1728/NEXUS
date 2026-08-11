@@ -33,7 +33,7 @@ ACTION_CATALOG: List[ActionDefinition] = [
     ),
     ActionDefinition(
         action_key="ADD_DOCKER_CONTAINERIZATION",
-        skill_name="Containerization",
+        skill_name="Docker",
         title_template="Containerize {project_name} with Docker",
         description="Add a Dockerfile to your project to containerize the application. This demonstrates infrastructure-as-code and containerization skills.",
         expected_evidence_types=[EvidenceType.CONTAINERIZATION],
@@ -46,7 +46,7 @@ ACTION_CATALOG: List[ActionDefinition] = [
     ),
     ActionDefinition(
         action_key="IMPLEMENT_DB_INTEGRATION",
-        skill_name="Databases",
+        skill_name="PostgreSQL",
         title_template="Integrate a database into {project_name}",
         description="Add database persistence (e.g., PostgreSQL, SQLite) to your existing backend project using an ORM or direct queries.",
         expected_evidence_types=[EvidenceType.DATABASE, EvidenceType.IMPLEMENTATION],

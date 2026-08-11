@@ -82,10 +82,10 @@ def reset_password(request_data: ResetPasswordRequest, db: Session = Depends(get
     return {"message": "Password has been successfully reset."}
 
 @router.post("/logout", dependencies=[Depends(verify_csrf_token)])
-def logout(request: Request, response: Response, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+def logout(request: Request, response: Response, db: Session = Depends(get_db)):
     refresh_token = request.cookies.get("refresh_token")
     if refresh_token:
-        auth_service.revoke_refresh_session(db, current_user.id, refresh_token)
+        auth_service.revoke_refresh_session_by_token(db, refresh_token)
         
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")

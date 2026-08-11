@@ -36,11 +36,11 @@ def seed_taxonomy():
         # Map target role skills idempotently
         # Weights and min expectations
         mappings = {
-            "REST APIs": (1.0, "Developing"),
-            "PostgreSQL": (0.9, "Developing"),
-            "Authentication": (0.9, "Developing"),
-            "Testing": (0.8, "Developing"),
-            "Docker": (0.7, "Weak")
+            "REST APIs": (1.0, "DEVELOPING"),
+            "PostgreSQL": (0.9, "DEVELOPING"),
+            "Authentication": (0.9, "DEVELOPING"),
+            "Testing": (0.8, "DEVELOPING"),
+            "Docker": (0.7, "WEAK")
         }
         
         for skill_name, (weight, min_state) in mappings.items():
@@ -58,6 +58,9 @@ def seed_taxonomy():
                         minimum_expected_state=min_state
                     )
                     db.add(mapping)
+                else:
+                    mapping.importance_weight = weight
+                    mapping.minimum_expected_state = min_state
         db.commit()
         
         print("Taxonomy successfully seeded!")

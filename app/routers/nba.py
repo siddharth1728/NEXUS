@@ -5,6 +5,7 @@ from app.models.user import User, Gap
 from app.models.action import Recommendation, ActionHistory, ActionHistoryStatus
 from app.schemas.action import RecommendationResponse, TraceabilityInfo, ActionPayload
 from app.dependencies.auth import get_current_user
+from app.core.csrf import verify_csrf_token
 from app.services.nba_engine import recalculate_next_best_action
 from app.config.action_catalog import get_action_catalog
 
@@ -57,7 +58,7 @@ def get_next_best_action(current_user: User = Depends(get_current_user), db: Ses
         traceability=traceability
     )
 
-@router.post("/next-best-action/complete")
+@router.post("/next-best-action/complete", dependencies=[Depends(verify_csrf_token)])
 def complete_action(payload: ActionPayload, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     history = ActionHistory(
         user_id=current_user.id,
@@ -71,7 +72,7 @@ def complete_action(payload: ActionPayload, current_user: User = Depends(get_cur
     recalculate_next_best_action(current_user.id, db)
     return {"status": "success"}
 
-@router.post("/next-best-action/dismiss")
+@router.post("/next-best-action/dismiss", dependencies=[Depends(verify_csrf_token)])
 def dismiss_action(payload: ActionPayload, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     history = ActionHistory(
         user_id=current_user.id,

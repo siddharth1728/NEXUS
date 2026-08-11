@@ -156,27 +156,32 @@
     const syncedAgo = latestSnap?.captured_at ? formatRelativeTime(latestSnap.captured_at) : 'Never';
     const dotClass = status === 'COMPLETED' ? 'synced' : status === 'ANALYZING' ? 'analyzing' : status === 'FAILED' ? 'error' : 'pending';
     const statusLabel = status === 'COMPLETED' ? 'Synced' : status === 'ANALYZING' ? 'Analyzing…' : status === 'FAILED' ? 'Failed' : 'Not synced';
+    const projectId = Number(p.id);
+    const projectName = escapeHtml(p.name || '–');
+    const artifactTotal = Number(artifactCount) || 0;
+    const observationTotal = Number(observationCount) || 0;
+    const snapshotTotal = Number(snapshots.length) || 0;
 
     const div = document.createElement('div');
     div.style.cssText = 'background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-6); margin-bottom: var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); transition: border-color var(--transition-fast);';
     div.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4); flex-wrap: wrap;">
         <div>
-          <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; margin-bottom: var(--space-1);">${p.name}</div>
+          <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; margin-bottom: var(--space-1);">${projectName}</div>
           <div style="font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-            github.com/${p.name}
+            github.com/${projectName}
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: var(--space-4);">
           <div style="text-align: right;">
             <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 2px;">
               <span class="status-dot ${dotClass}" style="margin:0;"></span>
-              ${statusLabel}
+              ${escapeHtml(statusLabel)}
             </div>
-            <div style="font-size: 11px; color: var(--text-muted);">${syncedAgo}</div>
+            <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(syncedAgo)}</div>
           </div>
-          <button class="btn btn-secondary btn-sm" id="sync-btn-${p.id}" onclick="syncProject(${p.id})">
+          <button class="btn btn-secondary btn-sm" id="sync-btn-${projectId}" onclick="syncProject(${projectId})">
             Sync
           </button>
         </div>
@@ -186,15 +191,15 @@
       
       <div style="display: flex; gap: var(--space-8); flex-wrap: wrap;">
         <div style="display: flex; flex-direction: column; gap: 2px;">
-          <div style="font-size: 20px; font-weight: 600; color: var(--text-primary); line-height: 1;">${artifactCount}</div>
+          <div style="font-size: 20px; font-weight: 600; color: var(--text-primary); line-height: 1;">${artifactTotal}</div>
           <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted);">Artifacts</div>
         </div>
         <div style="display: flex; flex-direction: column; gap: 2px;">
-          <div style="font-size: 20px; font-weight: 600; color: var(--text-primary); line-height: 1;">${observationCount}</div>
+          <div style="font-size: 20px; font-weight: 600; color: var(--text-primary); line-height: 1;">${observationTotal}</div>
           <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted);">Observations</div>
         </div>
         <div style="display: flex; flex-direction: column; gap: 2px;">
-          <div style="font-size: 20px; font-weight: 600; color: var(--text-primary); line-height: 1;">${snapshots.length}</div>
+          <div style="font-size: 20px; font-weight: 600; color: var(--text-primary); line-height: 1;">${snapshotTotal}</div>
           <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted);">Snapshots</div>
         </div>
       </div>
@@ -244,16 +249,20 @@
 
       repos.forEach(r => {
         const alreadyAdded = addedIds.has(r.id);
+        const repoId = Number(r.id);
+        const repoName = escapeHtml(r.name || '–');
+        const repoFullName = escapeHtml(r.full_name || '–');
+        const repoNameJs = escapeHtml(escapeJsString(r.name || ''));
         const row = document.createElement('div');
         row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--border-subtle);';
         row.innerHTML = `
           <div>
-            <div style="font-size:14px;font-weight:500;color:var(--text-primary);">${r.name}</div>
-            <div style="font-size:12px;color:var(--text-muted);">${r.full_name}</div>
+            <div style="font-size:14px;font-weight:500;color:var(--text-primary);">${repoName}</div>
+            <div style="font-size:12px;color:var(--text-muted);">${repoFullName}</div>
           </div>
           ${alreadyAdded
             ? `<span class="badge badge-strong" style="font-size:10px;">Added</span>`
-            : `<button class="btn btn-secondary btn-sm" onclick="addProject(${r.id}, '${r.name}', this)">Add</button>`
+            : `<button class="btn btn-secondary btn-sm" onclick="addProject(${repoId}, ${repoNameJs}, this)">Add</button>`
           }
         `;
         reposList.appendChild(row);

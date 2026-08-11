@@ -66,6 +66,13 @@ EVIDENCE_RULES = [
         "explanation": "Detected SQLAlchemy usage for database modeling."
     },
     {
+        "pattern": r"postgresql\s+configuration\s+detected",
+        "type": EvidenceType.DATABASE,
+        "quality_score": 0.7,
+        "target_skills": ["PostgreSQL"],
+        "explanation": "Detected PostgreSQL-specific configuration."
+    },
+    {
         "pattern": r"alembic\s+(?:import|dependency)\s+detected",
         "type": EvidenceType.DATABASE,
         "quality_score": 0.7,

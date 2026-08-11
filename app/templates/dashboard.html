@@ -333,11 +333,15 @@
         html += `<div style="font-size:13px; color:var(--text-muted);">None</div>`;
       } else {
         skillsInCat.forEach(s => {
+          const skillId = Number(s.skill_id);
+          const skillName = escapeHtml(s.skill_name || '–');
+          const skillNameJs = escapeHtml(escapeJsString(s.skill_name || '–'));
+          const stateJs = escapeHtml(escapeJsString(s.state || 'MISSING'));
           html += `
             <div tabindex="0" role="button" style="font-size:14px; color:var(--text-primary); cursor:pointer; padding:4px 0;" 
-                 onclick="openEvidenceExplorer('${s.skill_id}', '${s.skill_name}', '${s.state}')"
-                 onkeydown="if(event.key==='Enter'||event.key===' ') openEvidenceExplorer('${s.skill_id}', '${s.skill_name}', '${s.state}')">
-              ${s.skill_name}
+                 onclick="openEvidenceExplorer(${skillId}, ${skillNameJs}, ${stateJs})"
+                 onkeydown="if(event.key==='Enter'||event.key===' ') openEvidenceExplorer(${skillId}, ${skillNameJs}, ${stateJs})">
+              ${skillName}
             </div>
           `;
         });
@@ -394,15 +398,19 @@
         const isRight = n.x > cx;
         const textX = isRight ? n.x + 14 : n.x - 14;
         const anchor = isRight ? "start" : "end";
+        const skillId = Number(n.s.skill_id);
+        const skillName = escapeHtml(n.s.skill_name || '–');
+        const skillNameJs = escapeHtml(escapeJsString(n.s.skill_name || '–'));
+        const stateJs = escapeHtml(escapeJsString(n.s.state || 'MISSING'));
         
-        html += `<circle cx="${n.x}" cy="${n.y}" r="6" fill="${color}" style="cursor:pointer;" onclick="openEvidenceExplorer('${n.s.skill_id}', '${n.s.skill_name}', '${n.s.state}')" />`;
+        html += `<circle cx="${n.x}" cy="${n.y}" r="6" fill="${color}" style="cursor:pointer;" onclick="openEvidenceExplorer(${skillId}, ${skillNameJs}, ${stateJs})" />`;
         
         // Add subtle halo for strong skills
         if (n.s.state === 'STRONG') {
           html += `<circle cx="${n.x}" cy="${n.y}" r="12" fill="${color}" opacity="0.2" style="pointer-events:none;" />`;
         }
 
-        html += `<text x="${textX}" y="${n.y + 4}" fill="var(--text-primary)" font-weight="500" font-size="12" text-anchor="${anchor}" style="cursor:pointer;" onclick="openEvidenceExplorer('${n.s.skill_id}', '${n.s.skill_name}', '${n.s.state}')">${n.s.skill_name}</text>`;
+        html += `<text x="${textX}" y="${n.y + 4}" fill="var(--text-primary)" font-weight="500" font-size="12" text-anchor="${anchor}" style="cursor:pointer;" onclick="openEvidenceExplorer(${skillId}, ${skillNameJs}, ${stateJs})">${skillName}</text>`;
       });
       
       svg.innerHTML = html;
@@ -439,10 +447,10 @@
       item.innerHTML = `
         <div class="timeline-dot"></div>
         <div class="timeline-content">
-          <div class="timeline-text">${e.raw_observation_text || '–'}</div>
+          <div class="timeline-text">${escapeHtml(e.raw_observation_text || '–')}</div>
           <div class="timeline-meta">
-            <span class="badge badge-type">${e.type || '–'}</span>
-            <span class="timeline-meta-item mono">${path || '–'}</span>
+            <span class="badge badge-type">${escapeHtml(e.type || '–')}</span>
+            <span class="timeline-meta-item mono">${escapeHtml(path || '–')}</span>
           </div>
         </div>
       `;
@@ -465,7 +473,11 @@
       if (err.status === 404) {
         show(nbaEmpty);
       } else {
-        document.getElementById('section-nba').innerHTML = '';
+        const title = nbaEmpty?.querySelector('.empty-state-title');
+        const desc = nbaEmpty?.querySelector('.empty-state-desc');
+        if (title) title.textContent = 'Action unavailable';
+        if (desc) desc.textContent = 'Unable to load your next best action right now.';
+        show(nbaEmpty);
       }
     }
   }
@@ -504,7 +516,7 @@
       gaps.slice(0, 6).forEach(g => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td class="cell-primary">${g.skill}</td>
+          <td class="cell-primary">${escapeHtml(g.skill || '–')}</td>
           <td>${renderStateBadge(g.actual_state)}</td>
           <td>${renderStateBadge(g.required_state)}</td>
           <td>${renderSeverityBadge(g.severity)}</td>
@@ -541,20 +553,25 @@
       const isAnalyzing = snapshotStatus === 'ANALYZING';
       const dotClass = isSynced ? 'synced' : isAnalyzing ? 'analyzing' : snapshotStatus === 'FAILED' ? 'error' : 'pending';
       const statusLabel = isSynced ? 'Synced' : isAnalyzing ? 'Analyzing…' : snapshotStatus === 'FAILED' ? 'Sync Failed' : 'Not synced';
+      const projectId = Number(p.id);
+      const projectName = escapeHtml(p.name || '–');
+      const artifactTotal = Number(artifactCount) || 0;
+      const observationTotal = Number(observationCount) || 0;
+      const syncedLabel = escapeHtml(syncedAgo || 'Never');
 
       const card = document.createElement('div');
       card.className = 'project-card';
       card.innerHTML = `
         <div class="project-info">
-          <div class="project-name">${p.name}</div>
-          <div class="project-repo">github.com / ${p.name}</div>
+          <div class="project-name">${projectName}</div>
+          <div class="project-repo">github.com / ${projectName}</div>
           <div class="project-counts">
             <div class="project-count">
-              <div class="project-count-value">${artifactCount}</div>
+              <div class="project-count-value">${artifactTotal}</div>
               <div class="project-count-label">Artifacts</div>
             </div>
             <div class="project-count">
-              <div class="project-count-value">${observationCount}</div>
+              <div class="project-count-value">${observationTotal}</div>
               <div class="project-count-label">Observations</div>
             </div>
           </div>
@@ -562,9 +579,9 @@
         <div class="project-actions">
           <div class="project-sync-status">
             <span class="status-dot ${dotClass}"></span>
-            <span style="font-size:12px;color:var(--text-muted);">${statusLabel} · ${syncedAgo}</span>
+            <span style="font-size:12px;color:var(--text-muted);">${escapeHtml(statusLabel)} · ${syncedLabel}</span>
           </div>
-          <button class="btn btn-secondary btn-sm" onclick="syncProject(${p.id})" id="sync-project-${p.id}">
+          <button class="btn btn-secondary btn-sm" onclick="syncProject(${projectId})" id="sync-project-${projectId}">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path></svg>
             Sync
           </button>
@@ -619,10 +636,10 @@
         item.className = 'evidence-item';
         const path = (e.source_reference || '').split(/[\\/\\\\]/).pop() || e.source_reference;
         item.innerHTML = `
-          <div class="evidence-item-text">${e.raw_observation_text || '–'}</div>
+          <div class="evidence-item-text">${escapeHtml(e.raw_observation_text || '–')}</div>
           <div class="evidence-item-meta">
-            <span class="badge badge-type">${e.type || '–'}</span>
-            <code class="evidence-source">${path || '–'}</code>
+            <span class="badge badge-type">${escapeHtml(e.type || '–')}</span>
+            <code class="evidence-source">${escapeHtml(path || '–')}</code>
             <span class="evidence-score">Quality ${(e.quality_score || 0).toFixed(2)}</span>
             <span class="evidence-score">Freshness ${(e.freshness_weight || 0).toFixed(2)}</span>
           </div>

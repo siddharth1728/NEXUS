@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from sqlalchemy.orm import Session
 from app.dependencies.auth import get_current_user
+from app.core.csrf import verify_csrf_token
 from app.database.database import get_db
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectResponse, RepositorySnapshotResponse
@@ -14,7 +15,7 @@ def get_projects(db: Session = Depends(get_db), current_user: User = Depends(get
     projects = project_service.get_projects(db, current_user.id)
     return [ProjectResponse(id=p.id, user_id=p.user_id, github_repo_id=p.github_repo_id, name=p.name) for p in projects]
 
-@router.post("/", response_model=ProjectResponse)
+@router.post("/", response_model=ProjectResponse, dependencies=[Depends(verify_csrf_token)])
 def create_project(project_data: ProjectCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     p = project_service.create_project(db, current_user.id, project_data)
     return ProjectResponse(id=p.id, user_id=p.user_id, github_repo_id=p.github_repo_id, name=p.name)
@@ -24,7 +25,7 @@ def get_project(project_id: int, db: Session = Depends(get_db), current_user: Us
     p = project_service.get_project(db, project_id, current_user.id)
     return ProjectResponse(id=p.id, user_id=p.user_id, github_repo_id=p.github_repo_id, name=p.name)
 
-@router.post("/{project_id}/sync", response_model=RepositorySnapshotResponse)
+@router.post("/{project_id}/sync", response_model=RepositorySnapshotResponse, dependencies=[Depends(verify_csrf_token)])
 async def sync_project(project_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if not current_user.profile or not current_user.profile.github_username:
         raise HTTPException(status_code=400, detail="GitHub username not set in profile")

@@ -28,7 +28,7 @@ class TargetRoleSkill(Base):
     target_role_id = Column(Integer, ForeignKey("target_roles.id", ondelete="CASCADE"), nullable=False, index=True)
     skill_id = Column(Integer, ForeignKey("skills.id", ondelete="CASCADE"), nullable=False, index=True)
     importance_weight = Column(Float, nullable=False, default=1.0)
-    minimum_expected_state = Column(String, nullable=False) # e.g. "Developing", "Strong"
+    minimum_expected_state = Column(String, nullable=False) # e.g. "DEVELOPING", "STRONG"
 
     target_role = relationship("TargetRole", back_populates="skills")
     skill = relationship("Skill")

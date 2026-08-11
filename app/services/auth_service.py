@@ -59,6 +59,17 @@ def revoke_refresh_session(db: Session, user_id: int, raw_token: str):
     # If we get here, token was not found or already revoked
     pass
 
+def revoke_refresh_session_by_token(db: Session, raw_token: str):
+    sessions = db.query(RefreshSession).filter(
+        RefreshSession.revoked_at == None
+    ).all()
+
+    for session in sessions:
+        if verify_password(raw_token, session.token_hash):
+            session.revoked_at = datetime.utcnow()
+            db.commit()
+            return
+
 def revoke_all_refresh_sessions(db: Session, user_id: int):
     sessions = db.query(RefreshSession).filter(
         RefreshSession.user_id == user_id,

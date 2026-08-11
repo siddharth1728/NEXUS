@@ -1,7 +1,10 @@
 import pytest
+import os
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from alembic import command
+from alembic.config import Config
 from app.main import app
 from app.database.database import Base, get_db
 from app.core.config import settings
@@ -27,7 +30,7 @@ def clear_rate_limit():
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
     db = TestingSessionLocal()
-    from app.database.database import Base
+    from app.models import Base
     Base.metadata.create_all(bind=engine)
     for table in reversed(Base.metadata.sorted_tables):
         db.execute(table.delete())

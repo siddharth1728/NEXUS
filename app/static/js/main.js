@@ -36,6 +36,25 @@ async function apiFetch(url, opts) {
   return res.json();
 }
 
+/* ── Safe string helpers ────────────────────────────── */
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeJsString(value) {
+  return JSON.stringify(String(value ?? ''))
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
 /* ── Relative time formatter ────────────────────────── */
 function formatRelativeTime(dateString) {
   if (!dateString) return 'Never';
@@ -63,7 +82,7 @@ function renderStateBadge(state) {
     MISSING:    'badge-missing',
   };
   const cls = map[state] || 'badge-missing';
-  return `<span class="badge ${cls}">${state || 'UNKNOWN'}</span>`;
+  return `<span class="badge ${cls}">${escapeHtml(state || 'UNKNOWN')}</span>`;
 }
 
 /* ── Severity badge renderer ────────────────────────── */
@@ -200,8 +219,8 @@ function showEmptyState(container, title, desc, ctaHtml) {
   container.innerHTML =
     `<div class="empty-state">` +
     `<div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>` +
-    `<div class="empty-state-title">${title}</div>` +
-    `<p class="empty-state-desc">${desc}</p>` +
+    `<div class="empty-state-title">${escapeHtml(title)}</div>` +
+    `<p class="empty-state-desc">${escapeHtml(desc)}</p>` +
     ctaHtml +
     `</div>`;
 }
@@ -210,8 +229,8 @@ function showEmptyState(container, title, desc, ctaHtml) {
 function showError(container, title, desc) {
   container.innerHTML =
     `<div class="error-state">` +
-    `<div class="error-state-title">${title}</div>` +
-    `<p class="error-state-desc">${desc}</p>` +
+    `<div class="error-state-title">${escapeHtml(title)}</div>` +
+    `<p class="error-state-desc">${escapeHtml(desc)}</p>` +
     `<button class="btn btn-secondary btn-sm" onclick="window.location.reload()">Try again</button>` +
     `</div>`;
 }
