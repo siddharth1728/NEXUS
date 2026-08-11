@@ -298,6 +298,8 @@
         showToast('Set your GitHub username in Profile first.', 'warning');
       } else if (err.status === 429) {
         showToast('GitHub rate limit reached. Try again in a few minutes.', 'warning');
+      } else if (err.status === 409) {
+        showToast('A synchronization is already in progress. Please wait.', 'warning');
       } else {
         showToast('Sync failed. Please try again.', 'error');
       }

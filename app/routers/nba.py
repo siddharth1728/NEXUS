@@ -53,6 +53,7 @@ def get_next_best_action(current_user: User = Depends(get_current_user), db: Ses
         required_state=gap.required_state,
         effort=rec.effort,
         priority_score=rec.priority_score,
+        project_id=rec.project_id,
         traceability=traceability
     )
 

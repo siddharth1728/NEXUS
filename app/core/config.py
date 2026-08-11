@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     ENVIRONMENT: str = "development"
     GITHUB_TOKEN: Optional[str] = None
+    APP_BASE_URL: str = "http://localhost:8000"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

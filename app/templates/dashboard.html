@@ -8,11 +8,11 @@
   <!-- ── Page Header ────────────────────────────────── -->
   <header class="page-header" id="page-header">
     <div class="page-header-left">
-      <div class="page-eyebrow">Your Engineering Profile</div>
+      <div class="page-eyebrow" style="font-weight:700; letter-spacing:1px; color:var(--text-muted); font-size:11px; margin-bottom:8px;">YOUR ENGINEERING PROFILE</div>
       <h1 class="page-title" id="header-target-role">
         <span class="skeleton skeleton-title" style="width:280px;display:inline-block;" aria-hidden="true"></span>
       </h1>
-      <p class="page-subtitle">Evidence-backed insight into what you've actually demonstrated.</p>
+      <p class="page-subtitle" style="margin-top:4px;">How strong is my profile?</p>
     </div>
     <div class="page-header-right" id="header-actions" style="visibility:hidden;">
       <div class="sync-status" id="sync-status">
@@ -32,28 +32,16 @@
 
   <!-- ── Global Loading ─────────────────────────────── -->
   <div id="state-loading">
-    <!-- Stats skeleton -->
     <div class="stats-row" style="margin-bottom:40px;">
       <div class="skeleton skeleton-stat"></div>
       <div class="skeleton skeleton-stat"></div>
       <div class="skeleton skeleton-stat"></div>
       <div class="skeleton skeleton-stat"></div>
     </div>
-    <!-- Card skeleton -->
     <div class="card" style="margin-bottom:24px;">
-      <div style="display:flex;gap:12px;margin-bottom:20px;">
-        <div class="skeleton" style="height:20px;width:120px;"></div>
-        <div class="skeleton skeleton-badge" style="margin-left:auto;"></div>
-      </div>
       <div class="skeleton skeleton-text skeleton-full"></div>
       <div class="skeleton skeleton-text skeleton-3-4"></div>
       <div class="skeleton skeleton-text skeleton-1-2"></div>
-    </div>
-    <div class="card">
-      <div class="skeleton skeleton-title" style="width:200px;margin-bottom:20px;"></div>
-      <div class="skeleton skeleton-row"></div>
-      <div class="skeleton skeleton-row"></div>
-      <div class="skeleton skeleton-row"></div>
     </div>
   </div>
 
@@ -62,18 +50,9 @@
     <div class="empty-state" style="text-align:left;padding:48px;">
       <div style="margin-bottom:32px;">
         <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Getting started</div>
-        <h2 style="font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">Build your engineering profile</h2>
-        <p style="font-size:14px;color:var(--text-secondary);max-width:480px;line-height:1.6;">NEXUS analyzes the engineering work you've already built. Connect a GitHub repository and synchronize it — NEXUS will discover evidence and calculate your skill states.</p>
+        <h2 style="font-size:24px;font-weight:600;color:var(--text-primary);margin-bottom:12px;letter-spacing:-0.5px;">Your engineering profile starts here</h2>
+        <p style="font-size:16px;color:var(--text-secondary);max-width:520px;line-height:1.6;">NEXUS analyzes the engineering work you've already built. Connect a GitHub repository and synchronize it to discover evidence and calculate your skill states.</p>
       </div>
-
-      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:32px;padding:20px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;max-width:400px;">
-        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">How it works</div>
-        <div style="font-size:13px;color:var(--text-secondary);">① Connect your GitHub username in <a href="/profile" style="color:var(--accent);">Profile</a></div>
-        <div style="font-size:13px;color:var(--text-secondary);">② Add a repository from <a href="/projects" style="color:var(--accent);">Projects</a></div>
-        <div style="font-size:13px;color:var(--text-secondary);">③ Sync — NEXUS observes and records evidence</div>
-        <div style="font-size:13px;color:var(--text-secondary);">④ Skill states, gaps, and next best action appear here</div>
-      </div>
-
       <div style="display:flex;gap:12px;flex-wrap:wrap;">
         <a href="/projects" class="btn btn-primary">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -97,17 +76,17 @@
   <div id="state-populated" class="hidden">
 
     <!-- TIER 1: Stats -->
-    <div class="stats-row" id="stats-row">
+    <div class="stats-row" id="stats-row" style="margin-bottom:48px;">
       <div class="stat-chip">
         <div class="stat-value" id="stat-skills">–</div>
         <div class="stat-label">Skills</div>
       </div>
-      <div class="stat-chip is-strong">
-        <div class="stat-value" id="stat-strong">–</div>
+      <div class="stat-chip">
+        <div class="stat-value" id="stat-strong" style="color:var(--state-strong);">–</div>
         <div class="stat-label">Strong</div>
       </div>
-      <div class="stat-chip is-developing">
-        <div class="stat-value" id="stat-developing">–</div>
+      <div class="stat-chip">
+        <div class="stat-value" id="stat-developing" style="color:var(--state-developing);">–</div>
         <div class="stat-label">Developing</div>
       </div>
       <div class="stat-chip">
@@ -116,114 +95,36 @@
       </div>
     </div>
 
-    <!-- TIER 2: Next Best Action -->
-    <section class="section" id="section-nba">
+    <!-- TIER 2: Engineering Signal -->
+    <section class="section" id="section-skills" style="margin-bottom:64px;">
       <div class="section-header">
         <div>
-          <div class="section-label">Next Best Action</div>
-          <div class="section-hint">What to work on to close your most important gap.</div>
+          <div class="section-label">ENGINEERING SIGNAL</div>
+          <div class="section-hint">What am I good at?</div>
         </div>
       </div>
 
-      <!-- NBA Loading -->
-      <div id="nba-loading">
-        <div class="nba-card">
-          <div class="skeleton skeleton-title" style="width:160px;margin-bottom:12px;"></div>
-          <div class="skeleton skeleton-text skeleton-full"></div>
-          <div class="skeleton skeleton-text skeleton-3-4"></div>
-          <div style="display:flex;gap:12px;margin-top:16px;">
-            <div class="skeleton" style="height:34px;width:130px;border-radius:6px;"></div>
-            <div class="skeleton" style="height:34px;width:90px;border-radius:6px;"></div>
-          </div>
+      <!-- Constellation Visualization -->
+      <div class="card" style="padding:0; margin-bottom: 24px; border: 1px solid var(--border); overflow: hidden; background: var(--bg-elevated);">
+        <div style="position:relative; width: 100%; height: 320px;" id="constellation-container">
+          <svg id="constellation-svg" style="width:100%;height:100%;"></svg>
         </div>
       </div>
 
-      <!-- NBA Empty -->
-      <div id="nba-empty" class="hidden">
-        <div class="empty-state">
-          <div class="empty-state-title">No action available</div>
-          <p class="empty-state-desc">Synchronize a repository to let NEXUS calculate your next best action based on gap analysis.</p>
-        </div>
-      </div>
-
-      <!-- NBA Card -->
-      <div id="nba-card" class="nba-card hidden">
-        <div class="nba-header">
-          <div>
-            <div class="nba-eyebrow">Recommended Action</div>
-            <div class="nba-title" id="nba-title">–</div>
-            <div class="nba-meta">
-              <span class="badge badge-type" id="nba-skill-badge">–</span>
-              <span id="nba-transition" style="font-size:12px;color:var(--text-muted);">– → –</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="nba-divider"></div>
-
-        <div class="nba-body">
-          <div style="font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Why this?</div>
-          <p id="nba-why" style="font-size:14px;color:var(--text-secondary);line-height:1.6;"></p>
-          <div id="nba-project-context" class="hidden" style="margin-top:12px;padding:12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;font-size:13px;color:var(--text-muted);"></div>
-        </div>
-
-        <div class="nba-traceability" id="nba-traceability"></div>
-
-        <div class="nba-actions">
-          <button class="btn btn-primary" id="nba-complete-btn" onclick="handleNbaAction('complete')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Mark Completed
-          </button>
-          <button class="btn btn-ghost btn-sm" id="nba-dismiss-btn" onclick="handleNbaAction('dismiss')">Dismiss</button>
-        </div>
-
-        <div class="nba-honest-note">
-          Marking this complete records your progress. Your skill state changes only after NEXUS observes new engineering evidence through synchronization.
-        </div>
-      </div>
-
-      <!-- NBA Completion confirmation -->
-      <div id="nba-confirmed" class="hidden">
-        <div class="alert-banner alert-success" role="alert">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          <span id="nba-confirmed-msg">Action recorded. Your skill state will update after the next synchronization.</span>
-        </div>
+      <!-- Fallback Text Categorization -->
+      <div id="skills-text-breakdown" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; padding: 24px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius);">
+        <!-- populated by JS -->
       </div>
     </section>
 
-    <!-- TIER 3: Engineering Signal -->
-    <section class="section" id="section-skills">
+    <!-- TIER 3: Skills to Strengthen -->
+    <section class="section" id="section-gaps" style="margin-bottom:64px;">
       <div class="section-header">
         <div>
-          <div class="section-label">Engineering Signal</div>
-          <div class="section-hint">What your existing work has demonstrated.</div>
+          <div class="section-label">SKILLS TO STRENGTHEN</div>
+          <div class="section-hint">What am I missing? (Gap analysis)</div>
         </div>
-        <a href="/skills" class="btn btn-ghost btn-sm" style="flex-shrink:0;">
-          View all
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </a>
-      </div>
-
-      <div class="card" style="padding:8px;">
-        <div class="signal-list" id="skills-list">
-          <div class="skeleton skeleton-signal-item"></div>
-          <div class="skeleton skeleton-signal-item"></div>
-          <div class="skeleton skeleton-signal-item"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TIER 4: Priority Gaps -->
-    <section class="section" id="section-gaps">
-      <div class="section-header">
-        <div>
-          <div class="section-label">Priority Gaps</div>
-          <div class="section-hint">Where your demonstrated skills are below your target role requirements.</div>
-        </div>
-        <a href="/gaps" class="btn btn-ghost btn-sm" style="flex-shrink:0;">
-          View all
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </a>
+        <a href="/gaps" class="btn btn-ghost btn-sm">View all</a>
       </div>
 
       <div class="card" style="padding:0;overflow:hidden;">
@@ -245,35 +146,108 @@
       </div>
     </section>
 
-    <!-- TIER 5: Projects -->
-    <section class="section" id="section-projects">
+    <!-- TIER 4: Your Next Step -->
+    <section class="section" id="section-nba" style="margin-bottom:64px;">
       <div class="section-header">
         <div>
-          <div class="section-label">Projects</div>
-          <div class="section-hint">Connected repositories that produced this evidence.</div>
+          <div class="section-label">YOUR NEXT STEP</div>
+          <div class="section-hint">What should I do?</div>
         </div>
-        <a href="/projects" class="btn btn-ghost btn-sm" style="flex-shrink:0;">
-          Manage
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </a>
+      </div>
+
+      <div id="nba-loading">
+        <div class="nba-card">
+          <div class="skeleton skeleton-title" style="width:160px;margin-bottom:12px;"></div>
+          <div class="skeleton skeleton-text skeleton-full"></div>
+        </div>
+      </div>
+
+      <div id="nba-empty" class="hidden">
+        <div class="empty-state">
+          <div class="empty-state-title">No action available</div>
+          <p class="empty-state-desc">Synchronize a repository to let NEXUS calculate your next best action based on gap analysis.</p>
+        </div>
+      </div>
+
+      <div id="nba-card" class="nba-card hidden">
+        <div class="nba-header">
+          <div>
+            <div class="nba-eyebrow">Recommended Action</div>
+            <div class="nba-title" id="nba-title">–</div>
+            <div class="nba-meta">
+              <span class="badge badge-type" id="nba-skill-badge">–</span>
+              <span id="nba-transition" style="font-size:12px;color:var(--text-muted);">– → –</span>
+            </div>
+          </div>
+        </div>
+        <div class="nba-divider"></div>
+        <div class="nba-body">
+          <div style="font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Why this?</div>
+          <p id="nba-why" style="font-size:14px;color:var(--text-secondary);line-height:1.6;"></p>
+          <div id="nba-project-context" class="hidden" style="margin-top:12px;padding:12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;font-size:13px;color:var(--text-muted);"></div>
+        </div>
+        <div class="nba-actions">
+          <button class="btn btn-primary" id="nba-complete-btn" onclick="handleNbaAction('complete')">Mark Completed</button>
+          <button class="btn btn-ghost btn-sm" id="nba-dismiss-btn" onclick="handleNbaAction('dismiss')">Dismiss</button>
+        </div>
+      </div>
+      
+      <div id="nba-confirmed" class="hidden">
+        <div class="alert-banner alert-success" role="alert">
+          <span id="nba-confirmed-msg">Action recorded. Your skill state will update after the next synchronization.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TIER 5: Projects -->
+    <section class="section" id="section-projects" style="margin-bottom:64px;">
+      <div class="section-header">
+        <div>
+          <div class="section-label">PROJECTS</div>
+          <div class="section-hint">What did I build?</div>
+        </div>
+        <a href="/projects" class="btn btn-ghost btn-sm">Manage</a>
       </div>
       <div id="projects-list"></div>
     </section>
 
-    <!-- TIER 6: Recent Evidence -->
-    <section class="section" id="section-evidence">
+    <!-- TIER 6: What We Found -->
+    <section class="section" id="section-evidence" style="margin-bottom:64px;">
       <div class="section-header">
         <div>
-          <div class="section-label">Recent Evidence</div>
-          <div class="section-hint">The latest observations recorded by NEXUS.</div>
+          <div class="section-label">WHAT WE FOUND</div>
+          <div class="section-hint">Why does NEXUS believe this? (Raw observations)</div>
         </div>
-        <a href="/evidence" class="btn btn-ghost btn-sm" style="flex-shrink:0;">
-          View all
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </a>
+        <a href="/evidence" class="btn btn-ghost btn-sm">View all</a>
       </div>
       <div class="card" style="padding:0 8px;">
         <div class="timeline" id="evidence-timeline"></div>
+      </div>
+    </section>
+
+    <!-- TIER 7: Trust Note -->
+    <section class="section" id="section-trust" style="margin-bottom:64px;">
+      <div class="section-header">
+        <div>
+          <div class="section-label">HOW YOUR PROFILE IS BUILT</div>
+          <div class="section-hint">Understanding NEXUS analysis</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap: 16px; padding: 24px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius);">
+        <div style="display:flex; justify-content: space-between; align-items: center; max-width: 600px; color: var(--text-secondary); font-size: 13px; flex-wrap: wrap; gap:8px;">
+          <span>Your GitHub projects</span>
+          <span style="color: var(--border);">→</span>
+          <span>What we found</span>
+          <span style="color: var(--border);">→</span>
+          <span>Evidence</span>
+          <span style="color: var(--border);">→</span>
+          <span>Skill signals</span>
+          <span style="color: var(--border);">→</span>
+          <span style="color: var(--text-primary); font-weight: 500;">Your engineering profile</span>
+        </div>
+        <div style="font-size: 14px; color: var(--text-muted); line-height: 1.6;">
+          NEXUS evaluates what you've demonstrated in your projects. It does not claim to measure your absolute engineering ability.
+        </div>
       </div>
     </section>
 
@@ -297,12 +271,11 @@
   const stateError     = document.getElementById('state-error');
   const statePopulated = document.getElementById('state-populated');
 
-  function show(el) { el.classList.remove('hidden'); }
-  function hide(el) { el.classList.add('hidden'); }
+  function show(el) { if(el) el.classList.remove('hidden'); }
+  function hide(el) { if(el) el.classList.add('hidden'); }
 
   async function loadDashboard() {
     try {
-      // Load profile
       let targetRole = '–';
       try {
         const profile = await apiFetch('/api/profile');
@@ -310,7 +283,6 @@
       } catch {}
       document.getElementById('header-target-role').textContent = targetRole;
 
-      // Load projects
       _projects = await apiFetch('/api/projects/').catch(() => []);
 
       hide(stateLoading);
@@ -325,10 +297,8 @@
       document.getElementById('header-actions').style.visibility = 'visible';
       document.getElementById('sync-btn').style.display = 'inline-flex';
 
-      // Bind global sync to first project
       document.getElementById('sync-btn').onclick = () => syncProject(_projects[0].id);
 
-      // Run all data loads in parallel
       await Promise.all([
         loadSkillsAndStats(),
         loadNBA(),
@@ -352,45 +322,120 @@
     document.getElementById('stat-developing').textContent = _skills.filter(s => s.state === 'DEVELOPING').length;
     document.getElementById('stat-gaps').textContent = gaps.length;
 
-    renderSkills();
+    renderSkillsBreakdown();
+    renderConstellation();
     renderEvidence();
   }
 
-  function renderSkills() {
-    const list = document.getElementById('skills-list');
-    list.innerHTML = '';
-
+  function renderSkillsBreakdown() {
+    const container = document.getElementById('skills-text-breakdown');
+    if(!container) return;
+    container.innerHTML = '';
+    
     if (_skills.length === 0) {
-      showEmptyState(list, 'No Skills Recorded', 'Synchronize a repository to generate engineering evidence and skill states.', '');
+      container.innerHTML = '<div style="grid-column: 1 / -1; color: var(--text-muted); font-size: 13px;">No skills detected yet. Sync a repository to begin analysis.</div>';
       return;
     }
 
-    _skills.slice(0, 8).forEach(s => {
-      const div = document.createElement('div');
-      div.className = 'signal-item';
-      div.setAttribute('role', 'button');
-      div.setAttribute('tabindex', '0');
-      div.setAttribute('aria-label', `${s.skill_name} — ${s.state}. Click to explore evidence.`);
-      div.innerHTML = `
-        <div class="signal-item-left">
-          <div class="signal-skill-name">${s.skill_name}</div>
-        </div>
-        <div class="signal-item-right">
-          ${renderStateBadge(s.state)}
-          <svg class="signal-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </div>
-      `;
-      div.addEventListener('click', () => openEvidenceExplorer(s.skill_id, s.skill_name, s.state));
-      div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openEvidenceExplorer(s.skill_id, s.skill_name, s.state); });
-      list.appendChild(div);
+    const categories = [
+      { id: 'STRONG', label: 'STRONG', color: 'var(--state-strong)' },
+      { id: 'DEVELOPING', label: 'DEVELOPING', color: 'var(--state-developing)' },
+      { id: 'WEAK', label: 'WEAK', color: 'var(--state-weak)' },
+      { id: 'MISSING', label: 'MISSING', color: 'var(--state-missing)' }
+    ];
+
+    categories.forEach(cat => {
+      const skillsInCat = _skills.filter(s => s.state === cat.id);
+      
+      let html = `<div style="display:flex; flex-direction:column; gap:8px;">`;
+      html += `<div style="font-size:11px; font-weight:600; letter-spacing:0.08em; color:${cat.color};">${cat.label}</div>`;
+      html += `<div style="display:flex; flex-direction:column; gap:4px;">`;
+      
+      if (skillsInCat.length === 0) {
+        html += `<div style="font-size:13px; color:var(--text-muted);">None</div>`;
+      } else {
+        skillsInCat.forEach(s => {
+          html += `
+            <div tabindex="0" role="button" style="font-size:14px; color:var(--text-primary); cursor:pointer; padding:4px 0;" 
+                 onclick="openEvidenceExplorer('${s.skill_id}', '${s.skill_name}', '${s.state}')"
+                 onkeydown="if(event.key==='Enter'||event.key===' ') openEvidenceExplorer('${s.skill_id}', '${s.skill_name}', '${s.state}')">
+              ${s.skill_name}
+            </div>
+          `;
+        });
+      }
+      html += `</div></div>`;
+      container.innerHTML += html;
     });
+  }
+
+  function renderConstellation() {
+    const svg = document.getElementById('constellation-svg');
+    if (!svg || _skills.length === 0) return;
+    
+    // Defer rendering until next paint to ensure SVG has dimensions
+    setTimeout(() => {
+      const w = svg.clientWidth || 800;
+      const h = svg.clientHeight || 320;
+      
+      // Create central NEXUS node
+      const cx = w / 2;
+      const cy = h / 2;
+      const radius = Math.min(w, h) / 3.5;
+      
+      let html = '';
+      
+      // Draw lines first so they are behind nodes
+      const nodeData = _skills.slice(0, 16).map((s, i, arr) => {
+        // distribute nodes evenly around the circle
+        const angle = (i / arr.length) * 2 * Math.PI - Math.PI / 2;
+        // add slight randomness to radius to make it look organic
+        const jitter = (Math.random() - 0.5) * 40; 
+        const nx = cx + (radius + jitter) * Math.cos(angle);
+        const ny = cy + (radius + jitter) * Math.sin(angle);
+        return { x: nx, y: ny, s };
+      });
+      
+      nodeData.forEach(n => {
+        html += `<line x1="${cx}" y1="${cy}" x2="${n.x}" y2="${n.y}" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+      });
+      
+      // Draw center node
+      html += `<circle cx="${cx}" cy="${cy}" r="14" fill="var(--accent)" />`;
+      html += `<text x="${cx}" y="${cy + 28}" fill="var(--text-primary)" font-size="11" font-weight="600" text-anchor="middle">NEXUS</text>`;
+      
+      // Draw skill nodes
+      nodeData.forEach(n => {
+        const colorMap = {
+          'STRONG': 'var(--state-strong)',
+          'DEVELOPING': 'var(--state-developing)',
+          'WEAK': 'var(--state-weak)',
+          'MISSING': 'var(--state-missing)'
+        };
+        const color = colorMap[n.s.state] || 'var(--text-muted)';
+        const isRight = n.x > cx;
+        const textX = isRight ? n.x + 14 : n.x - 14;
+        const anchor = isRight ? "start" : "end";
+        
+        html += `<circle cx="${n.x}" cy="${n.y}" r="6" fill="${color}" style="cursor:pointer;" onclick="openEvidenceExplorer('${n.s.skill_id}', '${n.s.skill_name}', '${n.s.state}')" />`;
+        
+        // Add subtle halo for strong skills
+        if (n.s.state === 'STRONG') {
+          html += `<circle cx="${n.x}" cy="${n.y}" r="12" fill="${color}" opacity="0.2" style="pointer-events:none;" />`;
+        }
+
+        html += `<text x="${textX}" y="${n.y + 4}" fill="var(--text-primary)" font-weight="500" font-size="12" text-anchor="${anchor}" style="cursor:pointer;" onclick="openEvidenceExplorer('${n.s.skill_id}', '${n.s.skill_name}', '${n.s.state}')">${n.s.skill_name}</text>`;
+      });
+      
+      svg.innerHTML = html;
+    }, 50);
   }
 
   async function renderEvidence() {
     const timeline = document.getElementById('evidence-timeline');
+    if(!timeline) return;
     timeline.innerHTML = '<div class="skeleton skeleton-text skeleton-full" style="margin:8px;"></div>';
 
-    // Collect evidence from all skills
     let allEvidence = [];
     for (const s of _skills) {
       try {
@@ -412,7 +457,7 @@
     recent.forEach(e => {
       const item = document.createElement('div');
       item.className = 'timeline-item';
-      const path = (e.source_reference || '').split(/[\/\\]/).pop() || e.source_reference;
+      const path = (e.source_reference || '').split(/[\\/\\\\]/).pop() || e.source_reference;
       item.innerHTML = `
         <div class="timeline-dot"></div>
         <div class="timeline-content">
@@ -455,11 +500,9 @@
     const requiredState = nba.required_state || '–';
     document.getElementById('nba-transition').textContent = `${currentState} → ${requiredState}`;
 
-    // Why this
     const why = nba.traceability?.why_this_action || `This addresses a gap in ${nba.target_skill}.`;
     document.getElementById('nba-why').textContent = why;
 
-    // Project context
     const projCtx = nba.traceability?.why_this_project;
     if (projCtx) {
       const projEl = document.getElementById('nba-project-context');
@@ -467,23 +510,6 @@
       projEl.classList.remove('hidden');
     }
 
-    // Traceability grid
-    const t = nba.traceability || {};
-    const traces = [
-      { label: 'Gap Severity', value: t.gap_severity != null ? t.gap_severity.toFixed(2) : '–' },
-      { label: 'Evidence Potential', value: t.evidence_potential != null ? t.evidence_potential.toFixed(2) : '–' },
-      { label: 'Effort', value: nba.effort != null ? `${nba.effort}/5` : '–' },
-      { label: 'Priority Score', value: nba.priority_score != null ? nba.priority_score.toFixed(3) : '–' },
-    ];
-    const traceGrid = document.getElementById('nba-traceability');
-    traceGrid.innerHTML = traces.map(tr => `
-      <div class="nba-trace-item">
-        <div class="nba-trace-label">${tr.label}</div>
-        <div class="nba-trace-value">${tr.value}</div>
-      </div>
-    `).join('');
-
-    // Store for action handlers
     window._currentNbaKey = nba.action_key;
     window._currentNbaProjectId = nba.project_id || null;
   }
@@ -521,7 +547,6 @@
       let syncedAgo = 'Never';
       let artifactCount = 0;
       let observationCount = 0;
-      let evidenceCount = 0;
 
       try {
         const snaps = await apiFetch(`/api/projects/${p.id}/snapshots`);
@@ -538,12 +563,6 @@
       const isAnalyzing = snapshotStatus === 'ANALYZING';
       const dotClass = isSynced ? 'synced' : isAnalyzing ? 'analyzing' : snapshotStatus === 'FAILED' ? 'error' : 'pending';
       const statusLabel = isSynced ? 'Synced' : isAnalyzing ? 'Analyzing…' : snapshotStatus === 'FAILED' ? 'Sync Failed' : 'Not synced';
-
-      // Sync button updates header sync time on completion
-      const updateSyncTime = () => {
-        document.getElementById('sync-time-label').textContent = `Last synced ${formatRelativeTime(new Date())}`;
-        document.getElementById('sync-dot').className = 'status-dot synced';
-      };
 
       const card = document.createElement('div');
       card.className = 'project-card';
@@ -576,7 +595,6 @@
       list.appendChild(card);
     }
 
-    // Update sync status header
     if (_projects.length > 0) {
       try {
         const snaps = await apiFetch(`/api/projects/${_projects[0].id}/snapshots`);
@@ -591,7 +609,6 @@
     }
   }
 
-  // ── Evidence Explorer ──────────────────────────────
   window.openEvidenceExplorer = async function(skillId, skillName, state) {
     document.getElementById('drawer-skill-name').textContent = skillName;
     document.getElementById('drawer-state-badge').innerHTML = renderStateBadge(state);
@@ -614,7 +631,6 @@
         return;
       }
 
-      // Evidence count summary
       const summary = document.createElement('p');
       summary.style.cssText = 'font-size:13px;color:var(--text-muted);margin-bottom:20px;';
       summary.textContent = `${evidence.length} evidence signal${evidence.length !== 1 ? 's' : ''} contributing to this state.`;
@@ -623,7 +639,7 @@
       evidence.forEach(e => {
         const item = document.createElement('div');
         item.className = 'evidence-item';
-        const path = (e.source_reference || '').split(/[\/\\]/).pop() || e.source_reference;
+        const path = (e.source_reference || '').split(/[\\/\\\\]/).pop() || e.source_reference;
         item.innerHTML = `
           <div class="evidence-item-text">${e.raw_observation_text || '–'}</div>
           <div class="evidence-item-meta">
@@ -640,7 +656,6 @@
     }
   };
 
-  // ── Sync Project ───────────────────────────────────
   window.syncProject = async function(projectId) {
     const btn = document.getElementById('sync-project-' + projectId) || document.getElementById('sync-btn');
     const originalHtml = btn?.innerHTML;
@@ -657,6 +672,8 @@
           showToast('Set your GitHub username in Profile first.', 'warning');
         } else if (res.status === 429) {
           showToast('GitHub rate limit reached. Try again in a few minutes.', 'warning');
+        } else if (res.status === 409) {
+          showToast('A synchronization is already in progress. Please wait.', 'warning');
         } else {
           showToast('Sync failed. Check your GitHub username and try again.', 'error');
         }
@@ -668,7 +685,6 @@
     }
   };
 
-  // ── NBA Actions ────────────────────────────────────
   window.handleNbaAction = async function(action) {
     if (!window._currentNbaKey) return;
 
@@ -700,7 +716,6 @@
     }
   };
 
-  // Boot
   loadDashboard();
 })();
 </script>

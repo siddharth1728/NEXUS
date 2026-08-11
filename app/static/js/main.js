@@ -216,38 +216,9 @@ function showSkeleton(container, count, type) {
   ).join('');
 }
 
-/* ── Mobile nav ─────────────────────────────────────── */
+/* ── Mobile nav (Removed in favor of bottom nav) ────── */
 function _initMobileNav() {
-  const hamburger = document.getElementById('mobile-hamburger');
-  const drawer    = document.getElementById('mobile-nav-drawer');
-  const overlay   = document.getElementById('mobile-nav-overlay');
-  const closeBtn  = document.getElementById('mobile-nav-close');
-
-  if (!hamburger || !drawer) return;
-
-  function openMobileNav() {
-    drawer.classList.add('active');
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    hamburger.setAttribute('aria-expanded', 'true');
-  }
-
-  function closeMobileNav() {
-    drawer.classList.remove('active');
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-    hamburger.setAttribute('aria-expanded', 'false');
-  }
-
-  hamburger.addEventListener('click', openMobileNav);
-  if (closeBtn) closeBtn.addEventListener('click', closeMobileNav);
-  if (overlay)  overlay.addEventListener('click', closeMobileNav);
-
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && drawer.classList.contains('active')) {
-      closeMobileNav();
-    }
-  });
+  // Mobile drawer has been replaced by a CSS-only bottom navigation bar.
 }
 
 /* ── Logout ─────────────────────────────────────────── */

@@ -12,6 +12,12 @@ app = FastAPI(title="NEXUS")
 os.makedirs("app/static", exist_ok=True)
 os.makedirs("app/templates", exist_ok=True)
 
+@app.on_event("startup")
+def on_startup():
+    from app.db.seed import seed_taxonomy
+    seed_taxonomy()
+
+
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
@@ -46,6 +52,14 @@ def index(request: Request):
 @app.get("/login", response_class=HTMLResponse, tags=["Frontend"])
 def login_page(request: Request):
     return render_with_csrf(request, "login.html")
+
+@app.get("/forgot-password", response_class=HTMLResponse, tags=["Frontend"])
+def forgot_password_page(request: Request):
+    return render_with_csrf(request, "forgot_password.html")
+
+@app.get("/reset-password", response_class=HTMLResponse, tags=["Frontend"])
+def reset_password_page(request: Request):
+    return render_with_csrf(request, "reset_password.html")
 
 @app.get("/register", response_class=HTMLResponse, tags=["Frontend"])
 def register_page(request: Request):

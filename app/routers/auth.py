@@ -60,6 +60,27 @@ def refresh(request: Request, response: Response, db: Session = Depends(get_db))
     set_auth_cookies(response, new_access_token, new_refresh_token)
     return {"message": "Token refreshed"}
 
+from app.schemas.auth import ForgotPasswordRequest, ResetPasswordRequest
+from app.services.email_service import send_password_reset_email
+from app.models.user import User
+
+@router.post("/forgot-password", dependencies=[Depends(rate_limit), Depends(verify_csrf_token)])
+def forgot_password(request_data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == request_data.email).first()
+    
+    if user:
+        raw_token = auth_service.create_password_reset_token(db, user.id)
+        reset_url = f"{settings.APP_BASE_URL}/reset-password?token={raw_token}"
+        send_password_reset_email(user.email, reset_url)
+        
+    # ALWAYS return the generic success response to prevent enumeration
+    return {"message": "If an account exists for this email, you'll receive a password reset link."}
+
+@router.post("/reset-password", dependencies=[Depends(rate_limit), Depends(verify_csrf_token)])
+def reset_password(request_data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    auth_service.reset_password(db, request_data.token, request_data.new_password)
+    return {"message": "Password has been successfully reset."}
+
 @router.post("/logout", dependencies=[Depends(verify_csrf_token)])
 def logout(request: Request, response: Response, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     refresh_token = request.cookies.get("refresh_token")

@@ -148,15 +148,12 @@
        display:flex on ≤768px (set in media query)
        ══════════════════════════════════════════════════ -->
   <div class="mobile-topbar" id="mobile-topbar" aria-label="Mobile header">
-    <span class="mobile-brand">NEXUS</span>
-    <button class="mobile-hamburger" id="mobile-hamburger"
-            aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav-drawer">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
-    </button>
+    <div class="mobile-brand-group">
+      <span class="mobile-brand">NEXUS</span>
+    </div>
+    <div class="mobile-topbar-actions">
+      <!-- Optional: Settings or Profile quick link here if needed -->
+    </div>
   </div>
 
   <!-- ── MAIN CONTENT AREA ───────────────────────────── -->
@@ -167,51 +164,38 @@
 </div><!-- /.app-shell -->
 
 <!-- ══════════════════════════════════════════════════════
-     MOBILE NAV OVERLAY + DRAWER
-     Outside app-shell so they don't affect flex layout.
-     Both are position:fixed.
+     MOBILE BOTTOM NAVIGATION (Hidden on Desktop)
      ══════════════════════════════════════════════════════ -->
-<div class="mobile-nav-overlay" id="mobile-nav-overlay" aria-hidden="true"></div>
-
-<nav class="mobile-nav-drawer" id="mobile-nav-drawer"
-     role="dialog" aria-label="Mobile navigation" aria-modal="true">
-  <div class="mobile-nav-header">
-    <span class="mobile-brand">NEXUS</span>
-    <button class="mobile-hamburger" id="mobile-nav-close" aria-label="Close navigation">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    </button>
-  </div>
-  <div class="mobile-nav-body">
-    <div class="nav-group">
-      <span class="nav-group-label">Overview</span>
-      <a href="/dashboard" class="nav-item{% if request.url.path in ['/dashboard', '/'] %} active{% endif %}">Overview</a>
-      <a href="/evidence"  class="nav-item{% if request.url.path == '/evidence' %} active{% endif %}">Evidence</a>
-      <a href="/projects"  class="nav-item{% if request.url.path == '/projects' %} active{% endif %}">Projects</a>
-      <a href="/skills"    class="nav-item{% if request.url.path == '/skills' %} active{% endif %}">Skills</a>
-      <a href="/gaps"      class="nav-item{% if request.url.path == '/gaps' %} active{% endif %}">Gaps</a>
-    </div>
-    <div class="nav-divider"></div>
-    <div class="nav-group">
-      <span class="nav-group-label">Account</span>
-      <a href="/profile"   class="nav-item{% if request.url.path == '/profile' %} active{% endif %}">Profile</a>
-      <a href="/settings"  class="nav-item{% if request.url.path == '/settings' %} active{% endif %}">Settings</a>
-    </div>
-  </div>
-  <div class="mobile-nav-footer">
-    <button class="logout-btn" data-action="logout" aria-label="Log out">
-      <span class="logout-btn-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path>
-          <polyline points="16 17 21 12 16 7"></polyline>
-          <line x1="21" y1="12" x2="9" y2="12"></line>
-        </svg>
-      </span>
-      Log out
-    </button>
-  </div>
+<nav class="mobile-bottom-nav" aria-label="Mobile bottom navigation">
+  <a href="/dashboard" class="mobile-nav-item{% if request.url.path in ['/dashboard', '/'] %} active{% endif %}" aria-label="Overview">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
+      <rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
+    </svg>
+    <span>Overview</span>
+  </a>
+  <a href="/projects" class="mobile-nav-item{% if request.url.path == '/projects' %} active{% endif %}" aria-label="Projects">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"></path>
+    </svg>
+    <span>Projects</span>
+  </a>
+  <a href="/evidence" class="mobile-nav-item{% if request.url.path == '/evidence' %} active{% endif %}" aria-label="Evidence">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
+      <polyline points="14 2 14 8 20 8"></polyline>
+      <line x1="16" y1="13" x2="8" y2="13"></line>
+      <line x1="16" y1="17" x2="8" y2="17"></line>
+    </svg>
+    <span>Evidence</span>
+  </a>
+  <a href="/profile" class="mobile-nav-item{% if request.url.path == '/profile' %} active{% endif %}" aria-label="Profile">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+    <span>Profile</span>
+  </a>
 </nav>
 
 <!-- ══════════════════════════════════════════════════════

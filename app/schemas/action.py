@@ -21,6 +21,7 @@ class RecommendationResponse(BaseModel):
     required_state: str
     effort: int
     priority_score: float
+    project_id: Optional[int] = None
     traceability: TraceabilityInfo
 
 class ActionPayload(BaseModel):

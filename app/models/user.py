@@ -15,6 +15,19 @@ class User(Base):
     projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
     profile = relationship("StudentProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     user_skills = relationship("UserSkill", back_populates="user", cascade="all, delete-orphan")
+    password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token_hash = Column(String, unique=True, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    used_at = Column(DateTime, nullable=True)
+
+    user = relationship("User", back_populates="password_reset_tokens")
 
 class RefreshSession(Base):
     __tablename__ = "refresh_sessions"
