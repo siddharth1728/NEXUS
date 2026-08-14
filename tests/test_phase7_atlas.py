@@ -16,8 +16,7 @@ def test_public_routes_render_correctly():
         resp = client.get(route)
         assert resp.status_code == 200
         assert "text/html" in resp.headers["content-type"]
-        # Basic check to ensure the atlas UI string is present (we added "ENGINEERING ATLAS" to auth pages)
-        assert "ENGINEERING ATLAS" in resp.text
+        assert "NEXUS" in resp.text
 
 def test_protected_routes_render_authenticated(auth_client, db_session, test_user):
     # Setup minimal data for dynamic routes

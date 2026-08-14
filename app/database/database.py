@@ -6,7 +6,10 @@ from app.core.config import settings
 Base = declarative_base()
 
 def get_engine(url: str):
-    return create_engine(url, echo=settings.ENVIRONMENT == "development")
+    connect_args = {}
+    if url.startswith("sqlite"):
+        connect_args["check_same_thread"] = False
+    return create_engine(url, echo=settings.ENVIRONMENT == "development", connect_args=connect_args)
 
 engine = get_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -7,9 +7,9 @@ from typing import Optional
 _DEV_SECRET_SENTINEL = "dev_secret_key_change_me_in_production"
 
 class Settings(BaseSettings):
-    DATABASE_URL: str
-    TEST_DATABASE_URL: str
-    SECRET_KEY: str
+    DATABASE_URL: str = "sqlite:////tmp/nexus.db"
+    TEST_DATABASE_URL: str = "sqlite:///./test_nexus.db"
+    SECRET_KEY: str = "dev_secret_key_change_me_in_production_min_32_bytes_nexus"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7

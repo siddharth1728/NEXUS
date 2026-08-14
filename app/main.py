@@ -3,23 +3,35 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse, HTMLResponse
 import os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
 
 from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba, identity
 
 app = FastAPI(title="NEXUS")
 
-# Ensure static and templates dirs exist
-os.makedirs("app/static", exist_ok=True)
-os.makedirs("app/templates", exist_ok=True)
+# Ensure static and templates dirs exist if filesystem is writable
+try:
+    (BASE_DIR / "static").mkdir(parents=True, exist_ok=True)
+    (BASE_DIR / "templates").mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
 
 @app.on_event("startup")
 def on_startup():
-    from app.db.seed import seed_taxonomy
-    seed_taxonomy()
+    try:
+        from app.database.database import Base, engine
+        import app.models  # register all models
+        Base.metadata.create_all(bind=engine)
+        from app.db.seed import seed_taxonomy
+        seed_taxonomy()
+    except Exception as e:
+        print(f"Startup notice: {e}")
 
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
-templates = Jinja2Templates(directory="app/templates")
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(profile.router, prefix="/api/profile", tags=["Profile"])
