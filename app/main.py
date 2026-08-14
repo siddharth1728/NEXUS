@@ -7,7 +7,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
-from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba, identity, lab
+from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba, identity, lab, copilot
 
 app = FastAPI(title="NEXUS")
 
@@ -44,6 +44,7 @@ app.include_router(gaps.router, prefix="/api")
 app.include_router(nba.router, prefix="/api")
 app.include_router(identity.router, prefix="/api")
 app.include_router(lab.router, prefix="/api")
+app.include_router(copilot.router)
 
 @app.get("/health", tags=["Health"])
 def health_check():
@@ -126,5 +127,13 @@ def settings_page(request: Request):
 @app.get("/journey", response_class=HTMLResponse, tags=["Frontend"])
 def journey_page(request: Request):
     return render_with_csrf(request, "journey.html")
+
+@app.get("/defend/{project_id}", response_class=HTMLResponse, tags=["Frontend"])
+def defend_project_page(request: Request, project_id: int):
+    return render_with_csrf(request, "defend.html")
+
+@app.get("/copilot", response_class=HTMLResponse, tags=["Frontend"])
+def copilot_console_page(request: Request):
+    return render_with_csrf(request, "copilot.html")
 
 

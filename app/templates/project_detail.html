@@ -117,6 +117,7 @@
       <p class="page-subtitle" id="proj-subtitle">Extracting verified signals, maturity coverage, and next engineering growth.</p>
     </div>
     <div class="page-actions" id="proj-actions" style="visibility: hidden;">
+      <a href="#" class="btn btn-primary btn-sm" id="defend-build-btn" style="background: #10b981; border-color: #10b981; color: #fff;">🛡️ DEFEND THIS BUILD</a>
       <button class="btn btn-secondary btn-sm" id="survey-btn">SURVEY NOW</button>
       <a href="/" class="btn btn-primary btn-sm" id="locate-atlas-btn">LOCATE ON ATLAS</a>
     </div>
@@ -321,6 +322,10 @@
     document.getElementById('meta-status').innerHTML = '<span class="badge badge-developing">' + escapeHtml(meta.snapshot_status) + '</span>';
 
     // Action button hooks
+    var defendBtn = document.getElementById('defend-build-btn');
+    if (defendBtn) {
+      defendBtn.href = '/defend/' + meta.project_id;
+    }
     document.getElementById('survey-btn').onclick = function() { syncThisProject(); };
     document.getElementById('locate-atlas-btn').href = '/?skill=' + (data.signals[0] ? encodeURIComponent(data.signals[0].skill_name) : '');
 

@@ -149,3 +149,10 @@ ACTION_CATALOG: List[ActionDefinition] = [
 
 def get_action_catalog() -> List[ActionDefinition]:
     return ACTION_CATALOG
+
+def get_catalog_action(action_key: str) -> Optional[ActionDefinition]:
+    for action in ACTION_CATALOG:
+        if action.action_key == action_key:
+            return action
+    return None
+

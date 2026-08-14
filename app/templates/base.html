@@ -28,6 +28,7 @@
     <a href="/" class="top-nav-link{% if request.url.path in ['/', '/dashboard'] %} active{% endif %}" aria-label="Atlas">ATLAS</a>
     <a href="/projects" class="top-nav-link{% if request.url.path.startswith('/projects') %} active{% endif %}" aria-label="Projects">PROJECTS</a>
     <a href="/lab" class="top-nav-link{% if request.url.path.startswith('/lab') %} active{% endif %}" aria-label="Lab">LAB</a>
+    <a href="/copilot" class="top-nav-link{% if request.url.path.startswith('/copilot') or request.url.path.startswith('/defend') %} active{% endif %}" aria-label="Copilot">COPILOT</a>
     <a href="/evidence" class="top-nav-link{% if request.url.path == '/evidence' %} active{% endif %}" aria-label="Proof">PROOF</a>
     <a href="/skills" class="top-nav-link{% if request.url.path == '/skills' %} active{% endif %}" aria-label="Signals">SIGNALS</a>
     <a href="/gaps" class="top-nav-link{% if request.url.path == '/gaps' %} active{% endif %}" aria-label="Unexplored">UNEXPLORED</a>
@@ -63,6 +64,7 @@
   <a href="/" class="mobile-nav-menu-link{% if request.url.path in ['/', '/dashboard'] %} active{% endif %}">Atlas</a>
   <a href="/projects" class="mobile-nav-menu-link{% if request.url.path.startswith('/projects') %} active{% endif %}">Projects</a>
   <a href="/lab" class="mobile-nav-menu-link{% if request.url.path.startswith('/lab') %} active{% endif %}">Lab</a>
+  <a href="/copilot" class="mobile-nav-menu-link{% if request.url.path.startswith('/copilot') or request.url.path.startswith('/defend') %} active{% endif %}">Copilot</a>
   <a href="/evidence" class="mobile-nav-menu-link{% if request.url.path == '/evidence' %} active{% endif %}">Proof</a>
   <a href="/skills" class="mobile-nav-menu-link{% if request.url.path == '/skills' %} active{% endif %}">Signals</a>
   <a href="/gaps" class="mobile-nav-menu-link{% if request.url.path == '/gaps' %} active{% endif %}">Unexplored</a>

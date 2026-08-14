@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: Optional[str] = None
     SMTP_USE_TLS: bool = True
 
+    # ── AI Engineering Copilot ───────────────────────────────────────────
+    AI_PROVIDER: str = "mock"  # "mock", "openai", "anthropic", "gemini"
+    AI_API_KEY: Optional[str] = None
+    AI_MODEL: str = "gpt-4o-mini"
+    AI_MAX_TOKENS: int = 1200
+    AI_TEMPERATURE: float = 0.2
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
