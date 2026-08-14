@@ -4,224 +4,122 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign In — NEXUS</title>
-  <meta name="description" content="Sign in to your NEXUS engineering intelligence account.">
+  <meta name="description" content="Sign in to your NEXUS engineering atlas.">
   <meta name="csrf-token" content="{{ csrf_token }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/style.css">
   <style>
-    /* Local styles specific to the form */
-    .form-group { margin-bottom: var(--space-4); }
-    .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: var(--space-2); }
-    .form-input {
-      width: 100%;
-      height: 40px;
-      padding: 0 var(--space-3);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--bg-elevated);
-      color: var(--text-primary);
-      transition: all var(--transition-fast);
-      font-size: 14px;
-    }
-    .form-input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-soft);
-    }
-    .password-wrapper { position: relative; display: flex; align-items: center; }
-    .password-toggle {
-      position: absolute; right: 12px; background: none; border: none; color: var(--text-muted);
-      cursor: pointer; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
-      transition: color var(--transition-fast);
-    }
-    .password-toggle:hover, .password-toggle:focus-visible { color: var(--text-primary); outline: none; }
-    .password-toggle:focus-visible { box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent); }
-    
-    .btn-full { width: 100%; height: 44px; display: flex; align-items: center; justify-content: center; margin-top: var(--space-6); font-size: 14px; gap: 8px; }
-    .btn-full svg { transition: transform var(--transition-fast); }
-    .btn-full:hover:not(:disabled) svg { transform: translateX(2px); }
-    
-    .form-meta { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-6); font-size: 13px; }
-    .form-link { color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color var(--transition-fast); }
-    .form-link:hover { color: var(--text-primary); }
-    .form-link-accent { color: var(--accent); font-weight: 600; text-decoration: none; }
-    .form-link-accent:hover { text-decoration: underline; text-underline-offset: 4px; }
-    
     .auth-error {
-      background: var(--severity-high-bg);
-      border: 1px solid rgba(230, 106, 91, 0.3);
-      border-radius: var(--radius-sm);
-      padding: var(--space-4);
-      margin-bottom: var(--space-6);
-      display: none;
-      gap: var(--space-3);
-      align-items: flex-start;
+      background: var(--coral-soft); border: 1px solid var(--coral); padding: 16px; margin-bottom: 24px; display: none; gap: 12px; align-items: flex-start;
     }
     .auth-error.show { display: flex; }
-    .auth-error-icon { color: var(--severity-high); margin-top: 2px; flex-shrink: 0; }
-    .auth-error-title { font-size: 13px; font-weight: 600; color: #9F1239; margin-bottom: 2px; }
-    .auth-error-desc { font-size: 13px; color: #BE123C; line-height: 1.4; }
+    .auth-error-icon { color: var(--coral); margin-top: 2px; flex-shrink: 0; }
+    .auth-error-title { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--coral); text-transform: uppercase; margin-bottom: 4px; }
+    .auth-error-desc { font-size: 13px; color: var(--ink); line-height: 1.5; }
   </style>
 </head>
 <body>
 
-<div class="auth-split-layout">
+<div class="auth-cartography-layout">
+  <div class="auth-bg-marks"></div>
   
-  <div class="auth-split-left">
-    <div class="auth-split-brand">
-      <span>NEXUS</span>
-      <span style="font-size: 10px; color: var(--text-muted);">Engineering OS</span>
-    </div>
-    
-    <div class="auth-split-hero">
-      <h1>BUILD PROOF.<br>NOT JUST A<br>RESUME.</h1>
-      <p>Your engineering work becomes evidence.</p>
-      
-      <div class="auth-split-process" aria-hidden="true" style="margin-bottom: var(--space-10);">
-        <span>GitHub</span> <span style="color:var(--border);">→</span>
-        <span class="active">Evidence</span> <span style="color:var(--border);">→</span>
-        <span>Skills</span> <span style="color:var(--border);">→</span>
-        <span>Gaps</span>
-      </div>
-      
-      <ul style="list-style: none; padding: 0; margin: 0; color: var(--text-secondary); font-size: 14px; font-weight: 500; line-height: 2;">
-        <li><span style="color: var(--accent); margin-right: 8px;">●</span> Real work</li>
-        <li><span style="color: var(--accent); margin-right: 8px;">●</span> Deterministic</li>
-        <li><span style="color: var(--accent); margin-right: 8px;">●</span> Explainable</li>
-      </ul>
-    </div>
+  <div class="auth-hero-section">
+    <div class="auth-hero-brand">NEXUS // ENGINEERING INTELLIGENCE</div>
+    <h1 class="auth-hero-title">BUILD PROOF.<br>NOT JUST A RESUME.</h1>
+    <p class="auth-hero-subtitle">Explore what your engineering work actually demonstrates. Connect your artifacts and map your capabilities.</p>
   </div>
   
-  <div class="auth-split-right">
-    <div class="auth-form-container">
-      <h2 style="font-size: 24px; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-2); letter-spacing: -0.02em;">Welcome back</h2>
-      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--space-8);">Continue building your engineering profile.</p>
-
-      <div id="login-error" class="auth-error" aria-live="assertive" role="alert">
-        <svg class="auth-error-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <div class="auth-form-section">
+    <div class="auth-field-note">
+      <div class="auth-field-note-title">AUTHENTICATION SURVEY</div>
+      
+      <div class="auth-error" id="auth-error" role="alert" aria-live="assertive">
+        <svg class="auth-error-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
         <div>
-          <div class="auth-error-title" id="login-error-title">Authentication Failed</div>
-          <div class="auth-error-desc" id="login-error-message">Invalid email or password.</div>
+          <div class="auth-error-title" id="auth-error-title">Authentication Failed</div>
+          <div class="auth-error-desc" id="auth-error-desc">Invalid credentials.</div>
         </div>
       </div>
-
+      
       <form id="login-form" novalidate>
-        <div class="form-group">
-          <label class="form-label" for="email">Email</label>
-          <input type="email" id="email" class="form-input" required autocomplete="username" spellcheck="false">
+        <div class="auth-input-group">
+          <label for="email">Email Coordinate</label>
+          <input type="email" id="email" name="email" class="auth-input" required autofocus autocomplete="username" placeholder="engineer@example.com">
         </div>
-
-        <div class="form-group">
-          <label class="form-label" for="password">Password</label>
-          <div class="password-wrapper">
-            <input type="password" id="password" class="form-input" required autocomplete="current-password" style="padding-right: 40px;">
-            <button type="button" class="password-toggle" id="toggle-password" aria-label="Show password" aria-pressed="false">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="icon-eye">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </button>
-          </div>
+        
+        <div class="auth-input-group">
+          <label for="password">Access Key</label>
+          <input type="password" id="password" name="password" class="auth-input" required autocomplete="current-password" placeholder="••••••••">
         </div>
-
-        <button type="submit" class="btn btn-primary btn-full" id="submit-btn">
-          Sign in
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
-        </button>
+        
+        <button type="submit" class="auth-submit-btn" id="submit-btn">Initialize Session</button>
       </form>
-
-      <div class="form-meta">
-        <a href="/forgot-password" class="form-link">Forgot password?</a>
-        <a href="/register" class="form-link-accent">Create account</a>
+      
+      <div class="auth-meta-links">
+        <a href="/forgot-password">Reset access key</a>
+        <a href="/register" style="color:var(--primary); font-weight:500;">Begin new survey →</a>
       </div>
     </div>
   </div>
-  
 </div>
 
-<script src="/static/js/main.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const form = document.getElementById('login-form');
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const submitBtn = document.getElementById('submit-btn');
-  const errorContainer = document.getElementById('login-error');
-  const errorMessage = document.getElementById('login-error-message');
-  const errorTitle = document.getElementById('login-error-title');
-  const togglePasswordBtn = document.getElementById('toggle-password');
-  
-  // Password Visibility Toggle
-  togglePasswordBtn.addEventListener('click', function() {
-    const isPassword = passwordInput.type === 'password';
-    passwordInput.type = isPassword ? 'text' : 'password';
-    this.setAttribute('aria-pressed', isPassword);
-    this.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
-    
-    if (isPassword) {
-      this.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
-    } else {
-      this.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-    }
-  });
+  var form = document.getElementById('login-form');
+  var errorBox = document.getElementById('auth-error');
+  var errorTitle = document.getElementById('auth-error-title');
+  var errorDesc = document.getElementById('auth-error-desc');
+  var submitBtn = document.getElementById('submit-btn');
+  var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-  const showError = (title, message) => {
+  function showError(title, msg) {
     errorTitle.textContent = title;
-    errorMessage.textContent = message;
-    errorContainer.classList.add('show');
-    submitBtn.classList.remove('btn-loading');
+    errorDesc.textContent = msg;
+    errorBox.classList.add('show');
+    submitBtn.textContent = 'Initialize Session';
     submitBtn.disabled = false;
-  };
-
-  const hideError = () => {
-    errorContainer.classList.remove('show');
-  };
+  }
 
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
-    hideError();
+    errorBox.classList.remove('show');
+    submitBtn.textContent = 'Authenticating...';
+    submitBtn.disabled = true;
 
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
 
     if (!email || !password) {
-      showError("Incomplete fields", "Please enter both your email and password.");
-      if (!email) emailInput.focus();
-      else passwordInput.focus();
+      showError('Validation Error', 'Both email and access key are required.');
       return;
     }
 
-    submitBtn.classList.add('btn-loading');
-    submitBtn.disabled = true;
-
     try {
-      const response = await fetch('/api/auth/login', {
+      var res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: email, password: password })
       });
 
-      if (response.ok) {
-        window.location.href = '/dashboard';
-      } else {
-        const data = await response.json();
-        showError("Authentication Failed", data.detail || "Invalid email or password.");
+      if (!res.ok) {
+        var errData = {};
+        try { errData = await res.json(); } catch(e) {}
+        showError('Authentication Failed', errData.detail || 'Invalid email or access key.');
+        return;
       }
-    } catch (err) {
-      showError("Connection Error", "Unable to connect to the server. Please check your network and try again.");
+
+      window.location.href = '/dashboard';
+    } catch(err) {
+      showError('Network Error', 'Could not reach NEXUS servers.');
     }
   });
 });

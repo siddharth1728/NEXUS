@@ -1,230 +1,96 @@
 {% extends "base.html" %}
-
-{% block title %}Skill Gaps — NEXUS{% endblock %}
-
+{% block title %}Unexplored — NEXUS{% endblock %}
 {% block content %}
-<div class="page-container">
-
-  <header class="page-header">
+<div id="unexplored-page" style="max-width: 800px; margin: 0 auto;">
+  <header class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px;">
     <div class="page-header-left">
-      <div class="page-eyebrow">Gap Analysis</div>
-      <h1 class="page-title">Skill Gaps</h1>
-      <p class="page-subtitle">Where your demonstrated skills fall below your target role requirements.</p>
+      <div class="page-eyebrow" style="margin-bottom: 16px;">UNEXPLORED TERRITORY</div>
+      <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Unexplored</h1>
+      <p class="page-subtitle" style="font-family: 'Inter', sans-serif;">Areas where NEXUS hasn't found enough evidence yet.</p>
     </div>
   </header>
 
-  <!-- Loading -->
   <div id="gaps-loading">
-    <div class="stats-row" style="margin-bottom:32px;">
-      <div class="skeleton skeleton-stat"></div>
-      <div class="skeleton skeleton-stat"></div>
-    </div>
-    <div class="card" style="padding:0;">
-      <table class="data-table">
-        <thead><tr><th>Skill</th><th>Current</th><th>Required</th><th>Severity</th></tr></thead>
-        <tbody>
-          <tr><td colspan="4"><div class="skeleton skeleton-text skeleton-full" style="margin:8px 0;"></div></td></tr>
-          <tr><td colspan="4"><div class="skeleton skeleton-text skeleton-3-4" style="margin:8px 0;"></div></td></tr>
-          <tr><td colspan="4"><div class="skeleton skeleton-text skeleton-full" style="margin:8px 0;"></div></td></tr>
-        </tbody>
-      </table>
-    </div>
+    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
+    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
+    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
   </div>
-
-  <!-- Error -->
-  <div id="gaps-error" class="hidden">
-    <div class="error-state">
-      <div class="error-state-title">Unable to Load Gaps</div>
-      <p class="error-state-desc">We couldn't retrieve your skill gaps. Please try again.</p>
-      <button class="btn btn-secondary btn-sm" onclick="window.location.reload()">Try again</button>
-    </div>
-  </div>
-
-  <!-- No target role -->
-  <div id="gaps-no-role" class="hidden">
-    <div class="empty-state">
-      <div class="empty-state-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-      </div>
-      <div class="empty-state-title">Target Role Not Set</div>
-      <p class="empty-state-desc">
-        Gap analysis requires a target role. Set your target role in Profile and
-        NEXUS will compare your demonstrated skills against what that role requires.
-      </p>
-      <a href="/profile" class="btn btn-primary">Set Target Role</a>
-    </div>
-  </div>
-
-  <!-- No gaps (all skills meet requirements) -->
-  <div id="gaps-none" class="hidden">
-    <div class="empty-state" style="border-color: var(--state-strong); background: var(--bg-surface);">
-      <div class="empty-state-icon" style="color: var(--state-strong); opacity: 1;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-      </div>
-      <div class="empty-state-title">No Priority Gaps</div>
-      <p class="empty-state-desc">
-        Your demonstrated skills currently meet or exceed your target role requirements.
-        Sync again after building more to keep your profile current.
-      </p>
-    </div>
-  </div>
-
-  <!-- Gaps populated -->
-  <div id="gaps-container" class="hidden">
-
-    <!-- Stats -->
-    <div class="stats-row" style="margin-bottom:var(--space-8);">
-      <div class="stat-chip">
-        <div class="stat-value" id="stat-gap-count">–</div>
-        <div class="stat-label">Total Gaps</div>
-      </div>
-      <div class="stat-chip">
-        <div class="stat-value" style="color:var(--severity-high);" id="stat-high-severity">–</div>
-        <div class="stat-label">High Severity</div>
-      </div>
-      <div class="stat-chip">
-        <div class="stat-value" style="color:var(--severity-medium);" id="stat-med-severity">–</div>
-        <div class="stat-label">Medium Severity</div>
-      </div>
-    </div>
-
-    <!-- What this means -->
-    <div style="margin-bottom:var(--space-6);padding:var(--space-4);background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text-muted);line-height:1.5;">
-      Gap severity is calculated from the distance between your current skill state and what your target role requires.
-      HIGH gaps indicate skills where you have little or no demonstrated evidence.
-      Severity is objective — it reflects what NEXUS has observed, not self-assessment.
-    </div>
-
-    <!-- Severity filter -->
-    <div style="display:flex;gap:8px;margin-bottom:20px;" role="group" aria-label="Filter gaps by severity">
-      <button class="btn btn-secondary btn-sm filter-sev-btn active" data-sev="ALL" onclick="filterBySeverity('ALL')">All</button>
-      <button class="btn btn-ghost btn-sm filter-sev-btn" data-sev="HIGH" onclick="filterBySeverity('HIGH')">High</button>
-      <button class="btn btn-ghost btn-sm filter-sev-btn" data-sev="MEDIUM" onclick="filterBySeverity('MEDIUM')">Medium</button>
-      <button class="btn btn-ghost btn-sm filter-sev-btn" data-sev="LOW" onclick="filterBySeverity('LOW')">Low</button>
-    </div>
-
-    <div class="card" style="padding:0;">
-      <div class="table-wrap">
-        <table class="data-table" aria-label="Skill gaps">
-          <thead>
-            <tr>
-              <th style="min-width:180px;">Skill</th>
-              <th>Current State</th>
-              <th>Required State</th>
-              <th>Severity</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="gaps-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-  </div><!-- /#gaps-container -->
+  <div id="gaps-empty" class="hidden"></div>
+  <div id="gaps-error" class="hidden"></div>
+  <div id="gaps-content" class="hidden"></div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function() {
-  'use strict';
-
-  let _allGaps = [];
-  let _skills = [];
-
   async function loadGaps() {
-    const loading   = document.getElementById('gaps-loading');
-    const errorEl   = document.getElementById('gaps-error');
-    const noRoleEl  = document.getElementById('gaps-no-role');
-    const noneEl    = document.getElementById('gaps-none');
-    const container = document.getElementById('gaps-container');
+    var loading = document.getElementById('gaps-loading');
+    var empty = document.getElementById('gaps-empty');
+    var error = document.getElementById('gaps-error');
+    var content = document.getElementById('gaps-content');
 
     try {
-      _allGaps = await apiFetch('/api/gaps');
-      _skills  = await apiFetch('/api/skills').catch(() => []);
+      var gaps = await apiFetch('/api/gaps');
       loading.classList.add('hidden');
 
-      if (_allGaps.length === 0) {
-        noneEl.classList.remove('hidden');
+      if (!gaps || gaps.length === 0) {
+        showEmptyState(empty, 'NO UNEXPLORED TERRITORY',
+          'NEXUS has found evidence for all skills required by your target role, or you haven\'t set a target role yet.');
+        empty.classList.remove('hidden');
         return;
       }
 
-      // Stats
-      document.getElementById('stat-gap-count').textContent = _allGaps.length;
-      document.getElementById('stat-high-severity').textContent = _allGaps.filter(g => getSevLabel(g.severity) === 'HIGH').length;
-      document.getElementById('stat-med-severity').textContent  = _allGaps.filter(g => getSevLabel(g.severity) === 'MEDIUM').length;
+      var html = '<div style="display:flex; flex-direction:column; gap: 8px;">';
 
-      container.classList.remove('hidden');
-      renderGaps(_allGaps);
+      gaps.forEach(function(g) {
+        html += '<div style="display:flex; justify-content:space-between; align-items:center; padding: 16px; border: 1px dashed var(--muted); background: transparent;">';
+        
+        html += '<div style="display:flex; align-items:center; gap: 12px;">';
+        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase;">' + escapeHtml(g.severity) + '</span>';
+        html += '<span style="font-family:\'Inter\', sans-serif; font-weight: 500; font-size: 14px; color: var(--ink);">' + escapeHtml(g.skill) + '</span>';
+        html += '</div>';
+        
+        html += '<div style="display:flex; gap: 12px; align-items: center;">';
+        html += '<div style="display:flex; flex-direction: column; align-items: flex-end;">';
+        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase;">Current</span>';
+        html += '<span class="drawer-state-badge state-' + g.actual_state.toLowerCase() + '" style="margin:0;">' + escapeHtml(g.actual_state) + '</span>';
+        html += '</div>';
+        
+        html += '<span style="color: var(--muted);">→</span>';
+        
+        html += '<div style="display:flex; flex-direction: column; align-items: flex-end;">';
+        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase;">Required</span>';
+        html += '<span class="drawer-state-badge state-' + g.required_state.toLowerCase() + '" style="margin:0;">' + escapeHtml(g.required_state) + '</span>';
+        html += '</div>';
+        html += '</div>';
+        
+        html += '</div>';
+      });
 
-    } catch (err) {
+      html += '</div>';
+
+      // Context note
+      html += '<div style="padding:24px; border: 1px solid var(--border); margin-top: 48px; background: transparent; text-align: center;">';
+      html += '<div class="page-eyebrow mb-2">UNDERSTANDING GAPS</div>';
+      html += '<p style="font-family:\'Inter\', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.6;">';
+      html += 'An unexplored area means NEXUS hasn\'t found enough evidence to match your target role requirements. ';
+      html += 'This is <strong>not</strong> a claim about what you can or cannot do — it\'s a reflection of what NEXUS has observed. ';
+      html += 'Sync more repositories or build new work to increase evidence visibility.';
+      html += '</p></div>';
+
+      content.innerHTML = html;
+      content.classList.remove('hidden');
+
+    } catch(err) {
       loading.classList.add('hidden');
-      if (err.status === 400 || (err.detail && err.detail.toLowerCase().includes('target'))) {
-        noRoleEl.classList.remove('hidden');
-      } else {
-        errorEl.classList.remove('hidden');
-      }
+      if (err.status === 401) { window.location.href = '/login'; return; }
+      showError(error, 'Unable to load gaps', 'Please try again.');
+      error.classList.remove('hidden');
     }
   }
 
-  function getSevLabel(severity) {
-    const s = parseFloat(severity) || 0;
-    if (s > 1.5) return 'HIGH';
-    if (s > 0.5) return 'MEDIUM';
-    return 'LOW';
-  }
-
-  function renderGaps(gaps) {
-    const tbody = document.getElementById('gaps-tbody');
-    tbody.innerHTML = '';
-
-    if (gaps.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px;">No gaps match this filter.</td></tr>`;
-      return;
-    }
-
-    // Sort by severity descending
-    const sorted = [...gaps].sort(function(a, b) { return parseFloat(b.severity) - parseFloat(a.severity); });
-
-    sorted.forEach(function(g) {
-      // Find skill for the Evidence Explorer
-      const skill = _skills.find(function(s) { return s.skill_name === g.skill; });
-      const sevLabel = getSevLabel(g.severity);
-      const sevClass = { HIGH: 'badge-severity-high', MEDIUM: 'badge-severity-medium', LOW: 'badge-severity-low' }[sevLabel];
-
-      const tr = document.createElement('tr');
-      tr.dataset.severity = sevLabel;
-      tr.innerHTML =
-        `<td class="cell-primary">${g.skill}</td>` +
-        `<td>${renderStateBadge(g.actual_state)}</td>` +
-        `<td>${renderStateBadge(g.required_state)}</td>` +
-        `<td><span class="badge ${sevClass}">${sevLabel}</span></td>` +
-        `<td>${skill
-          ? `<button class="btn btn-ghost btn-sm" onclick="openEvidenceExplorer('${skill.skill_id}','${skill.skill_name}','${skill.state}')" aria-label="Explore evidence for ${g.skill}">Why this state?</button>`
-          : `<span style="font-size:12px;color:var(--text-muted);">Sync to generate evidence</span>`
-        }</td>`;
-      tbody.appendChild(tr);
-    });
-  }
-
-  window.filterBySeverity = function(sev) {
-    document.querySelectorAll('.filter-sev-btn').forEach(function(btn) {
-      const active = btn.dataset.sev === sev;
-      btn.classList.toggle('btn-secondary', active);
-      btn.classList.toggle('active', active);
-      btn.classList.toggle('btn-ghost', !active);
-    });
-    const filtered = sev === 'ALL' ? _allGaps : _allGaps.filter(g => getSevLabel(g.severity) === sev);
-    renderGaps(filtered);
-  };
-
-  loadGaps();
+  document.addEventListener('DOMContentLoaded', loadGaps);
 })();
 </script>
 {% endblock %}

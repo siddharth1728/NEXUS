@@ -31,6 +31,7 @@ def clear_rate_limit():
 def setup_test_db():
     db = TestingSessionLocal()
     from app.models import Base
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     for table in reversed(Base.metadata.sorted_tables):
         db.execute(table.delete())

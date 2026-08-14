@@ -39,27 +39,30 @@ async def run_audit():
             unique_id = str(int(time.time()))
             email = f"audit_{unique_id}@example.com"
             
-            await page.fill("input[id=name]", "Audit User")
+            await page.fill("input[id=full_name]", "Audit User")
             await page.fill("input[id=email]", email)
             await page.fill("input[id=password]", "AuditPass123!")
+            await page.fill("input[id=confirm_password]", "AuditPass123!")
             await page.click("button[type=submit]")
             await page.wait_for_timeout(1000)
             
             # Check for success/redirect
-            if "login" in page.url:
-                logger.info("Registration successful, redirected to login.")
+            if "onboarding" in page.url or "login" in page.url:
+                logger.info("Registration successful.")
             else:
                 raise Exception(f"Registration failed, URL is {page.url}")
                 
-            # Login
-            await page.goto("http://127.0.0.1:8000/login")
-            await page.fill("input[id=email]", email)
-            await page.fill("input[id=password]", "AuditPass123!")
-            await page.click("button[type=submit]")
-            await page.wait_for_timeout(1500)
-            
-            if "dashboard" not in page.url:
-                raise Exception(f"Login failed, URL is {page.url}")
+            # If we were redirected to onboarding, we are already logged in
+            if "onboarding" not in page.url:
+                # Login manually if it went to login
+                await page.goto("http://127.0.0.1:8000/login")
+                await page.fill("input[id=email]", email)
+                await page.fill("input[id=password]", "AuditPass123!")
+                await page.click("button[type=submit]")
+                await page.wait_for_timeout(1500)
+                
+                if "dashboard" not in page.url and "onboarding" not in page.url:
+                    raise Exception(f"Login failed, URL is {page.url}")
             logger.info("Login successful.")
 
             # Verify Cookies
@@ -77,9 +80,9 @@ async def run_audit():
             logger.info("--- PHASE 1: PROFILE / ONBOARDING ---")
             
             await page.goto("http://127.0.0.1:8000/profile")
-            await page.fill("input[id=githubUsername]", "tiangolo")
+            await page.fill("input[id=github-username]", "tiangolo")
             # Select target role
-            await page.select_option("select[id=targetRole]", value="Backend Engineer")
+            await page.select_option("select[id=target-role]", value="Backend Engineer")
             await page.click("button:has-text('Save Profile')")
             # Check for redirect to dashboard
             await page.wait_for_timeout(2000)
@@ -89,7 +92,7 @@ async def run_audit():
             # Go back to profile to verify persistence
             await page.goto("http://127.0.0.1:8000/profile")
             await page.wait_for_timeout(1000)
-            github_val = await page.input_value("input[id=githubUsername]")
+            github_val = await page.input_value("input[id=github-username]")
             if github_val != "tiangolo":
                 raise Exception(f"Profile did not persist! Got github={github_val}")
             

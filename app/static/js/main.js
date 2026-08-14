@@ -1,20 +1,21 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   NEXUS — Core JS Utilities v2
+   NEXUS — Core JS · 2D Engineering Atlas
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 'use strict';
 
 /* ── CSRF Token ─────────────────────────────────────── */
 function getCsrfToken() {
-  const meta = document.querySelector('meta[name="csrf-token"]');
+  var meta = document.querySelector('meta[name="csrf-token"]');
   return meta ? meta.getAttribute('content') : '';
 }
 
 /* ── Fetch interceptor — inject CSRF on mutations ─── */
-const _origFetch = window.fetch.bind(window);
-window.fetch = function(resource, config = {}) {
-  const method = (config.method || 'GET').toUpperCase();
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+var _origFetch = window.fetch.bind(window);
+window.fetch = function(resource, config) {
+  if (!config) config = {};
+  var method = (config.method || 'GET').toUpperCase();
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].indexOf(method) !== -1) {
     config.headers = Object.assign({}, config.headers, {
       'X-CSRF-Token': getCsrfToken()
     });
@@ -24,11 +25,11 @@ window.fetch = function(resource, config = {}) {
 
 /* ── apiFetch — centralized API call ────────────────── */
 async function apiFetch(url, opts) {
-  const res = await fetch(url, opts);
+  var res = await fetch(url, opts);
   if (!res.ok) {
-    let detail = `HTTP ${res.status}`;
-    try { const d = await res.json(); detail = d.detail || detail; } catch {}
-    const err = new Error(detail);
+    var detail = 'HTTP ' + res.status;
+    try { var d = await res.json(); detail = d.detail || detail; } catch(e) {}
+    var err = new Error(detail);
     err.status = res.status;
     err.detail = detail;
     throw err;
@@ -38,7 +39,7 @@ async function apiFetch(url, opts) {
 
 /* ── Safe string helpers ────────────────────────────── */
 function escapeHtml(value) {
-  return String(value ?? '')
+  return String(value == null ? '' : value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -46,66 +47,57 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function escapeJsString(value) {
-  return JSON.stringify(String(value ?? ''))
-    .replace(/</g, '\\u003c')
-    .replace(/>/g, '\\u003e')
-    .replace(/&/g, '\\u0026')
-    .replace(/\u2028/g, '\\u2028')
-    .replace(/\u2029/g, '\\u2029');
-}
-
 /* ── Relative time formatter ────────────────────────── */
 function formatRelativeTime(dateString) {
   if (!dateString) return 'Never';
-  const date = new Date(dateString);
+  var date = new Date(dateString);
   if (isNaN(date)) return 'Unknown';
-  const secs = Math.floor((Date.now() - date) / 1000);
+  var secs = Math.floor((Date.now() - date) / 1000);
   if (secs < 60)  return 'just now';
-  const mins = Math.floor(secs / 60);
-  if (mins < 60)  return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24)   return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 30)  return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
+  var mins = Math.floor(secs / 60);
+  if (mins < 60)  return mins + 'm ago';
+  var hrs = Math.floor(mins / 60);
+  if (hrs < 24)   return hrs + 'h ago';
+  var days = Math.floor(hrs / 24);
+  if (days < 30)  return days + 'd ago';
+  var months = Math.floor(days / 30);
+  if (months < 12) return months + 'mo ago';
+  return Math.floor(months / 12) + 'y ago';
 }
 
 /* ── State badge renderer ───────────────────────────── */
 function renderStateBadge(state) {
-  const map = {
+  var map = {
     STRONG:     'badge-strong',
     DEVELOPING: 'badge-developing',
     WEAK:       'badge-weak',
     MISSING:    'badge-missing',
   };
-  const cls = map[state] || 'badge-missing';
-  return `<span class="badge ${cls}">${escapeHtml(state || 'UNKNOWN')}</span>`;
+  var cls = map[state] || 'badge-missing';
+  return '<span class="badge ' + cls + '">' + escapeHtml(state || 'UNKNOWN') + '</span>';
 }
 
 /* ── Severity badge renderer ────────────────────────── */
 function renderSeverityBadge(severity) {
-  const s = parseFloat(severity) || 0;
-  if (s > 1.5) return `<span class="badge badge-severity-high">HIGH</span>`;
-  if (s > 0.5) return `<span class="badge badge-severity-medium">MEDIUM</span>`;
-  return `<span class="badge badge-severity-low">LOW</span>`;
+  var s = parseFloat(severity) || 0;
+  if (s > 1.5) return '<span class="badge badge-severity-high">HIGH</span>';
+  if (s > 0.5) return '<span class="badge badge-severity-medium">MEDIUM</span>';
+  return '<span class="badge badge-severity-low">LOW</span>';
 }
 
 /* ── Toast system ───────────────────────────────────── */
-const _TOAST_ICONS = {
-  success: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
-  warning: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-  error:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
-  info:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`,
+var _TOAST_ICONS = {
+  success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+  warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+  info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
 };
 
 function showToast(message, type, duration) {
   if (type === undefined) type = 'info';
   if (duration === undefined) duration = 4000;
 
-  let container = document.getElementById('toast-container');
+  var container = document.getElementById('toast-container');
   if (!container) {
     container = document.createElement('div');
     container.id = 'toast-container';
@@ -114,23 +106,22 @@ function showToast(message, type, duration) {
     document.body.appendChild(container);
   }
 
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
+  var toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
   toast.setAttribute('role', 'alert');
 
-  // Use controlled SVG for icon (static string only), textContent for message (XSS-safe)
-  const iconSpan = document.createElement('span');
+  var iconSpan = document.createElement('span');
   iconSpan.className = 'toast-icon';
-  iconSpan.innerHTML = _TOAST_ICONS[type] || _TOAST_ICONS.info; // safe: only static SVG constants
+  iconSpan.innerHTML = _TOAST_ICONS[type] || _TOAST_ICONS.info;
 
-  const textSpan = document.createElement('span');
+  var textSpan = document.createElement('span');
   textSpan.className = 'toast-text';
-  textSpan.textContent = message; // safe: textContent never interprets HTML
+  textSpan.textContent = message;
 
   toast.appendChild(iconSpan);
   toast.appendChild(textSpan);
 
-  const dismiss = function() {
+  var dismiss = function() {
     toast.classList.add('removing');
     setTimeout(function() { toast.remove(); }, 220);
   };
@@ -142,11 +133,11 @@ function showToast(message, type, duration) {
 }
 
 /* ── Drawer system ──────────────────────────────────── */
-let _drawerEscHandler = null;
+var _drawerEscHandler = null;
 
 function openDrawer(drawerId) {
-  const drawer = document.getElementById(drawerId);
-  const overlay = document.getElementById('drawer-overlay');
+  var drawer = document.getElementById(drawerId);
+  var overlay = document.getElementById('drawer-overlay');
   if (!drawer || !overlay) return;
 
   overlay.classList.add('active');
@@ -154,9 +145,8 @@ function openDrawer(drawerId) {
   drawer.classList.add('active');
   document.body.style.overflow = 'hidden';
 
-  // Focus first focusable element in drawer
   setTimeout(function() {
-    const focusable = drawer.querySelectorAll(
+    var focusable = drawer.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
     if (focusable.length) focusable[0].focus();
@@ -170,8 +160,8 @@ function openDrawer(drawerId) {
 }
 
 function closeDrawer(drawerId) {
-  const drawer = document.getElementById(drawerId);
-  const overlay = document.getElementById('drawer-overlay');
+  var drawer = document.getElementById(drawerId);
+  var overlay = document.getElementById('drawer-overlay');
   if (!drawer || !overlay) return;
 
   overlay.classList.remove('active');
@@ -186,15 +176,15 @@ function closeDrawer(drawerId) {
 }
 
 /* ── Modal system ───────────────────────────────────── */
-let _modalEscHandler = null;
+var _modalEscHandler = null;
 
 function openModal(overlayId) {
-  const overlay = document.getElementById(overlayId);
+  var overlay = document.getElementById(overlayId);
   if (!overlay) return;
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
   setTimeout(function() {
-    const focusable = overlay.querySelectorAll('button, input, select, [href], [tabindex]:not([tabindex="-1"])');
+    var focusable = overlay.querySelectorAll('button, input, select, [href], [tabindex]:not([tabindex="-1"])');
     if (focusable.length) focusable[0].focus();
   }, 50);
   if (_modalEscHandler) document.removeEventListener('keydown', _modalEscHandler);
@@ -203,7 +193,7 @@ function openModal(overlayId) {
 }
 
 function closeModal(overlayId) {
-  const overlay = document.getElementById(overlayId);
+  var overlay = document.getElementById(overlayId);
   if (!overlay) return;
   overlay.classList.remove('active');
   document.body.style.overflow = '';
@@ -217,82 +207,128 @@ function closeModal(overlayId) {
 function showEmptyState(container, title, desc, ctaHtml) {
   if (!ctaHtml) ctaHtml = '';
   container.innerHTML =
-    `<div class="empty-state">` +
-    `<div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>` +
-    `<div class="empty-state-title">${escapeHtml(title)}</div>` +
-    `<p class="empty-state-desc">${escapeHtml(desc)}</p>` +
+    '<div class="empty-state">' +
+    '<div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>' +
+    '<div class="empty-state-title">' + escapeHtml(title) + '</div>' +
+    '<p class="empty-state-desc">' + escapeHtml(desc) + '</p>' +
     ctaHtml +
-    `</div>`;
+    '</div>';
 }
 
 /* ── Error state helper ─────────────────────────────── */
 function showError(container, title, desc) {
   container.innerHTML =
-    `<div class="error-state">` +
-    `<div class="error-state-title">${escapeHtml(title)}</div>` +
-    `<p class="error-state-desc">${escapeHtml(desc)}</p>` +
-    `<button class="btn btn-secondary btn-sm" onclick="window.location.reload()">Try again</button>` +
-    `</div>`;
+    '<div class="error-state">' +
+    '<div class="error-state-title">' + escapeHtml(title) + '</div>' +
+    '<p class="error-state-desc">' + escapeHtml(desc) + '</p>' +
+    '<button class="btn btn-secondary btn-sm" onclick="window.location.reload()">Try again</button>' +
+    '</div>';
 }
 
 /* ── Skeleton rows helper ───────────────────────────── */
 function showSkeleton(container, count, type) {
   if (!count) count = 3;
   if (!type) type = 'row';
-  container.innerHTML = Array(count).fill(
-    `<div class="skeleton skeleton-${type}" style="margin-bottom:8px;"></div>`
-  ).join('');
+  var html = '';
+  for (var i = 0; i < count; i++) {
+    html += '<div class="skeleton skeleton-' + type + '" style="margin-bottom:8px;"></div>';
+  }
+  container.innerHTML = html;
 }
 
-/* ── Mobile nav (Removed in favor of bottom nav) ────── */
+/* ── Mobile nav toggle ──────────────────────────────── */
 function _initMobileNav() {
-  // Mobile drawer has been replaced by a CSS-only bottom navigation bar.
+  var toggle = document.getElementById('mobile-menu-toggle');
+  var menu = document.getElementById('mobile-nav-menu');
+  if (!toggle || !menu) return;
+
+  toggle.addEventListener('click', function() {
+    var isOpen = menu.classList.toggle('active');
+    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+
+  // Close menu when clicking a link
+  menu.querySelectorAll('a').forEach(function(link) {
+    link.addEventListener('click', function() {
+      menu.classList.remove('active');
+      toggle.setAttribute('aria-expanded', 'false');
+    });
+  });
 }
 
 /* ── Logout ─────────────────────────────────────────── */
 function _initLogout() {
   document.querySelectorAll('[data-action="logout"]').forEach(function(btn) {
     btn.addEventListener('click', async function() {
-      const originalContent = btn.innerHTML;
       btn.textContent = 'Signing out…';
       btn.disabled = true;
       try {
         await fetch('/api/auth/logout', { method: 'POST' });
-      } catch {}
+      } catch(e) {}
       window.location.href = '/login';
     });
   });
 }
 
-/* ── Sidebar user info ──────────────────────────────── */
-async function _initSidebarUser() {
-  const nameEl   = document.getElementById('sidebar-user-name');
-  const emailEl  = document.getElementById('sidebar-user-email');
-  const avatarEl = document.getElementById('sidebar-user-avatar');
-  if (!nameEl) return;
+/* ── Top nav user info ──────────────────────────────── */
+async function _initNavUser() {
+  var roleEl = document.getElementById('nav-target-role');
+  var avatarEl = document.getElementById('nav-avatar');
+  var syncDot = document.getElementById('nav-sync-dot');
+  var syncLabel = document.getElementById('nav-sync-label');
+  if (!avatarEl) return;
 
   try {
-    const profile = await apiFetch('/api/profile');
-    const name  = profile.name  || 'User';
-    const email = profile.email || '';
-    nameEl.textContent = name;
-    if (emailEl) emailEl.textContent = email;
-    if (avatarEl) {
-      const initials = name.split(' ')
-        .map(function(n) { return n[0]; })
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-      avatarEl.textContent = initials || '–';
+    var profile = await apiFetch('/api/profile');
+    var email = profile.email || '';
+    var initials = email.split('@')[0].substring(0, 2).toUpperCase();
+    avatarEl.textContent = initials || '–';
+    avatarEl.title = email;
+
+    if (roleEl && profile.target_role) {
+      roleEl.textContent = profile.target_role;
+      roleEl.style.display = '';
+    } else if (roleEl) {
+      roleEl.style.display = 'none';
     }
-  } catch {
-    if (nameEl) nameEl.textContent = 'My Account';
+
+    // Avatar click goes to profile
+    avatarEl.addEventListener('click', function() {
+      window.location.href = '/profile';
+    });
+    avatarEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        window.location.href = '/profile';
+      }
+    });
+
+  } catch(e) {
+    if (avatarEl) avatarEl.textContent = '–';
+    if (roleEl) roleEl.style.display = 'none';
+  }
+
+  // Fetch last sync time from identity
+  try {
+    var identity = await apiFetch('/api/identity');
+    if (syncLabel && identity.last_synced) {
+      syncLabel.textContent = formatRelativeTime(identity.last_synced);
+      if (syncDot) {
+        var ago = (Date.now() - new Date(identity.last_synced)) / 1000;
+        syncDot.className = 'sync-dot' + (ago > 86400 ? ' stale' : '');
+      }
+    } else if (syncLabel) {
+      syncLabel.textContent = 'Never synced';
+      if (syncDot) syncDot.className = 'sync-dot never';
+    }
+  } catch(e) {
+    if (syncLabel) syncLabel.textContent = '–';
   }
 }
 
 /* ── Drawer overlay click closes drawer ─────────────── */
 function _initDrawerOverlay() {
-  const overlay = document.getElementById('drawer-overlay');
+  var overlay = document.getElementById('drawer-overlay');
   if (!overlay) return;
   overlay.addEventListener('click', function(e) {
     if (e.target === overlay) {
@@ -303,70 +339,68 @@ function _initDrawerOverlay() {
   });
 }
 
-/* ── Evidence Explorer (available to all pages) ─────── */
+/* ── Evidence Explorer / Field Note ─────────────────── */
 window.openEvidenceExplorer = async function(skillId, skillName, state) {
-  const nameEl  = document.getElementById('drawer-skill-name');
-  const stateEl = document.getElementById('drawer-state-badge');
-  const body    = document.getElementById('evidence-drawer-body');
+  var nameEl  = document.getElementById('drawer-skill-name');
+  var stateEl = document.getElementById('drawer-state-badge');
+  var body    = document.getElementById('evidence-drawer-body');
 
   if (!nameEl || !body) return;
 
   nameEl.textContent = skillName || '–';
   if (stateEl) stateEl.innerHTML = renderStateBadge(state);
 
-  // Show skeleton while loading
   body.innerHTML =
-    `<div class="skeleton skeleton-text skeleton-full" style="margin-bottom:8px;"></div>` +
-    `<div class="skeleton skeleton-text skeleton-3-4" style="margin-bottom:8px;"></div>` +
-    `<div class="skeleton skeleton-text skeleton-1-2"></div>`;
+    '<div class="skeleton skeleton-text skeleton-full" style="margin-bottom:8px;"></div>' +
+    '<div class="skeleton skeleton-text skeleton-3-4" style="margin-bottom:8px;"></div>' +
+    '<div class="skeleton skeleton-text skeleton-1-2"></div>';
 
   openDrawer('evidence-explorer-drawer');
 
   try {
-    const evidence = await apiFetch(`/api/skills/${skillId}/evidence`);
+    var evidence = await apiFetch('/api/skills/' + skillId + '/evidence');
     body.innerHTML = '';
 
     if (!evidence || evidence.length === 0) {
       showEmptyState(
         body,
-        'No Evidence Yet',
-        `NEXUS has not recorded engineering evidence for ${skillName}. ` +
-        `Sync a repository to generate observations.`,
+        'No evidence yet',
+        'NEXUS hasn\'t found enough engineering evidence for ' + (skillName || 'this skill') +
+        '. Sync a repository to generate observations.',
         ''
       );
       return;
     }
 
-    const summary = document.createElement('p');
-    summary.style.cssText = 'font-size:12px;color:var(--text-muted);margin-bottom:16px;';
-    summary.textContent = `${evidence.length} evidence signal${evidence.length !== 1 ? 's' : ''} contributing to this state.`;
+    var summary = document.createElement('p');
+    summary.className = 't-caption mb-4';
+    summary.textContent = evidence.length + ' evidence signal' + (evidence.length !== 1 ? 's' : '') + ' contributing to this state.';
     body.appendChild(summary);
 
     evidence.forEach(function(e) {
-      const item = document.createElement('div');
+      var item = document.createElement('div');
       item.className = 'evidence-item';
-      const path = (e.source_reference || '').split(/[\/\\]/).pop() || e.source_reference || '–';
-      const quality = ((e.quality_score || 0) * 100).toFixed(0);
+      var path = (e.source_reference || '').split(/[\/\\]/).pop() || e.source_reference || '–';
+      var quality = ((e.quality_score || 0) * 100).toFixed(0);
 
-      // Use textContent for all server-derived values to prevent XSS
-      const textDiv = document.createElement('div');
+      var textDiv = document.createElement('div');
       textDiv.className = 'evidence-item-text';
       textDiv.textContent = e.raw_observation_text || '–';
 
-      const metaDiv = document.createElement('div');
+      var metaDiv = document.createElement('div');
       metaDiv.className = 'evidence-item-meta';
 
-      const typeBadge = document.createElement('span');
+      var typeBadge = document.createElement('span');
       typeBadge.className = 'badge badge-type';
       typeBadge.textContent = e.type || '–';
 
-      const sourceCode = document.createElement('code');
+      var sourceCode = document.createElement('code');
       sourceCode.className = 'evidence-source';
       sourceCode.textContent = path;
 
-      const scoreSpan = document.createElement('span');
+      var scoreSpan = document.createElement('span');
       scoreSpan.className = 'evidence-score';
-      scoreSpan.textContent = `Quality ${quality}%`;
+      scoreSpan.textContent = 'Quality ' + quality + '%';
 
       metaDiv.appendChild(typeBadge);
       metaDiv.appendChild(sourceCode);
@@ -385,8 +419,6 @@ window.openEvidenceExplorer = async function(skillId, skillName, state) {
 document.addEventListener('DOMContentLoaded', function() {
   _initMobileNav();
   _initLogout();
-  _initSidebarUser();
+  _initNavUser();
   _initDrawerOverlay();
 });
-
-/* Note: showToast is fully defined above. No duplicate needed. */

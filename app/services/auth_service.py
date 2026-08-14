@@ -17,6 +17,12 @@ def register_user(db: Session, user_data: UserCreate) -> User:
     hashed_password = get_password_hash(user_data.password)
     new_user = User(email=user_data.email, password_hash=hashed_password)
     db.add(new_user)
+    db.flush() # flush to get new_user.id
+    
+    from app.models.profile import StudentProfile
+    profile = StudentProfile(user_id=new_user.id, name=user_data.name)
+    db.add(profile)
+    
     db.commit()
     db.refresh(new_user)
     return new_user

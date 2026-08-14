@@ -5,7 +5,7 @@ import time
 # Lightweight in-memory rate limiter for V1
 # Structure: { ip_address: [timestamp1, timestamp2, ...] }
 RATE_LIMIT_STORE = defaultdict(list)
-MAX_REQUESTS = 5
+MAX_REQUESTS = 100
 WINDOW_SECONDS = 60
 
 def rate_limit(request: Request):

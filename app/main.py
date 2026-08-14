@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse, HTMLResponse
 import os
 
-from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba
+from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba, identity
 
 app = FastAPI(title="NEXUS")
 
@@ -30,6 +30,7 @@ app.include_router(evidence.router, prefix="/api")
 app.include_router(skills.router, prefix="/api")
 app.include_router(gaps.router, prefix="/api")
 app.include_router(nba.router, prefix="/api")
+app.include_router(identity.router, prefix="/api")
 
 @app.get("/health", tags=["Health"])
 def health_check():
@@ -95,4 +96,8 @@ def profile_page(request: Request):
 
 @app.get("/settings", response_class=HTMLResponse, tags=["Frontend"])
 def settings_page(request: Request):
-    return render_with_csrf(request, "profile.html")
+    return render_with_csrf(request, "settings.html")
+
+@app.get("/journey", response_class=HTMLResponse, tags=["Frontend"])
+def journey_page(request: Request):
+    return render_with_csrf(request, "journey.html")

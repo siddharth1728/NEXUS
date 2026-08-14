@@ -49,6 +49,39 @@ NEXUS is an evidence-driven engineering intelligence platform designed for engin
    uvicorn app.main:app --reload
    ```
 
+## Production Deployment
+
+### Architecture
+NEXUS runs on a FastAPI application backend, backed by PostgreSQL, with schema migrations managed by Alembic. Production environments also require an external email provider for authentication flows.
+
+### Environment Variables
+The following environment variables are **required** for production:
+- `SECRET_KEY` (must be a secure 32+ character string)
+- `DATABASE_URL`
+- `APP_BASE_URL`
+- `ENVIRONMENT` (must be set to `production`)
+- `EMAIL_PROVIDER` (must be `sendgrid` or `smtp` in production)
+- `EMAIL_FROM`
+- `EMAIL_API_KEY` (or equivalent SMTP credentials)
+
+**Security Warning:** Never commit your `.env` file to version control. Production secrets must be injected securely via your deployment platform's environment variable manager.
+
+### Password Reset Flow
+In production, the password reset flow requires a fully configured email provider. The development `stub` provider is strictly rejected in production.
+
+### Detailed Readiness Checklist
+For a comprehensive breakdown of the production security boundaries and configuration options, please refer to the [NEXUS Production Readiness Report](C:/Users/siddu/.gemini/antigravity-ide/brain/3834f55a-417d-4535-a8a5-ff611fed72c5/NEXUS_PRODUCTION_READINESS.md).
+
+### Deployment Steps
+1. Apply database migrations:
+   ```bash
+   alembic upgrade head
+   ```
+2. Start the production server:
+   ```bash
+   uvicorn app.main:app --host 0.0.0.0 --port $PORT
+   ```
+
 ## Running Tests
 
 Tests use an isolated test database (`TEST_DATABASE_URL`). Do NOT run tests against a production Supabase instance.

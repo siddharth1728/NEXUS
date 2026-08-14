@@ -69,6 +69,20 @@ class UserSkill(Base):
         UniqueConstraint('user_id', 'skill_id', name='uq_user_skill'),
     )
 
+class UserSkillHistory(Base):
+    __tablename__ = "user_skill_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    skill_id = Column(Integer, ForeignKey("skills.id", ondelete="CASCADE"), nullable=False, index=True)
+    previous_state = Column(String, nullable=True)
+    new_state = Column(String, nullable=False)
+    changed_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    snapshot_id = Column(Integer, ForeignKey("repository_snapshots.id", ondelete="SET NULL"), nullable=True, index=True)
+
+    user = relationship("User")
+    skill = relationship("Skill")
+
 class Gap(Base):
     __tablename__ = "gaps"
 

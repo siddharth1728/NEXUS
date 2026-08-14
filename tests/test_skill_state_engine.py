@@ -151,3 +151,57 @@ def test_userskill_unique_constraint(db_session: Session, test_user: User):
     with pytest.raises(IntegrityError):
         db_session.commit()
     db_session.rollback()
+
+def test_history_integrity(db_session: Session, test_user: User):
+    from app.models.user import UserSkillHistory
+    
+    # 1. First calculation -> previous_state = NULL
+    _, snap1, skill = create_test_setup(db_session, test_user, "HistorySkill")
+    create_evidence(db_session, snap1, skill, quality=0.8, freshness=1.0)
+    recalculate_user_skills(test_user.id, db_session, snap1.id)
+    
+    history_rows = db_session.query(UserSkillHistory).filter(UserSkillHistory.user_id == test_user.id, UserSkillHistory.skill_id == skill.id).order_by(UserSkillHistory.id).all()
+    assert len(history_rows) == 1
+    assert history_rows[0].previous_state is None
+    assert history_rows[0].new_state == SkillState.WEAK.value
+    assert history_rows[0].snapshot_id == snap1.id
+    
+    # 2. Same state recalculation -> no new history row
+    recalculate_user_skills(test_user.id, db_session, snap1.id)
+    history_rows = db_session.query(UserSkillHistory).filter(UserSkillHistory.user_id == test_user.id, UserSkillHistory.skill_id == skill.id).all()
+    assert len(history_rows) == 1
+    
+    # 3. WEAK -> DEVELOPING -> exactly one row
+    _, snap2, _ = create_test_setup(db_session, test_user, "HistorySkill")
+    create_evidence(db_session, snap2, skill, type=EvidenceType.TESTING, artifact_path="test2.py", quality=0.8, freshness=1.0)
+    recalculate_user_skills(test_user.id, db_session, snap2.id)
+    
+    history_rows = db_session.query(UserSkillHistory).filter(UserSkillHistory.user_id == test_user.id, UserSkillHistory.skill_id == skill.id).order_by(UserSkillHistory.id).all()
+    assert len(history_rows) == 2
+    assert history_rows[1].previous_state == SkillState.WEAK.value
+    assert history_rows[1].new_state == SkillState.DEVELOPING.value
+    assert history_rows[1].snapshot_id == snap2.id
+
+def test_history_user_isolation(db_session: Session, test_user: User):
+    from app.models.user import UserSkillHistory
+    import uuid
+    user2 = User(email=f"user2_{uuid.uuid4()}@example.com", password_hash="pw")
+    db_session.add(user2)
+    db_session.commit()
+    
+    _, snap1, skill = create_test_setup(db_session, test_user, "IsoSkill")
+    create_evidence(db_session, snap1, skill, quality=0.8, freshness=1.0)
+    recalculate_user_skills(test_user.id, db_session, snap1.id)
+    
+    _, snap2, _ = create_test_setup(db_session, user2, "IsoSkill")
+    create_evidence(db_session, snap2, skill, quality=0.8, freshness=1.0)
+    recalculate_user_skills(user2.id, db_session, snap2.id)
+    
+    history_user1 = db_session.query(UserSkillHistory).filter(UserSkillHistory.user_id == test_user.id, UserSkillHistory.skill_id == skill.id).all()
+    history_user2 = db_session.query(UserSkillHistory).filter(UserSkillHistory.user_id == user2.id, UserSkillHistory.skill_id == skill.id).all()
+    
+    assert len(history_user1) == 1
+    assert len(history_user2) == 1
+    assert history_user1[0].user_id == test_user.id
+    assert history_user2[0].user_id == user2.id
+

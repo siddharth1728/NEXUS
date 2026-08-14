@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Settings — NEXUS{% endblock %}
+{% block head %}
+<style>
+  .settings-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    margin-bottom: 1px; /* Overlap borders */
+  }
+  .settings-row-text {
+    flex: 1;
+    padding-right: 16px;
+  }
+  .settings-row-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .settings-row-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  
+  /* Simple Toggle Switch CSS */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--border);
+    transition: .2s;
+    border-radius: 0; /* Square toggle for cartography */
+  }
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--paper);
+    transition: .2s;
+    border-radius: 0;
+  }
+  input:checked + .toggle-slider {
+    background-color: var(--primary);
+  }
+  input:checked + .toggle-slider:before {
+    transform: translateX(16px);
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div id="settings-page" style="max-width: 600px; margin: 0 auto;">
+
+  <header class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px;">
+    <div class="page-header-left">
+      <div class="page-eyebrow" style="margin-bottom: 16px;">ACCOUNT</div>
+      <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Settings</h1>
+      <p class="page-subtitle" style="font-family: 'Inter', sans-serif;">Manage your session, privacy, and account preferences.</p>
+    </div>
+  </header>
+
+  <form id="settings-form" novalidate>
+
+    <!-- Section: Notifications -->
+    <div style="margin-bottom: 48px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px;">Notifications & Alerts</div>
+
+      <div style="display:flex; flex-direction:column; gap:0;">
+        <div class="settings-row">
+          <div class="settings-row-text">
+            <div class="settings-row-title">Weekly Survey Report</div>
+            <div class="settings-row-desc">Receive a weekly email summarizing your new evidence and skill progressions.</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-notify-weekly">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-row-text">
+            <div class="settings-row-title">Target Goal Reached</div>
+            <div class="settings-row-desc">Notify me when I achieve all required signals for my target role.</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-notify-goal" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Privacy -->
+    <div style="margin-bottom: 48px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px;">Privacy & Sharing</div>
+
+      <div style="display:flex; flex-direction:column; gap:0;">
+        <div class="settings-row">
+          <div class="settings-row-text">
+            <div class="settings-row-title">Public Atlas Link</div>
+            <div class="settings-row-desc">Allow anyone with the link to view your Atlas and engineering proof.</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-public-profile">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Section: Session -->
+    <div style="margin-bottom: 48px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px;">Session</div>
+
+      <div style="padding: 16px; border: 1px solid var(--border);">
+        <button type="button" class="btn btn-secondary" onclick="window.location.href='/logout'" style="border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; width: 100%;">
+          SIGN OUT
+        </button>
+        <div style="text-align: center; margin-top: 12px; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--muted);">
+          Clears your active session on this device.
+        </div>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div style="margin-bottom: 48px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--coral); text-transform: uppercase; border-bottom: 1px solid var(--coral); padding-bottom: 8px; margin-bottom: 16px;">Danger Zone</div>
+
+      <div style="padding: 24px; border: 1px solid var(--coral); background: transparent;">
+        <div style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 8px;">Delete Account</div>
+        <div style="font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 24px;">
+          Permanently delete your account, identity, and all surveyed evidence. This action cannot be undone.
+        </div>
+        <button type="button" class="btn" style="border: 1px solid var(--coral); color: var(--coral); background: transparent; border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em;" onclick="alert('Account deletion is not implemented in this demo.')">
+          DELETE ACCOUNT
+        </button>
+      </div>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Mock script
+</script>
+{% endblock %}

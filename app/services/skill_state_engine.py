@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.models.user import UserSkill, SkillState
+from app.models.user import UserSkill, SkillState, UserSkillHistory
 from app.models.project import Evidence, EvidenceSkill, RawObservation, Artifact, RepositorySnapshot, Project
 from collections import defaultdict
 import logging
@@ -12,7 +12,7 @@ MAX_CONTRIBUTION_PER_EVIDENCE_TYPE = 1.5
 MAX_CONTRIBUTION_PER_ARTIFACT = 2.0
 MEANINGFUL_CONTRIBUTION_THRESHOLD = 0.5
 
-def recalculate_user_skills(user_id: int, db: Session) -> None:
+def recalculate_user_skills(user_id: int, db: Session, snapshot_id: int = None) -> None:
     """
     Idempotent function to recalculate the skill state for a user.
     Uses strict deterministic aggregation:
@@ -103,20 +103,34 @@ def recalculate_user_skills(user_id: int, db: Session) -> None:
         elif final_contribution >= 0.5 and meaningful_evidence_count >= 1 and unique_evidence_types >= 1 and unique_artifacts >= 1:
             state = SkillState.WEAK
             
-        _upsert_user_skill(db, user_id, skill_id, state)
+        _upsert_user_skill(db, user_id, skill_id, state, snapshot_id)
         
     # Transition missing skills (no valid evidence remaining)
     missing_skill_ids = existing_skill_ids - processed_skill_ids
     for skill_id in missing_skill_ids:
-        _upsert_user_skill(db, user_id, skill_id, SkillState.MISSING)
+        _upsert_user_skill(db, user_id, skill_id, SkillState.MISSING, snapshot_id)
         
     db.commit()
 
-def _upsert_user_skill(db: Session, user_id: int, skill_id: int, state: SkillState):
+def _upsert_user_skill(db: Session, user_id: int, skill_id: int, state: SkillState, snapshot_id: int = None):
     user_skill = db.query(UserSkill).filter(UserSkill.user_id == user_id, UserSkill.skill_id == skill_id).first()
+    
+    previous_state = user_skill.state if user_skill else None
+    
     if not user_skill:
         user_skill = UserSkill(user_id=user_id, skill_id=skill_id)
         db.add(user_skill)
+        
+    if previous_state != state:
+        if not (previous_state is None and state == SkillState.MISSING):
+            history = UserSkillHistory(
+                user_id=user_id,
+                skill_id=skill_id,
+                previous_state=previous_state.value if previous_state else None,
+                new_state=state.value,
+                snapshot_id=snapshot_id
+            )
+            db.add(history)
         
     user_skill.state = state
     user_skill.calculated_at = func.now()

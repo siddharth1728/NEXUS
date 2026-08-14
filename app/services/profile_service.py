@@ -36,7 +36,25 @@ def update_profile(db: Session, user_id: int, profile_data: ProfileUpdate) -> St
         profile.target_role_id = profile_data.target_role_id
     if profile_data.github_username is not None:
         profile.github_username = profile_data.github_username
+    if profile_data.name is not None:
+        profile.name = profile_data.name
 
+    db.commit()
+    return get_profile(db, user_id)
+
+from app.schemas.profile import ProfileUpdate, ProfileResponse, SettingsUpdate
+
+def update_settings(db: Session, user_id: int, settings_data: SettingsUpdate) -> StudentProfile:
+    profile = get_profile(db, user_id)
+    if settings_data.notify_weekly_report is not None:
+        profile.notify_weekly_report = settings_data.notify_weekly_report
+    if settings_data.notify_gap_alerts is not None:
+        profile.notify_gap_alerts = settings_data.notify_gap_alerts
+    if settings_data.public_profile is not None:
+        profile.public_profile = settings_data.public_profile
+    if settings_data.show_raw_github_stats is not None:
+        profile.show_raw_github_stats = settings_data.show_raw_github_stats
+    
     db.commit()
     return get_profile(db, user_id)
 
@@ -46,8 +64,12 @@ def profile_to_response(profile: StudentProfile, user: User) -> ProfileResponse:
         id=profile.id,
         user_id=profile.user_id,
         email=user.email,
-        name=None,
+        name=profile.name,
         target_role_id=profile.target_role_id,
         target_role=role_name,
         github_username=profile.github_username,
+        notify_weekly_report=profile.notify_weekly_report,
+        notify_gap_alerts=profile.notify_gap_alerts,
+        public_profile=profile.public_profile,
+        show_raw_github_stats=profile.show_raw_github_stats,
     )

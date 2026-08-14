@@ -1,222 +1,99 @@
 {% extends "base.html" %}
-
-{% block title %}Skills — NEXUS{% endblock %}
-
+{% block title %}Signals — NEXUS{% endblock %}
 {% block content %}
-<div class="page-container">
-
-  <header class="page-header">
+<div id="signals-page" style="max-width: 800px; margin: 0 auto;">
+  <header class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px;">
     <div class="page-header-left">
-      <div class="page-eyebrow">Engineering Skills</div>
-      <h1 class="page-title">Skill States</h1>
-      <p class="page-subtitle">Evidence-derived signals across your engineering work. Click any skill to explore the evidence behind its state.</p>
+      <div class="page-eyebrow" style="margin-bottom: 16px;">SURVEY LOG</div>
+      <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Extracted Signals</h1>
+      <p class="page-subtitle" style="font-family: 'Inter', sans-serif;">Deterministic skill states derived from engineering evidence.</p>
     </div>
   </header>
 
-  <!-- Filter bar -->
-  <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;" role="group" aria-label="Filter skills by state">
-    <button class="btn btn-secondary btn-sm filter-btn active" data-filter="ALL" onclick="filterSkills('ALL')">All</button>
-    <button class="btn btn-ghost btn-sm filter-btn" data-filter="STRONG" onclick="filterSkills('STRONG')">Strong</button>
-    <button class="btn btn-ghost btn-sm filter-btn" data-filter="DEVELOPING" onclick="filterSkills('DEVELOPING')">Developing</button>
-    <button class="btn btn-ghost btn-sm filter-btn" data-filter="WEAK" onclick="filterSkills('WEAK')">Weak</button>
-    <button class="btn btn-ghost btn-sm filter-btn" data-filter="MISSING" onclick="filterSkills('MISSING')">Missing</button>
+  <div id="signals-loading">
+    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
+    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
+    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
   </div>
-
-  <!-- Loading -->
-  <div id="skills-loading">
-    <div class="card" style="padding:8px;">
-      <div class="skeleton skeleton-row"></div>
-      <div class="skeleton skeleton-row"></div>
-      <div class="skeleton skeleton-row"></div>
-      <div class="skeleton skeleton-row"></div>
-      <div class="skeleton skeleton-row"></div>
-    </div>
-  </div>
-
-  <!-- Error -->
-  <div id="skills-error" class="hidden">
-    <div class="error-state">
-      <div class="error-state-title">Unable to Load Skills</div>
-      <p class="error-state-desc">We couldn't retrieve your skill states. Please try again.</p>
-      <button class="btn btn-secondary btn-sm" onclick="window.location.reload()">Try again</button>
-    </div>
-  </div>
-
-  <!-- Skills list -->
-  <div id="skills-container" class="hidden">
-    <!-- Summary stats -->
-    <div class="stats-row" style="margin-bottom:24px;" id="skills-stats"></div>
-
-    <div class="card" style="padding:8px;">
-      <div class="signal-list" id="skills-list"></div>
-    </div>
-
-    <!-- Empty filter state -->
-    <div id="filter-empty" class="hidden" style="margin-top:16px;">
-      <div class="empty-state">
-        <div class="empty-state-title">No Skills in This State</div>
-        <p class="empty-state-desc">No skills currently match the selected filter.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- No skills empty state -->
-  <div id="skills-empty" class="hidden">
-    <div class="empty-state">
-      <div class="empty-state-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"></path>
-        </svg>
-      </div>
-      <div class="empty-state-title">No Engineering Skills Recorded</div>
-      <p class="empty-state-desc">
-        Skill states are calculated from engineering evidence.
-        Connect a repository and synchronize it to generate your first skill states.
-      </p>
-      <a href="/projects" class="btn btn-primary">Connect Repository</a>
-    </div>
-  </div>
-
-</div><!-- /.page-container -->
+  <div id="signals-empty" class="hidden"></div>
+  <div id="signals-error" class="hidden"></div>
+  <div id="signals-content" class="hidden"></div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function() {
-  'use strict';
-
-  let _allSkills = [];
-  let _currentFilter = 'ALL';
-
-  async function loadSkills() {
-    const loading = document.getElementById('skills-loading');
-    const error = document.getElementById('skills-error');
-    const container = document.getElementById('skills-container');
-    const emptyEl = document.getElementById('skills-empty');
+  async function loadSignals() {
+    var loading = document.getElementById('signals-loading');
+    var empty = document.getElementById('signals-empty');
+    var error = document.getElementById('signals-error');
+    var content = document.getElementById('signals-content');
 
     try {
-      _allSkills = await apiFetch('/api/skills');
+      var skills = await apiFetch('/api/skills');
       loading.classList.add('hidden');
 
-      if (_allSkills.length === 0) {
-        emptyEl.classList.remove('hidden');
+      if (!skills || skills.length === 0) {
+        showEmptyState(empty, 'NO SIGNALS DETECTED',
+          'NEXUS hasn\'t calculated any skill signals yet. Sync a project to generate evidence.');
+        empty.classList.remove('hidden');
         return;
       }
 
-      // Stats
-      const statsEl = document.getElementById('skills-stats');
-      const counts = {
-        strong: _allSkills.filter(s => s.state === 'STRONG').length,
-        developing: _allSkills.filter(s => s.state === 'DEVELOPING').length,
-        weak: _allSkills.filter(s => s.state === 'WEAK').length,
-        missing: _allSkills.filter(s => s.state === 'MISSING').length,
-      };
-      statsEl.innerHTML = `
-        <div class="stat-chip"><div class="stat-value">${_allSkills.length}</div><div class="stat-label">Total</div></div>
-        <div class="stat-chip is-strong"><div class="stat-value">${counts.strong}</div><div class="stat-label">Strong</div></div>
-        <div class="stat-chip is-developing"><div class="stat-value">${counts.developing}</div><div class="stat-label">Developing</div></div>
-        <div class="stat-chip"><div class="stat-value" style="color:var(--state-weak);">${counts.weak}</div><div class="stat-label">Weak</div></div>
-      `;
+      var groups = { STRONG: [], DEVELOPING: [], WEAK: [], MISSING: [] };
+      skills.forEach(function(s) {
+        var state = s.state || 'MISSING';
+        if (groups[state]) groups[state].push(s);
+        else groups.MISSING.push(s);
+      });
 
-      container.classList.remove('hidden');
-      renderSkillsList(_allSkills);
-    } catch {
+      var labels = { STRONG: 'Proven', DEVELOPING: 'Developing', WEAK: 'Weak', MISSING: 'Unexplored' };
+      var html = '';
+
+      ['STRONG', 'DEVELOPING', 'WEAK', 'MISSING'].forEach(function(state) {
+        if (groups[state].length === 0) return;
+        html += '<div style="margin-bottom: 40px;">';
+        html += '<div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px;">';
+        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase;">' + escapeHtml(labels[state]) + '</span>';
+        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 11px; color: var(--muted);">' + groups[state].length + '</span>';
+        html += '</div>';
+
+        html += '<div style="display:flex; flex-direction:column; gap: 8px;">';
+        groups[state].forEach(function(s) {
+          html += '<div style="display:flex; justify-content:space-between; align-items:center; padding: 12px 16px; border: 1px solid var(--border); background: var(--surface); cursor: pointer;" onclick="window.location.href=\'/evidence\'">';
+          
+          html += '<div style="display:flex; align-items:center; gap: 12px;">';
+          html += '<span style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; ' + 
+                  (state==='STRONG'?'background:var(--signal-mint)':state==='DEVELOPING'?'background:var(--primary)':state==='WEAK'?'background:var(--amber)':'border: 1px dashed var(--muted)') + 
+                  '"></span>';
+          html += '<span style="font-family:\'Inter\', sans-serif; font-weight: 500; font-size: 14px; color: var(--ink);">' + escapeHtml(s.skill_name) + '</span>';
+          html += '</div>';
+          
+          html += '<span class="drawer-state-badge state-' + state.toLowerCase() + '" style="margin:0;">' + escapeHtml(state) + '</span>';
+          html += '</div>';
+        });
+        html += '</div></div>';
+      });
+
+      html += '<div style="padding:24px; border: 1px solid var(--border); margin-top: 48px; background: transparent; text-align: center;">';
+      html += '<p style="font-family:\'Inter\', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.6;">';
+      html += 'Skill signals reflect what NEXUS has observed in your engineering work — not your absolute ability. ';
+      html += 'An "Unexplored" state means NEXUS hasn\'t found enough evidence yet.</p>';
+      html += '</div>';
+
+      content.innerHTML = html;
+      content.classList.remove('hidden');
+
+    } catch(err) {
       loading.classList.add('hidden');
+      if (err.status === 401) { window.location.href = '/login'; return; }
+      showError(error, 'Unable to load signals', 'Please try again.');
       error.classList.remove('hidden');
     }
   }
 
-  function renderSkillsList(skills) {
-    const list = document.getElementById('skills-list');
-    const filterEmpty = document.getElementById('filter-empty');
-    list.innerHTML = '';
-
-    if (skills.length === 0) {
-      filterEmpty.classList.remove('hidden');
-      return;
-    }
-
-    filterEmpty.classList.add('hidden');
-
-    skills.forEach(s => {
-      const div = document.createElement('div');
-      div.className = 'signal-item';
-      div.setAttribute('role', 'button');
-      div.setAttribute('tabindex', '0');
-      div.setAttribute('aria-label', `${s.skill_name} — ${s.state}. Click to explore evidence.`);
-      div.innerHTML = `
-        <div class="signal-item-left">
-          <div class="signal-skill-name">${s.skill_name}</div>
-        </div>
-        <div class="signal-item-right">
-          ${renderStateBadge(s.state)}
-          <svg class="signal-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </div>
-      `;
-      div.addEventListener('click', () => openEvidenceExplorer(s.skill_id, s.skill_name, s.state));
-      div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openEvidenceExplorer(s.skill_id, s.skill_name, s.state); });
-      list.appendChild(div);
-    });
-  }
-
-  window.filterSkills = function(filter) {
-    _currentFilter = filter;
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      const isActive = btn.dataset.filter === filter;
-      btn.classList.toggle('btn-secondary', isActive);
-      btn.classList.toggle('active', isActive);
-      btn.classList.toggle('btn-ghost', !isActive);
-    });
-
-    const filtered = filter === 'ALL' ? _allSkills : _allSkills.filter(s => s.state === filter);
-    renderSkillsList(filtered);
-  };
-
-  // Evidence explorer (shared from base)
-  window.openEvidenceExplorer = async function(skillId, skillName, state) {
-    document.getElementById('drawer-skill-name').textContent = skillName;
-    document.getElementById('drawer-state-badge').innerHTML = renderStateBadge(state);
-
-    const body = document.getElementById('evidence-drawer-body');
-    body.innerHTML = `<div class="skeleton skeleton-text skeleton-full mb-4"></div><div class="skeleton skeleton-text skeleton-3-4"></div>`;
-    openDrawer('evidence-explorer-drawer');
-
-    try {
-      const evidence = await apiFetch(`/api/skills/${skillId}/evidence`);
-      body.innerHTML = '';
-
-      if (evidence.length === 0) {
-        showEmptyState(body, 'No Evidence Available', `NEXUS has not recorded evidence for ${skillName} yet.`, '');
-        return;
-      }
-
-      const summary = document.createElement('p');
-      summary.style.cssText = 'font-size:13px;color:var(--text-muted);margin-bottom:20px;';
-      summary.textContent = `${evidence.length} evidence signal${evidence.length !== 1 ? 's' : ''} contributing to this state.`;
-      body.appendChild(summary);
-
-      evidence.forEach(e => {
-        const item = document.createElement('div');
-        item.className = 'evidence-item';
-        const path = (e.source_reference || '').split(/[\/\\]/).pop() || e.source_reference;
-        item.innerHTML = `
-          <div class="evidence-item-text">${e.raw_observation_text || '–'}</div>
-          <div class="evidence-item-meta">
-            <span class="badge badge-type">${e.type || '–'}</span>
-            <code class="evidence-source">${path || '–'}</code>
-            <span class="evidence-score">Quality ${(e.quality_score || 0).toFixed(2)}</span>
-            <span class="evidence-score">Freshness ${(e.freshness_weight || 0).toFixed(2)}</span>
-          </div>
-        `;
-        body.appendChild(item);
-      });
-    } catch {
-      showError(body, 'Failed to Load Evidence', 'Unable to retrieve evidence details. Please try again.', null);
-    }
-  };
-
-  loadSkills();
+  document.addEventListener('DOMContentLoaded', loadSignals);
 })();
 </script>
 {% endblock %}

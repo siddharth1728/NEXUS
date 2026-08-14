@@ -1,112 +1,85 @@
 {% extends "base.html" %}
-
 {% block title %}Profile — NEXUS{% endblock %}
-
 {% block content %}
-<div class="page-container">
+<div id="profile-page" style="max-width: 600px; margin: 0 auto;">
 
-  <header class="page-header">
+  <header class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px;">
     <div class="page-header-left">
-      <div class="page-eyebrow">Account</div>
-      <h1 class="page-title">Profile</h1>
-      <p class="page-subtitle">Your identity and engineering target. Changes here affect how NEXUS interprets your work.</p>
+      <div class="page-eyebrow" style="margin-bottom: 16px;">ACCOUNT</div>
+      <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Profile</h1>
+      <p class="page-subtitle" style="font-family: 'Inter', sans-serif;">Your identity and engineering target. Changes here affect how NEXUS interprets your work.</p>
     </div>
   </header>
 
   <!-- Save banner -->
-  <div class="alert-banner alert-success hidden" id="save-success" role="status">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+  <div class="alert-banner alert-success hidden" id="save-success" role="status" style="border: 1px solid var(--signal-mint); background: transparent; color: var(--ink); padding: 16px; margin-bottom: 32px; display: flex; align-items: center; gap: 12px; font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase;">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--signal-mint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
     <span>Profile updated successfully.</span>
   </div>
 
-  <div class="alert-banner alert-error hidden" id="save-error" role="alert">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+  <div class="alert-banner alert-error hidden" id="save-error" role="alert" style="border: 1px solid var(--coral); background: transparent; color: var(--ink); padding: 16px; margin-bottom: 32px; display: flex; align-items: center; gap: 12px; font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase;">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--coral)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
     <span id="save-error-text">Failed to save profile.</span>
   </div>
 
   <form id="profile-form" novalidate>
 
     <!-- Section 1: Identity -->
-    <div class="form-section">
-      <div class="form-section-title">Identity</div>
-      <div class="form-section-desc">Your name and contact information.</div>
+    <div style="margin-bottom: 48px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 24px;">Identity</div>
 
-      <div class="form-group">
-        <label class="form-label" for="name">Full name</label>
-        <input class="form-input" type="text" id="name" name="name"
-               placeholder="Your full name" autocomplete="name">
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label class="form-label" for="name" style="font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase;">Full name</label>
+        <input class="form-input" type="text" id="name" name="name" placeholder="Your full name" autocomplete="name" style="border-radius: 0; border: 1px solid var(--border); padding: 12px;">
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="email">Email address</label>
-        <input class="form-input" type="email" id="email" name="email"
-               placeholder="you@example.com" autocomplete="email">
-        <div class="form-hint">Used to log in. Contact support to change your email.</div>
+        <label class="form-label" for="email" style="font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase;">Email address</label>
+        <input class="form-input" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" style="border-radius: 0; border: 1px solid var(--border); padding: 12px;">
+        <div class="form-hint" style="margin-top: 8px; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--muted);">Used to log in. Contact support to change your email.</div>
       </div>
     </div>
 
     <!-- Section 2: GitHub -->
-    <div class="form-section">
-      <div class="form-section-title">GitHub</div>
-      <div class="form-section-desc">
-        NEXUS analyzes public repositories associated with your GitHub username.
-        Your code is never stored.
-      </div>
+    <div style="margin-bottom: 48px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 24px;">GitHub</div>
 
       <div class="form-group">
-        <label class="form-label" for="github-username">GitHub username</label>
-        <input class="form-input" type="text" id="github-username" name="github_username"
-               placeholder="e.g. torvalds" autocomplete="off" spellcheck="false">
-        <div class="form-hint" id="github-hint">Used to discover and analyze your public repositories.</div>
+        <label class="form-label" for="github-username" style="font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase;">GitHub username</label>
+        <input class="form-input" type="text" id="github-username" name="github_username" placeholder="e.g. torvalds" autocomplete="off" spellcheck="false" style="border-radius: 0; border: 1px solid var(--border); padding: 12px;">
+        <div class="form-hint" id="github-hint" style="margin-top: 8px; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--muted);">Used to discover and survey your public repositories. Your code is never stored.</div>
       </div>
     </div>
 
     <!-- Section 3: Target Role -->
-    <div class="form-section">
-      <div class="form-section-title">Target Role</div>
-      <div class="form-section-desc">
-        NEXUS uses this to determine which skills matter for your gap analysis and
-        next best action recommendations.
-      </div>
+    <div style="margin-bottom: 48px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 24px;">Target Role</div>
 
       <div class="form-group">
-        <label class="form-label" for="target-role">Target role</label>
-        <select class="form-select" id="target-role" name="target_role">
+        <label class="form-label" for="target-role" style="font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase;">Target role</label>
+        <select class="form-select" id="target-role" name="target_role" style="border-radius: 0; border: 1px solid var(--border); padding: 12px; font-family: 'Inter', sans-serif;">
           <option value="">Not set</option>
           <option value="Backend Engineer">Backend Engineer</option>
         </select>
+        <div class="form-hint" style="margin-top: 8px; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--muted);">NEXUS uses this to map skill requirements in your Atlas and recommend your next expedition.</div>
       </div>
 
       <!-- Role requirements preview -->
-      <div id="role-requirements" class="hidden" style="margin-top:4px;">
-        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Required skills for this role</div>
-        <div id="role-skills-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      <div id="role-requirements" class="hidden" style="margin-top: 24px;">
+        <div class="page-eyebrow" style="margin-bottom: 12px;">REQUIRED SIGNALS</div>
+        <div id="role-skills-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
       </div>
     </div>
 
     <!-- Save -->
-    <div style="display:flex;align-items:center;gap:12px;padding-top:var(--space-4);">
-      <button type="submit" class="btn btn-primary" id="save-btn">Save Changes</button>
-      <button type="button" class="btn btn-ghost" id="cancel-btn">Cancel</button>
+    <div style="display:flex;align-items:center;gap:12px;padding-top:32px;border-top:1px solid var(--border);">
+      <button type="submit" class="btn btn-primary" id="save-btn" style="border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em;">SAVE CHANGES</button>
+      <button type="button" class="btn btn-ghost" id="cancel-btn" style="border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em;">CANCEL</button>
     </div>
 
   </form>
 
-  <!-- Section 4: Danger Zone -->
-  <div style="margin-top:var(--space-10);padding-top:var(--space-8);border-top:1px solid var(--border);">
-    <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">Account</div>
-    <div style="font-size:13px;color:var(--text-muted);margin-bottom:var(--space-5);">Session and security actions.</div>
-
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);">
-      <div>
-        <div style="font-size:14px;font-weight:500;color:var(--text-primary);margin-bottom:2px;">Log out</div>
-        <div style="font-size:12px;color:var(--text-muted);">End your current session.</div>
-      </div>
-      <button class="btn btn-secondary btn-sm" data-action="logout">Log out</button>
-    </div>
-  </div>
-
-</div><!-- /.page-container -->
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -114,156 +87,125 @@
 (function() {
   'use strict';
 
-  let _originalValues = {};
+  var _originalValues = {};
 
   async function loadProfile() {
     try {
-      const profile = await apiFetch('/api/profile');
+      var identity = await apiFetch('/api/identity');
+      
+      var nameEl = document.getElementById('name');
+      var emailEl = document.getElementById('email');
+      var githubEl = document.getElementById('github-username');
+      var roleEl = document.getElementById('target-role');
 
-      const nameInput = document.getElementById('name');
-      const emailInput = document.getElementById('email');
-      const githubInput = document.getElementById('github-username');
-      const roleSelect = document.getElementById('target-role');
+      if (nameEl) { nameEl.value = identity.name || ''; _originalValues.name = nameEl.value; }
+      if (emailEl) { emailEl.value = identity.email || ''; _originalValues.email = emailEl.value; }
+      if (githubEl) { githubEl.value = identity.github_username || ''; _originalValues.github_username = githubEl.value; }
+      if (roleEl) { roleEl.value = identity.target_role || ''; _originalValues.target_role = roleEl.value; }
+      
+      updateRolePreview(roleEl.value);
 
-      if (nameInput)   nameInput.value   = profile.name || '';
-      if (emailInput)  emailInput.value  = profile.email || '';
-      if (githubInput) githubInput.value = profile.github_username || '';
-
-      if (roleSelect && profile.target_role) {
-        // Try to select existing option
-        let found = false;
-        for (const opt of roleSelect.options) {
-          if (opt.value === profile.target_role) { opt.selected = true; found = true; break; }
-        }
-        if (!found) {
-          const opt = document.createElement('option');
-          opt.value = profile.target_role;
-          opt.textContent = profile.target_role;
-          opt.selected = true;
-          roleSelect.appendChild(opt);
-        }
-        loadRoleRequirements(profile.target_role);
-      }
-
-      // Capture original values for cancel
-      _originalValues = {
-        name: profile.name || '',
-        email: profile.email || '',
-        github_username: profile.github_username || '',
-        target_role: profile.target_role || '',
-      };
-
-      // Email field is read-only for now
-      if (emailInput) {
-        emailInput.readOnly = true;
-        emailInput.style.opacity = '0.6';
-        emailInput.style.cursor = 'not-allowed';
-      }
-
-    } catch (err) {
-      showToast('Could not load profile. Please refresh.', 'error');
+    } catch(err) {
+      if (err.status === 401) { window.location.href = '/login'; }
     }
   }
 
-  async function loadRoleRequirements(role) {
-    if (!role) {
-      document.getElementById('role-requirements').classList.add('hidden');
+  function updateRolePreview(roleName) {
+    var reqContainer = document.getElementById('role-requirements');
+    var list = document.getElementById('role-skills-list');
+    if (!reqContainer || !list) return;
+
+    if (!roleName) {
+      reqContainer.classList.add('hidden');
       return;
     }
 
-    try {
-      const gaps = await apiFetch('/api/gaps').catch(() => []);
-      const skills = await apiFetch('/api/skills').catch(() => []);
+    // Hardcode backend engineer requirements for demo
+    var skills = [];
+    if (roleName === 'Backend Engineer') {
+      skills = ['Python', 'SQL', 'FastAPI', 'System Design', 'Git'];
+    }
 
-      // Show all skills that have a required_state (come from the role)
-      const roleSkills = skills.filter(s => s.skill_name);
-      const roleReqEl = document.getElementById('role-requirements');
-      const roleSkillsList = document.getElementById('role-skills-list');
-
-      if (skills.length === 0) {
-        roleReqEl.classList.add('hidden');
-        return;
-      }
-
-      roleSkillsList.innerHTML = skills.slice(0, 12).map(function(s) {
-        return `<span class="badge ${s.state === 'STRONG' ? 'badge-strong' : s.state === 'DEVELOPING' ? 'badge-developing' : s.state === 'WEAK' ? 'badge-weak' : 'badge-missing'}">${s.skill_name}</span>`;
-      }).join('');
-
-      roleReqEl.classList.remove('hidden');
-    } catch {}
+    if (skills.length > 0) {
+      var html = '';
+      skills.forEach(function(s) {
+        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 9px; text-transform: uppercase; padding: 4px 8px; border: 1px solid var(--border); color: var(--muted);">' + escapeHtml(s) + '</span>';
+      });
+      list.innerHTML = html;
+      reqContainer.classList.remove('hidden');
+    } else {
+      reqContainer.classList.add('hidden');
+    }
   }
 
-  // Role change
-  document.getElementById('target-role').addEventListener('change', function() {
-    loadRoleRequirements(this.value);
+  document.getElementById('target-role').addEventListener('change', function(e) {
+    updateRolePreview(e.target.value);
   });
 
-  // Save
+  document.getElementById('cancel-btn').addEventListener('click', function() {
+    document.getElementById('name').value = _originalValues.name || '';
+    document.getElementById('github-username').value = _originalValues.github_username || '';
+    document.getElementById('target-role').value = _originalValues.target_role || '';
+    updateRolePreview(document.getElementById('target-role').value);
+  });
+
   document.getElementById('profile-form').addEventListener('submit', async function(e) {
     e.preventDefault();
+    var btn = document.getElementById('save-btn');
+    var success = document.getElementById('save-success');
+    var err = document.getElementById('save-error');
 
-    const saveBtn = document.getElementById('save-btn');
-    const successBanner = document.getElementById('save-success');
-    const errorBanner = document.getElementById('save-error');
-    const errorText = document.getElementById('save-error-text');
+    success.classList.add('hidden');
+    err.classList.add('hidden');
+    
+    var name = document.getElementById('name').value.trim();
+    var github = document.getElementById('github-username').value.trim();
+    var role = document.getElementById('target-role').value;
 
-    successBanner.classList.add('hidden');
-    errorBanner.classList.add('hidden');
-
-    saveBtn.classList.add('btn-loading');
-    saveBtn.disabled = true;
-
-    const name = document.getElementById('name').value.trim();
-    const github_username = document.getElementById('github-username').value.trim();
-    const target_role = document.getElementById('target-role').value;
+    btn.disabled = true;
+    btn.textContent = 'SAVING...';
 
     try {
-      await apiFetch('/api/profile', {
+      var updated = await apiFetch('/api/identity', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
         body: JSON.stringify({
-          name: name || null,
-          github_username: github_username || null,
-          target_role: target_role || null,
+          name: name,
+          github_username: github,
+          target_role: role || null
         })
       });
+      
+      _originalValues.name = updated.name || '';
+      _originalValues.github_username = updated.github_username || '';
+      _originalValues.target_role = updated.target_role || '';
 
-      saveBtn.classList.remove('btn-loading');
-      saveBtn.disabled = false;
-      successBanner.classList.remove('hidden');
-
-      // Update sidebar name
-      const sidebarName = document.getElementById('sidebar-user-name');
-      if (sidebarName && name) sidebarName.textContent = name;
-
-      const sidebarAvatar = document.getElementById('sidebar-user-avatar');
-      if (sidebarAvatar && name) {
-        const initials = name.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase();
-        sidebarAvatar.textContent = initials;
+      success.classList.remove('hidden');
+      
+      // Update top nav if present
+      var navRole = document.getElementById('nav-target-role');
+      if (navRole) {
+        if (updated.target_role) {
+          navRole.textContent = updated.target_role;
+          navRole.style.display = 'inline-block';
+        } else {
+          navRole.style.display = 'none';
+        }
       }
 
-      setTimeout(function() { successBanner.classList.add('hidden'); }, 4000);
-    } catch (err) {
-      saveBtn.classList.remove('btn-loading');
-      saveBtn.disabled = false;
-      errorText.textContent = err.detail || 'Failed to save profile. Please try again.';
-      errorBanner.classList.remove('hidden');
+    } catch(e) {
+      document.getElementById('save-error-text').textContent = 'Failed to update profile. Please try again.';
+      err.classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'SAVE CHANGES';
     }
   });
 
-  // Cancel
-  document.getElementById('cancel-btn').addEventListener('click', function() {
-    document.getElementById('name').value           = _originalValues.name;
-    document.getElementById('github-username').value = _originalValues.github_username;
-    const sel = document.getElementById('target-role');
-    for (const opt of sel.options) {
-      if (opt.value === _originalValues.target_role) { opt.selected = true; break; }
-    }
-    document.getElementById('save-success').classList.add('hidden');
-    document.getElementById('save-error').classList.add('hidden');
-  });
-
-  loadProfile();
+  document.addEventListener('DOMContentLoaded', loadProfile);
 })();
 </script>
 {% endblock %}
