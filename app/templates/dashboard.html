@@ -1,133 +1,295 @@
 {% extends "base.html" %}
 
-{% block title %}Atlas — NEXUS{% endblock %}
+{% block title %}2D Engineering Atlas — NEXUS{% endblock %}
+
+{% block head %}
+<style>
+  /* ── 2D Cartography Viewport ───────────────────────── */
+  .atlas-main {
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 48px);
+    overflow: hidden;
+  }
+  .atlas-container {
+    display: flex;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .atlas-canvas-area {
+    flex: 1;
+    overflow-y: auto;
+    background-color: var(--canvas);
+    background-image: 
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    padding: 24px 32px 80px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ── Right-Side Field Note Drawer (Desktop) ─────────── */
+  .atlas-drawer {
+    width: 420px;
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    z-index: 40;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (max-width: 1024px) {
+    .atlas-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      transform: translateX(100%);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+    }
+    .atlas-drawer.active {
+      transform: translateX(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .atlas-main {
+      height: auto;
+      overflow: visible;
+    }
+    .atlas-container {
+      overflow: visible;
+    }
+    .atlas-canvas-area {
+      padding: 16px 16px 80px 16px;
+      overflow: visible;
+    }
+    .atlas-drawer {
+      width: 100%;
+      top: auto;
+      height: 80vh;
+      border-left: none;
+      border-top: 1px solid var(--border);
+      transform: translateY(100%);
+    }
+    .atlas-drawer.active {
+      transform: translateY(0);
+    }
+  }
+
+  .stat-chip {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .stat-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .quest-mission-box {
+    border: 1px solid var(--border);
+    background: var(--elevated);
+    padding: 12px 14px;
+    margin-top: 8px;
+    font-size: 13px;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div id="atlas-page" class="cartography-atlas-layout">
-
-  <!-- ── Left Map Area ──────────────────────────────── -->
-  <div class="atlas-map-area">
-    <header class="atlas-header" id="page-header">
-      <div class="page-eyebrow">DESTINATION COORDINATES</div>
-      <h1 class="page-title" id="header-target-role">
-        <span class="skeleton skeleton-title" style="width:280px;display:inline-block;" aria-hidden="true"></span>
-      </h1>
-      <p class="page-subtitle">Deterministic map of engineering capabilities</p>
-      
-      <div id="header-actions" style="visibility:hidden; margin-top: 16px;">
-        <button class="btn btn-secondary btn-sm" id="sync-btn" style="display:none; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; border-radius: 0; border: 1px solid var(--border);" aria-label="Sync GitHub repositories">
-          INITIATE NEW SURVEY
-        </button>
+<div class="atlas-container">
+  
+  <!-- ── Main Atlas Surface Area ───────────────────────── -->
+  <div class="atlas-canvas-area">
+    
+    <!-- Top Identity Header -->
+    <div class="page-header" style="margin-bottom: 0;">
+      <div>
+        <div class="page-eyebrow" id="header-eyebrow">2D TECHNICAL CARTOGRAPHY // DESTINATION</div>
+        <h1 class="page-title" id="header-target-role">ENGINEERING ATLAS</h1>
+        <p class="page-subtitle" id="header-subtitle">Surveying repository coordinates to generate deterministic skill signals.</p>
       </div>
-    </header>
-
-    <!-- ── Loading ───────────────────────────────────── -->
-    <div id="state-loading" style="padding: 0 48px;">
-      <div class="stats-row" style="margin-bottom:32px;">
-        <div class="skeleton skeleton-stat"></div>
-        <div class="skeleton skeleton-stat"></div>
-        <div class="skeleton skeleton-stat"></div>
-        <div class="skeleton skeleton-stat"></div>
-      </div>
-      <div class="card" style="min-height:400px; border-radius: 0; background: transparent; border: 1px solid var(--border);">
-        <div class="skeleton skeleton-text skeleton-full"></div>
-        <div class="skeleton skeleton-text skeleton-3-4"></div>
-        <div class="skeleton skeleton-text skeleton-1-2"></div>
+      <div class="page-actions" id="header-actions" style="visibility: hidden;">
+        <a href="/projects" class="btn btn-secondary btn-sm">+ CONNECT REPOSITORY</a>
       </div>
     </div>
 
-    <!-- ── Empty State ───────────────────────────────── -->
-    <div id="state-empty" class="hidden">
-      <div class="empty-state" style="text-align:left;padding:48px; max-width: 600px;">
-        <div style="margin-bottom:32px;">
-          <div class="page-eyebrow" style="margin-bottom:8px;">SURVEY PENDING</div>
-          <h2 style="font-size:24px;font-family:'Newsreader', serif;color:var(--ink);margin-bottom:12px;letter-spacing:-0.5px;">NO DATA PLOTTED</h2>
-          <p style="font-size:14px;color:var(--muted);max-width:520px;line-height:1.6;">NEXUS has not yet surveyed your engineering evidence. Initialize a survey by providing origin coordinates (GitHub).</p>
-        </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <a href="/profile" class="btn btn-primary" style="border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em;">CONFIGURE ORIGIN</a>
-        </div>
+    <!-- ── Loading State ───────────────────────────────── -->
+    <div id="state-loading" class="scanning-container" style="padding: 60px 0;">
+      <div class="tech-radar">
+        <div class="tech-radar-reticle"></div>
       </div>
+      <div class="scanning-label">MAPPING 2D ENGINEERING ATLAS...</div>
+      <p class="t-caption t-muted">Scanning repository landmarks and evaluating skill signals...</p>
     </div>
 
-    <!-- ── Error State ───────────────────────────────── -->
+    <!-- ── Error State ─────────────────────────────────── -->
     <div id="state-error" class="hidden">
-      <div class="error-state" style="padding: 48px; text-align: left;">
-        <div class="error-state-title" style="font-family:'DM Mono', monospace; color: var(--coral); text-transform: uppercase;">SURVEY FAILED</div>
-        <p class="error-state-desc" style="color: var(--ink);">Unable to load map geometry. The connection may be unstable.</p>
-        <button class="btn btn-secondary btn-sm" onclick="window.location.reload()" style="border-radius:0;">RETRY RENDER</button>
+      <div class="empty-state">
+        <div class="page-eyebrow" style="color: var(--coral);">COORDINATES UNREACHABLE</div>
+        <h2 class="empty-state-title">ATLAS RENDERING FAILED</h2>
+        <p class="empty-state-desc">NEXUS mapping engine could not load your coordinates. Please retry the render.</p>
+        <button class="btn btn-secondary btn-sm" onclick="window.location.reload()">RELOAD ATLAS</button>
       </div>
     </div>
 
-    <!-- ── Populated State ───────────────────────────── -->
-    <div id="state-populated" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
+    <!-- ── Populated State ─────────────────────────────── -->
+    <div id="state-populated" class="hidden" style="display: flex; flex-direction: column; flex: 1; gap: 20px;">
       
-      <!-- Stats -->
-      <div class="stats-row" id="stats-row" style="padding: 0 48px; border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 24px;">
-        <div class="stat-chip" style="background: transparent; border: 1px solid var(--border); border-radius: 0;">
+      <!-- Stats Overview Strip -->
+      <div class="stats-row" id="stats-row">
+        <div class="stat-chip">
           <div class="stat-value" id="stat-proven" style="color:var(--signal-mint);">–</div>
-          <div class="stat-label" style="font-family:'DM Mono', monospace; text-transform: uppercase;">Proven</div>
+          <div class="stat-label">Proven</div>
         </div>
-        <div class="stat-chip" style="background: transparent; border: 1px solid var(--border); border-radius: 0;">
+        <div class="stat-chip">
           <div class="stat-value" id="stat-developing" style="color:var(--primary);">–</div>
-          <div class="stat-label" style="font-family:'DM Mono', monospace; text-transform: uppercase;">Developing</div>
+          <div class="stat-label">Developing</div>
         </div>
-        <div class="stat-chip" style="background: transparent; border: 1px solid var(--border); border-radius: 0;">
+        <div class="stat-chip">
           <div class="stat-value" id="stat-weak" style="color:var(--amber);">–</div>
-          <div class="stat-label" style="font-family:'DM Mono', monospace; text-transform: uppercase;">Weak</div>
+          <div class="stat-label">Weak</div>
         </div>
-        <div class="stat-chip" style="background: transparent; border: 1px solid var(--border); border-radius: 0;">
+        <div class="stat-chip">
           <div class="stat-value" id="stat-unexplored" style="color:var(--muted);">–</div>
-          <div class="stat-label" style="font-family:'DM Mono', monospace; text-transform: uppercase;">Unexplored</div>
+          <div class="stat-label">Unexplored</div>
+        </div>
+      </div>
+
+      <!-- Proof Quest / Next Expedition Card -->
+      <div id="next-expedition-banner" class="hidden" style="border: 1px solid var(--primary); background: var(--surface); padding: 18px 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 280px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <span class="page-eyebrow" style="color: var(--primary); margin: 0;">PROOF QUEST // NEXT EXPEDITION</span>
+              <span id="quest-status-badge" class="badge badge-developing">AVAILABLE</span>
+            </div>
+            <h3 id="nba-title" style="font-family: 'Newsreader', serif; font-size: 20px; font-weight: 500; margin-bottom: 6px;">–</h3>
+            <p id="nba-desc" style="font-size: 13px; color: var(--ink); line-height: 1.4; margin-bottom: 8px;">–</p>
+            
+            <div class="quest-mission-box" id="quest-mission-brief-box">
+              <div class="t-label" style="font-size: 10px; margin-bottom: 4px; color: var(--primary);">MISSION BRIEF // WHAT TO BUILD</div>
+              <div id="quest-mission-brief" style="color: var(--ink);">–</div>
+              <div class="t-caption t-muted mt-2" id="quest-verification-hint" style="font-family: 'DM Mono', monospace; font-size: 11px;">–</div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <button id="nba-begin-btn" class="btn btn-secondary btn-sm">BEGIN QUEST</button>
+              <button id="nba-complete-btn" class="btn btn-primary btn-sm">MARK COMPLETED</button>
+              <button id="nba-dismiss-btn" class="btn btn-ghost btn-sm">DISMISS</button>
+            </div>
+            <div class="t-caption t-muted" style="font-size: 11px; text-align: right;">
+              Requires repository sync to verify proof.
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- ATLAS VIEWPORT -->
-      <div class="atlas-viewport" id="atlas-viewport" role="region" aria-label="Engineering Atlas map" style="flex: 1; position: relative;">
+      <div class="atlas-viewport" id="atlas-viewport" role="region" aria-label="Engineering Atlas map">
       </div>
 
     </div>
   </div>
 
-  <!-- ── Right Drawer (Field Note) ──────────────────── -->
-  <div class="atlas-drawer" id="field-note-drawer" aria-hidden="true">
-    <div class="atlas-drawer-inner">
+  <!-- ── Right Drawer (Field Note & Proof Quest Mission) ─ -->
+  <aside class="atlas-drawer" id="field-note-drawer" aria-hidden="true" role="dialog" aria-labelledby="fn-skill-name">
+    <div class="drawer-header">
+      <div>
+        <div class="drawer-eyebrow" id="fn-drawer-eyebrow">FIELD NOTE</div>
+        <h2 class="drawer-title" id="fn-skill-name">SKILL NAME</h2>
+        <div class="drawer-state" id="fn-skill-state"></div>
+      </div>
       <button class="drawer-close" id="drawer-close" aria-label="Close Field Note">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
       </button>
+    </div>
+    
+    <div class="drawer-body">
       
-      <div class="drawer-eyebrow">FIELD NOTE</div>
-      <h2 class="drawer-title" id="fn-skill-name">SKILL NAME</h2>
-      
-      <div class="drawer-state-badge" id="fn-skill-state">STATE</div>
-      
-      <div class="drawer-section">
-        <div class="drawer-section-title">SURVEY DATA</div>
-        <p class="drawer-desc" id="fn-skill-desc">Description of the signal...</p>
-      </div>
-      
-      <div class="drawer-section">
-        <div class="drawer-section-title">EVIDENCE LINKS</div>
-        <ul class="drawer-evidence-list" id="fn-evidence-list">
-          <!-- Populated by JS -->
-        </ul>
+      <!-- Populated for Proven/Developing signals -->
+      <div id="fn-evidence-section">
+        <div>
+          <div class="drawer-section-title">WHAT WE FOUND</div>
+          <p class="t-body" id="fn-skill-desc" style="font-size: 13px; color: var(--ink);">–</p>
+        </div>
+        
+        <div style="margin-top: 16px;">
+          <div class="drawer-section-title">SUPPORTING PROOF</div>
+          <div id="fn-evidence-list" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Populated by JS -->
+          </div>
+        </div>
       </div>
 
-      <div class="drawer-actions">
-        <a href="/proof" class="btn btn-primary" style="width: 100%; border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; display: flex; justify-content: center;">VIEW FULL PROOF</a>
+      <!-- Populated for Unexplored signals / Proof Quest Missions -->
+      <div id="fn-quest-section" class="hidden" style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="system-notice system-notice-info" style="margin-bottom: 0;">
+          <span class="system-notice-title">UNEXPLORED GAP</span>
+          <span class="system-notice-desc">NEXUS has not found enough evidence in your surveyed repositories yet.</span>
+        </div>
+
+        <div id="fn-quest-card" style="border: 1px solid var(--border); background: var(--surface); padding: 16px;">
+          <div class="t-label" style="color: var(--primary); margin-bottom: 4px;">ELIGIBLE PROOF QUEST</div>
+          <h3 id="fn-quest-title" style="font-family: 'Newsreader', serif; font-size: 18px; margin-bottom: 8px;">–</h3>
+          
+          <div class="t-label mt-3">MISSION BRIEF</div>
+          <p id="fn-quest-brief" class="t-body" style="font-size: 13px; color: var(--ink); margin-top: 4px;">–</p>
+
+          <div class="t-label mt-3">WHAT NEXUS WILL LOOK FOR</div>
+          <p id="fn-quest-expectations" class="t-caption t-muted" style="margin-top: 4px;">–</p>
+
+          <div class="t-label mt-3">RECOMMENDED LANDMARK</div>
+          <div id="fn-quest-project" class="t-mono t-small" style="margin-top: 4px;">–</div>
+
+          <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <button id="fn-quest-begin-btn" class="btn btn-secondary btn-sm">BEGIN QUEST</button>
+            <button id="fn-quest-complete-btn" class="btn btn-primary btn-sm">MARK COMPLETE</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
+        <a href="/lab" id="fn-lab-link" class="btn btn-secondary btn-full" style="display: flex; justify-content: center;">
+          UNDERSTAND IN LAB →
+        </a>
+        <a href="/evidence" id="fn-proof-link" class="btn btn-ghost btn-full" style="display: flex; justify-content: center;">
+          VIEW PROOF LEDGER
+        </a>
       </div>
     </div>
-  </div>
-
-  <!-- ── Sync Modal ────────────────────────────────── -->
-  <div class="modal-overlay" id="sync-modal-overlay">
-    <div class="modal" id="sync-modal" style="border-radius: 0; border: 1px solid var(--border); box-shadow: 8px 8px 0px rgba(0,0,0,0.05);">
-      <div class="page-eyebrow mb-4">NEW SURVEY</div>
-      <h3 class="t-heading mb-4" style="font-family: 'Newsreader', serif;">Executing analysis...</h3>
-      <div id="sync-modal-stages" class="sync-stages"></div>
-      <div id="sync-modal-result" class="hidden mt-4"></div>
+    
+    <div class="drawer-footer">
+      <p>Deterministic observations extracted from repository structures. Source code is never retained.</p>
     </div>
-  </div>
+  </aside>
 
 </div>
 {% endblock %}
@@ -139,63 +301,46 @@
   'use strict';
 
   var identityData = null;
+  var currentNba = null;
 
-  async function loadAtlas() {
+  async function loadDashboard() {
     var loading = document.getElementById('state-loading');
-    var empty = document.getElementById('state-empty');
     var error = document.getElementById('state-error');
     var populated = document.getElementById('state-populated');
-    var headerTitle = document.getElementById('header-target-role');
+    var headerRole = document.getElementById('header-target-role');
+    var headerSubtitle = document.getElementById('header-subtitle');
     var headerActions = document.getElementById('header-actions');
-    var syncBtn = document.getElementById('sync-btn');
 
     try {
+      identityData = await apiFetch('/api/identity');
       var profile = await apiFetch('/api/profile');
 
-      if (!profile.github_username) {
-        loading.classList.add('hidden');
-        empty.classList.remove('hidden');
-        headerTitle.textContent = 'Welcome to NEXUS';
-        headerActions.style.visibility = 'visible';
+      if (!profile.github_username && (!identityData.atlas_territories || identityData.atlas_territories.length === 0)) {
+        window.location.href = '/onboarding';
         return;
       }
 
-      identityData = await apiFetch('/api/identity');
-
-      var hasData = identityData.atlas_territories && identityData.atlas_territories.length > 0;
-      var hasJourney = identityData.engineering_journey &&
-        (identityData.engineering_journey.meaningful_transitions.length > 0 ||
-         identityData.engineering_journey.recent_discoveries.length > 0);
-
-      if (!hasData && !hasJourney) {
-        var projects = await apiFetch('/api/projects/');
-        if (projects.length === 0) {
-          loading.classList.add('hidden');
-          empty.classList.remove('hidden');
-          headerTitle.textContent = profile.target_role || 'Engineer';
-          headerActions.style.visibility = 'visible';
-          return;
-        }
+      if (identityData.target_role) {
+        headerRole.textContent = identityData.target_role;
+        headerSubtitle.textContent = 'Engineering Atlas mapped for ' + (profile.github_username || 'Engineer') + '.';
       }
-
-      headerTitle.textContent = identityData.target_role || 'Engineer';
       headerActions.style.visibility = 'visible';
-      syncBtn.style.display = '';
 
+      // Calculate state counters
       var proven = 0, developing = 0, weak = 0, unexplored = 0;
-      identityData.atlas_territories.forEach(function(t) {
-        t.landmarks.forEach(function(lm) {
-          lm.signals.forEach(function(s) {
+      (identityData.atlas_territories || []).forEach(function(t) {
+        (t.landmarks || []).forEach(function(lm) {
+          (lm.signals || []).forEach(function(s) {
             if (s.state === 'STRONG') proven++;
             else if (s.state === 'DEVELOPING') developing++;
           });
         });
-        unexplored += t.unexplored.length;
+        unexplored += (t.unexplored || []).length;
       });
 
       try {
         var skills = await apiFetch('/api/skills');
-        skills.forEach(function(s) {
+        (skills || []).forEach(function(s) {
           if (s.state === 'WEAK') weak++;
         });
       } catch(e) {}
@@ -205,92 +350,248 @@
       document.getElementById('stat-weak').textContent = weak;
       document.getElementById('stat-unexplored').textContent = unexplored;
 
+      // Render Atlas
       loading.classList.add('hidden');
       populated.classList.remove('hidden');
 
       var viewport = document.getElementById('atlas-viewport');
       if (typeof NexusAtlas !== 'undefined') {
         NexusAtlas.render(viewport, identityData);
-      } else {
-        viewport.innerHTML = '<div style="padding: 24px;">Atlas renderer not available.</div>';
       }
 
+      // Load Next Expedition Recommendation
+      loadNextExpedition();
+
     } catch (err) {
-      console.error(err);
       loading.classList.add('hidden');
+      if (err.status === 401) { window.location.href = '/login'; return; }
       error.classList.remove('hidden');
     }
   }
 
-  // Field Note Logic
-  var drawer = document.getElementById('field-note-drawer');
-  var drawerClose = document.getElementById('drawer-close');
+  async function loadNextExpedition() {
+    try {
+      var quests = await apiFetch('/api/quests');
+      if (quests && quests.length > 0) {
+        var primary = quests[0];
+        currentNba = primary;
 
-  window.openEvidenceExplorer = function(skillId, skillName, state) {
-    // Populate Field Note Drawer
-    document.getElementById('fn-skill-name').textContent = skillName || 'Unknown Skill';
-    var badge = document.getElementById('fn-skill-state');
-    badge.textContent = state || 'MISSING';
-    badge.className = 'drawer-state-badge state-' + (state || 'missing').toLowerCase();
+        document.getElementById('nba-title').textContent = primary.title;
+        document.getElementById('nba-desc').textContent = primary.description;
+        
+        // Fetch detailed mission brief
+        try {
+          var detail = await apiFetch('/api/quests/' + encodeURIComponent(primary.action_key) + (primary.project_id ? '?project_id=' + primary.project_id : ''));
+          document.getElementById('quest-mission-brief').textContent = detail.mission_brief || 'Implement required engineering artifacts.';
+          document.getElementById('quest-verification-hint').textContent = 'Verification: ' + detail.verification_expectations;
+          
+          var badge = document.getElementById('quest-status-badge');
+          badge.textContent = detail.status;
+          badge.className = 'badge ' + (detail.status === 'STARTED' ? 'badge-developing' : (detail.status === 'COMPLETED' ? 'badge-strong' : 'badge-missing'));
+
+          var beginBtn = document.getElementById('nba-begin-btn');
+          if (detail.status === 'STARTED') {
+            beginBtn.textContent = 'IN PROGRESS';
+            beginBtn.disabled = true;
+          } else {
+            beginBtn.textContent = 'BEGIN QUEST';
+            beginBtn.disabled = false;
+          }
+        } catch(e) {}
+
+        document.getElementById('next-expedition-banner').classList.remove('hidden');
+      } else {
+        document.getElementById('next-expedition-banner').classList.add('hidden');
+      }
+    } catch(e) {
+      document.getElementById('next-expedition-banner').classList.add('hidden');
+    }
+  }
+
+  // Begin NBA Handler
+  document.getElementById('nba-begin-btn').addEventListener('click', async function() {
+    if (!currentNba) return;
+    try {
+      await apiFetch('/api/quests/begin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action_key: currentNba.action_key, project_id: currentNba.project_id })
+      });
+      showToast('Proof Quest initialized. Build in your repository, then sync.', 'info');
+      loadNextExpedition();
+    } catch(e) {
+      showToast('Could not begin quest.', 'error');
+    }
+  });
+
+  // Complete NBA Handler
+  document.getElementById('nba-complete-btn').addEventListener('click', async function() {
+    if (!currentNba) return;
+    try {
+      await apiFetch('/api/quests/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action_key: currentNba.action_key, project_id: currentNba.project_id })
+      });
+      showToast('Marked complete. Sync your repository so NEXUS can verify the evidence.', 'success');
+      loadNextExpedition();
+    } catch(e) {
+      showToast('Could not complete quest.', 'error');
+    }
+  });
+
+  // Dismiss NBA Handler
+  document.getElementById('nba-dismiss-btn').addEventListener('click', async function() {
+    if (!currentNba) return;
+    try {
+      await apiFetch('/api/quests/dismiss', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action_key: currentNba.action_key, project_id: currentNba.project_id })
+      });
+      showToast('Quest dismissed.', 'info');
+      loadNextExpedition();
+    } catch(e) {
+      showToast('Could not dismiss quest.', 'error');
+    }
+  });
+
+  // Global Field Note Drawer Handler (Atlas Signal & Unexplored Clicks)
+  window.openEvidenceExplorer = async function(skillId, skillName, state, projectName, evidenceList) {
+    document.getElementById('fn-skill-name').textContent = skillName || 'Engineering Signal';
     
-    // Attempt to describe it
-    var desc = "Derived systematically from repository analysis.";
-    var evidenceList = [];
-    
-    // Search identityData for this skill's evidence
-    if (identityData && identityData.atlas_territories) {
-      identityData.atlas_territories.forEach(function(t) {
-        t.landmarks.forEach(function(lm) {
-          lm.signals.forEach(function(s) {
-            if (s.skill_id === skillId) {
-              desc = "Evidence found in " + (lm.name || 'project') + ".";
-              if (s.evidence) evidenceList = evidenceList.concat(s.evidence);
-            }
-          });
+    var stateBadge = document.getElementById('fn-skill-state');
+    stateBadge.innerHTML = renderStateBadge(state || 'MISSING');
+
+    // Dynamic Lab Link mapping
+    var skillMap = {
+      'rest apis': 'HTTP_REQUEST_LIFECYCLE',
+      'python': 'HTTP_REQUEST_LIFECYCLE',
+      'authentication': 'AUTHENTICATION_FLOWS',
+      'postgresql': 'DATABASE_PERSISTENCE',
+      'sql': 'DATABASE_PERSISTENCE',
+      'database design': 'DATABASE_MIGRATIONS',
+      'testing': 'AUTOMATED_TESTING',
+      'docker': 'CONTAINERIZATION_DOCKER',
+      'git': 'CI_CD_AUTOMATION'
+    };
+    var conceptKey = skillMap[(skillName || '').toLowerCase()] || 'HTTP_REQUEST_LIFECYCLE';
+    var labLink = document.getElementById('fn-lab-link');
+    if (labLink) labLink.href = '/lab/' + conceptKey;
+
+    var isUnexplored = (state === 'MISSING' || !projectName);
+    var evSection = document.getElementById('fn-evidence-section');
+    var questSection = document.getElementById('fn-quest-section');
+    var eyebrow = document.getElementById('fn-drawer-eyebrow');
+
+    if (isUnexplored) {
+      eyebrow.textContent = 'PROOF QUEST // MISSION';
+      evSection.classList.add('hidden');
+      questSection.classList.remove('hidden');
+
+      // Query available quest for this skill
+      try {
+        var quests = await apiFetch('/api/quests');
+        var matching = (quests || []).filter(function(q) {
+          return q.skill_name.toLowerCase() === (skillName || '').toLowerCase();
         });
-      });
-    }
 
-    document.getElementById('fn-skill-desc').textContent = desc;
-    
-    var list = document.getElementById('fn-evidence-list');
-    list.innerHTML = '';
-    
-    if (evidenceList.length > 0) {
-      evidenceList.forEach(function(ev) {
-        var li = document.createElement('li');
-        var a = document.createElement('a');
-        a.href = ev.url || '#';
-        a.textContent = (ev.type ? ev.type + ': ' : '') + (ev.description || 'Reference');
-        a.target = '_blank';
-        li.appendChild(a);
-        list.appendChild(li);
-      });
+        if (matching.length > 0) {
+          var quest = matching[0];
+          var detail = await apiFetch('/api/quests/' + encodeURIComponent(quest.action_key) + (quest.project_id ? '?project_id=' + quest.project_id : ''));
+
+          document.getElementById('fn-quest-title').textContent = detail.title;
+          document.getElementById('fn-quest-brief').textContent = detail.mission_brief;
+          document.getElementById('fn-quest-expectations').textContent = detail.verification_expectations;
+          document.getElementById('fn-quest-project').textContent = detail.project_name ? 'PROJECT: ' + detail.project_name : 'No existing project required';
+
+          var beginBtn = document.getElementById('fn-quest-begin-btn');
+          var completeBtn = document.getElementById('fn-quest-complete-btn');
+
+          beginBtn.onclick = async function() {
+            try {
+              await apiFetch('/api/quests/begin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action_key: detail.action_key, project_id: detail.project_id })
+              });
+              showToast('Quest started. Implement your changes, then sync.', 'info');
+              loadNextExpedition();
+            } catch(e) {
+              showToast('Could not begin quest.', 'error');
+            }
+          };
+
+          completeBtn.onclick = async function() {
+            try {
+              await apiFetch('/api/quests/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action_key: detail.action_key, project_id: detail.project_id })
+              });
+              showToast('Marked complete. Sync your repository so NEXUS can verify the evidence.', 'success');
+              loadNextExpedition();
+            } catch(e) {
+              showToast('Could not complete quest.', 'error');
+            }
+          };
+
+          document.getElementById('fn-quest-card').classList.remove('hidden');
+        } else {
+          document.getElementById('fn-quest-title').textContent = 'No direct quest defined yet';
+          document.getElementById('fn-quest-brief').textContent = 'Connect additional repositories or expand prerequisite skills to unlock missions in this territory.';
+          document.getElementById('fn-quest-expectations').textContent = 'NEXUS will map signals automatically upon repository sync.';
+          document.getElementById('fn-quest-project').textContent = '–';
+          document.getElementById('fn-quest-begin-btn').style.display = 'none';
+          document.getElementById('fn-quest-complete-btn').style.display = 'none';
+        }
+      } catch(e) {
+        document.getElementById('fn-quest-title').textContent = 'Unexplored Territory';
+        document.getElementById('fn-quest-brief').textContent = 'NEXUS has not found enough evidence in your surveyed repositories yet.';
+      }
+
     } else {
-      var li = document.createElement('li');
-      li.textContent = 'Derived systematically from repository analysis.';
-      li.style.color = 'var(--muted)';
-      list.appendChild(li);
+      eyebrow.textContent = 'FIELD NOTE // VERIFIED';
+      evSection.classList.remove('hidden');
+      questSection.classList.add('hidden');
+
+      var descEl = document.getElementById('fn-skill-desc');
+      descEl.textContent = 'Derived from deterministic observations in landmark project: ' + projectName + '.';
+
+      var listEl = document.getElementById('fn-evidence-list');
+      listEl.innerHTML = '';
+
+      if (evidenceList && evidenceList.length > 0) {
+        evidenceList.forEach(function(ev) {
+          var item = document.createElement('div');
+          item.style.border = '1px solid var(--border)';
+          item.style.padding = '8px 12px';
+          item.style.background = 'var(--elevated)';
+          item.innerHTML = 
+            '<div class="t-label">' + escapeHtml(ev.type || 'CODE') + ' // QUALITY ' + Math.round((ev.quality_score || 0)*100) + '%</div>' +
+            '<div class="t-mono t-small mt-1">' + escapeHtml(ev.source_reference || 'File Artifact') + '</div>' +
+            '<div class="t-caption mt-1">' + escapeHtml(ev.raw_observation_text || '') + '</div>';
+          listEl.appendChild(item);
+        });
+      } else {
+        listEl.innerHTML = '<div class="t-caption t-muted" style="font-style: italic;">No specific evidence item attached.</div>';
+      }
     }
 
-    // Show Drawer
-    drawer.setAttribute('aria-hidden', 'false');
-    drawer.classList.add('open');
+    var drawer = document.getElementById('field-note-drawer');
+    var overlay = document.getElementById('drawer-overlay');
+    if (drawer) drawer.classList.add('active');
+    if (overlay) overlay.classList.add('active');
   };
 
-  drawerClose.addEventListener('click', function() {
-    drawer.setAttribute('aria-hidden', 'true');
-    drawer.classList.remove('open');
-    if (typeof NexusAtlas !== 'undefined') {
-      NexusAtlas.clearHighlight();
-    }
+  document.getElementById('drawer-close').addEventListener('click', function() {
+    var drawer = document.getElementById('field-note-drawer');
+    var overlay = document.getElementById('drawer-overlay');
+    if (drawer) drawer.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
   });
 
-  document.getElementById('sync-btn').addEventListener('click', function() {
-    startSyncFlow('/api/projects/sync');
-  });
-
-  loadAtlas();
+  document.addEventListener('DOMContentLoaded', loadDashboard);
 })();
 </script>
 {% endblock %}

@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Engineering Lab — NEXUS{% endblock %}
+
+{% block head %}
+<style>
+  .lab-hero-card {
+    border: 1px solid var(--primary);
+    background: var(--surface);
+    padding: 28px;
+    margin-bottom: 32px;
+    position: relative;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+  }
+  .lab-hero-card::before {
+    content: 'TODAY\'S ENGINEERING DISCOVERY';
+    position: absolute;
+    top: -10px;
+    left: 24px;
+    background: var(--primary);
+    color: #ffffff;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 2px 10px;
+  }
+
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+  .concept-card {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .concept-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  .lab-filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .lab-filter-btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .lab-filter-btn.active {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--elevated);
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1280px;">
+
+  <!-- ── Header ────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">RESEARCH &amp; FOUNDATIONS // ENGINEERING LAB</div>
+      <h1 class="page-title">CONTEXTUAL ENGINEERING LAB</h1>
+      <p class="page-subtitle">Understand the architectural concepts powering what you build. Grounded in your repository evidence.</p>
+    </div>
+  </div>
+
+  <!-- ── Loading State ─────────────────────────────────── -->
+  <div id="lab-loading" class="scanning-container" style="padding: 80px 0;">
+    <div class="tech-radar">
+      <div class="tech-radar-reticle"></div>
+    </div>
+    <div class="scanning-label">CALIBRATING ENGINEERING LAB...</div>
+    <p class="t-caption t-muted">Synthesizing concept catalog and linking repository evidence...</p>
+  </div>
+
+  <!-- ── Main Lab View ─────────────────────────────────── -->
+  <div id="lab-content" class="hidden">
+    
+    <!-- Featured Contextual Discovery -->
+    <div class="lab-hero-card" id="hero-discovery">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 280px;">
+          <div class="t-label mt-1" id="hero-domain" style="color: var(--primary);">–</div>
+          <h2 style="font-family: 'Newsreader', serif; font-size: 24px; font-weight: 500; margin: 8px 0;" id="hero-title">–</h2>
+          <p class="t-body" style="font-size: 14px; color: var(--ink); margin-bottom: 12px;" id="hero-desc">–</p>
+          <div class="t-caption t-muted" id="hero-reason" style="font-style: italic;">–</div>
+        </div>
+        <div>
+          <a href="#" class="btn btn-primary" id="hero-action-btn">EXPLORE CONCEPT →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter row -->
+    <div class="lab-filter-row">
+      <button class="lab-filter-btn active" data-filter="all">ALL CONCEPTS (<span id="count-all">0</span>)</button>
+      <button class="lab-filter-btn" data-filter="observed">IN MY PROJECTS (<span id="count-observed">0</span>)</button>
+      <button class="lab-filter-btn" data-filter="gaps">UNEXPLORED GAPS (<span id="count-gaps">0</span>)</button>
+    </div>
+
+    <!-- Concept Catalog Grid -->
+    <div class="concept-grid" id="concept-grid">
+      <!-- Rendered by JS -->
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  'use strict';
+
+  var _allConcepts = [];
+  var _activeFilter = 'all';
+
+  async function loadLabData() {
+    var loading = document.getElementById('lab-loading');
+    var content = document.getElementById('lab-content');
+
+    try {
+      var feed = await apiFetch('/api/lab/discovery');
+      loading.classList.add('hidden');
+      
+      _allConcepts = feed.all_concepts;
+      renderHero(feed.featured_discovery, feed.discovery_reason);
+      updateCounts();
+      renderConcepts();
+
+      content.classList.remove('hidden');
+      setupFilterButtons();
+
+    } catch(err) {
+      loading.classList.add('hidden');
+      if (err.status === 401) { window.location.href = '/login'; return; }
+      showToast('Failed to load Engineering Lab.', 'error');
+    }
+  }
+
+  function renderHero(concept, reason) {
+    document.getElementById('hero-domain').textContent = concept.domain.toUpperCase() + ' // ' + concept.difficulty;
+    document.getElementById('hero-title').textContent = concept.title;
+    document.getElementById('hero-desc').textContent = concept.short_description;
+    document.getElementById('hero-reason').textContent = reason || concept.why_user_is_seeing_this;
+    document.getElementById('hero-action-btn').href = '/lab/' + concept.concept_key;
+  }
+
+  function updateCounts() {
+    var observedCount = _allConcepts.filter(function(c) { return c.observed_in_user_projects.length > 0; }).length;
+    var gapCount = _allConcepts.filter(function(c) { return c.is_gap_for_user; }).length;
+
+    document.getElementById('count-all').textContent = _allConcepts.length;
+    document.getElementById('count-observed').textContent = observedCount;
+    document.getElementById('count-gaps').textContent = gapCount;
+  }
+
+  function renderConcepts() {
+    var grid = document.getElementById('concept-grid');
+    grid.innerHTML = '';
+
+    var filtered = _allConcepts.filter(function(c) {
+      if (_activeFilter === 'observed') return c.observed_in_user_projects.length > 0;
+      if (_activeFilter === 'gaps') return c.is_gap_for_user;
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="t-caption t-muted" style="grid-column: 1/-1; padding: 40px 0; text-align: center;">No concepts match the selected filter.</div>';
+      return;
+    }
+
+    filtered.forEach(function(c) {
+      var card = document.createElement('div');
+      card.className = 'concept-card';
+
+      var projPills = '';
+      if (c.observed_in_user_projects.length > 0) {
+        projPills = '<div class="t-mono t-caption" style="color: var(--primary); margin-top: 10px;">OBSERVED IN: ' + escapeHtml(c.observed_in_user_projects.join(', ')) + '</div>';
+      } else if (c.is_gap_for_user) {
+        projPills = '<div class="t-mono t-caption" style="color: var(--amber); margin-top: 10px;">★ UNEXPLORED DESTINATION GAP</div>';
+      }
+
+      var skillBadges = c.related_skill_names.map(function(s) {
+        return '<span class="badge badge-developing">' + escapeHtml(s) + '</span>';
+      }).join(' ');
+
+      card.innerHTML = 
+        '<div>' +
+        '  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
+        '    <span class="t-label" style="font-size: 10px;">' + escapeHtml(c.domain) + '</span>' +
+        '    <span class="badge badge-strong" style="font-size: 9px;">' + escapeHtml(c.difficulty) + '</span>' +
+        '  </div>' +
+        '  <h3 style="font-family: \'Newsreader\', serif; font-size: 18px; font-weight: 500; margin-bottom: 6px;">' + escapeHtml(c.title) + '</h3>' +
+        '  <p class="t-body" style="font-size: 13px; color: var(--ink); line-height: 1.4;">' + escapeHtml(c.short_description) + '</p>' +
+        projPills +
+        '</div>' +
+        '<div style="margin-top: 16px; pt-3; border-top: 1px dashed var(--border); display: flex; justify-content: space-between; align-items: center;">' +
+        '  <div style="display: flex; gap: 4px; flex-wrap: wrap;">' + skillBadges + '</div>' +
+        '  <a href="/lab/' + escapeHtml(c.concept_key) + '" class="btn btn-secondary btn-sm">OPEN LAB →</a>' +
+        '</div>';
+
+      grid.appendChild(card);
+    });
+  }
+
+  function setupFilterButtons() {
+    var buttons = document.querySelectorAll('.lab-filter-btn');
+    buttons.forEach(function(btn) {
+      btn.onclick = function() {
+        buttons.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        _activeFilter = btn.getAttribute('data-filter');
+        renderConcepts();
+      };
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', loadLabData);
+})();
+</script>
+{% endblock %}

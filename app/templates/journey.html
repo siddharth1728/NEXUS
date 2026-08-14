@@ -1,28 +1,55 @@
 {% extends "base.html" %}
-{% block title %}Journey — NEXUS{% endblock %}
+
+{% block title %}Expedition Log — NEXUS{% endblock %}
+
 {% block content %}
-<div id="journey-page" style="max-width: 800px; margin: 0 auto;">
-  <header class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px;">
+<div id="journey-page" style="max-width: 840px; margin: 0 auto;">
+
+  <!-- ── Header ────────────────────────────────────────── -->
+  <header class="page-header">
     <div class="page-header-left">
-      <div class="page-eyebrow" style="margin-bottom: 16px;">EXPEDITION LOG</div>
-      <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Expedition Log</h1>
-      <p class="page-subtitle" style="font-family: 'Inter', sans-serif;">How your engineering identity has evolved over time.</p>
+      <div class="page-eyebrow">HISTORICAL PROGRESSION // TIMELINE</div>
+      <h1 class="page-title">Expedition Log</h1>
+      <p class="page-subtitle">Chronological record of verified skill state progressions and evidence discoveries.</p>
+    </div>
+    <div class="page-header-right">
+      <a href="/" class="btn btn-secondary btn-sm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="12 8 8 12 12 16 12 8"></polygon>
+        </svg>
+        VIEW ON ATLAS
+      </a>
     </div>
   </header>
 
+  <!-- ── Loading State ─────────────────────────────────── -->
   <div id="journey-loading">
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
+    <div class="scanning-container">
+      <div class="tech-radar">
+        <div class="tech-radar-reticle"></div>
+      </div>
+      <div class="scanning-label">RECONSTRUCTING EXPEDITION TIMELINE...</div>
+    </div>
   </div>
+
+  <!-- ── Empty State ───────────────────────────────────── -->
   <div id="journey-empty" class="hidden"></div>
+
+  <!-- ── Error State ───────────────────────────────────── -->
   <div id="journey-error" class="hidden"></div>
+
+  <!-- ── Content ───────────────────────────────────────── -->
   <div id="journey-content" class="hidden"></div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function() {
+  'use strict';
+
   async function loadJourney() {
     var loading = document.getElementById('journey-loading');
     var empty = document.getElementById('journey-empty');
@@ -38,56 +65,59 @@
       var discoveries = journey ? journey.recent_discoveries || [] : [];
 
       if (transitions.length === 0 && discoveries.length === 0) {
-        showEmptyState(empty, 'YOUR JOURNEY BEGINS HERE',
-          'Your engineering journey begins with your first NEXUS survey. ' +
-          'Sync a project to start building your timeline.');
+        showEmptyState(
+          empty,
+          'EXPEDITION LOG EMPTY',
+          'Your engineering journey begins with your first repository survey. Connect and survey your repositories to start building your log.',
+          '<a href="/projects" class="btn btn-primary">SURVEY REPOSITORIES</a>'
+        );
         empty.classList.remove('hidden');
         return;
       }
 
       var html = '<div class="journey-timeline">';
 
-      // "You are here" marker at the top
-      html += '<div class="journey-event" style="padding-bottom: 32px;">';
-      html += '<div class="journey-event-dot" style="background: var(--surface); border: 2px solid var(--primary); width:12px; height:12px; left:-25px; top:2px;"></div>';
-      html += '<div class="journey-event-time" style="color:var(--primary); font-weight:600;">◉ CURRENT LOCATION</div>';
-      html += '<div class="journey-event-text">Your present engineering identity based on latest surveys.</div>';
+      // Present Location Marker
+      html += '<div class="journey-event" style="padding-bottom: 36px;">';
+      html += '  <div class="journey-event-dot" style="background: var(--elevated); border: 2px solid var(--primary); width:14px; height:14px; left:-34px; top:2px;"></div>';
+      html += '  <div class="journey-event-time" style="color:var(--primary); font-weight:600;">◉ PRESENT COORDINATES</div>';
+      html += '  <div class="journey-event-text" style="font-weight: 500;">Current engineering capability state based on latest surveys.</div>';
       html += '</div>';
 
-      // Transitions timeline
+      // Meaningful Transitions
       if (transitions.length > 0) {
         transitions.forEach(function(t) {
           html += '<div class="journey-event">';
-          html += '<div class="journey-event-dot journey-event-dot-transition"></div>';
-          html += '<div class="journey-event-time">' + escapeHtml(formatRelativeTime(t.changed_at)) + '</div>';
-          html += '<div class="journey-event-text">';
-          html += '<span style="font-weight:600;">' + escapeHtml(t.skill_name) + '</span> evolved from ';
-          html += '<span class="t-muted">' + escapeHtml(t.previous_state || 'NEW') + '</span> to ';
-          html += '<span class="badge badge-' + t.new_state.toLowerCase() + '" style="margin-left:4px;">' + escapeHtml(t.new_state) + '</span>';
-          html += '</div>';
+          html += '  <div class="journey-event-dot journey-event-dot-transition"></div>';
+          html += '  <div class="journey-event-time">SKILL EVOLUTION // ' + escapeHtml(formatRelativeTime(t.changed_at)) + '</div>';
+          html += '  <div class="journey-event-text">';
+          html += '    <strong style="color:var(--ink);">' + escapeHtml(t.skill_name) + '</strong> evolved from ';
+          html += '    <span class="t-muted">' + escapeHtml(t.previous_state || 'UNEXPLORED') + '</span> → ';
+          html += '    <span class="badge badge-' + (t.new_state ? t.new_state.toLowerCase() : 'developing') + '">' + escapeHtml(t.new_state) + '</span>';
+          html += '  </div>';
           html += '</div>';
         });
       }
 
-      // Recent discoveries
+      // Recent Discoveries
       if (discoveries.length > 0) {
         discoveries.forEach(function(d) {
           html += '<div class="journey-event">';
-          html += '<div class="journey-event-dot journey-event-dot-discovery"></div>';
-          html += '<div class="journey-event-time">RECENT DISCOVERY // ' + escapeHtml(d.type) + '</div>';
-          html += '<div class="journey-event-text">' + escapeHtml(d.observation) + '</div>';
-          html += '<div class="t-caption mt-2" style="font-family:\'DM Mono\', monospace;">' + escapeHtml(d.artifact_path.split('/').pop() || d.artifact_path) + '</div>';
+          html += '  <div class="journey-event-dot journey-event-dot-discovery"></div>';
+          html += '  <div class="journey-event-time">RECENT DISCOVERY // ' + escapeHtml(d.type) + '</div>';
+          html += '  <div class="journey-event-text">' + escapeHtml(d.observation) + '</div>';
+          html += '  <div class="t-caption mt-1" style="font-family:\'DM Mono\', monospace; color:var(--tech-brown);">' + escapeHtml(d.artifact_path || 'Artifact') + '</div>';
           html += '</div>';
         });
       }
       
       html += '</div>';
 
-      // Truth note
-      html += '<div style="padding:24px; border: 1px dashed var(--border); margin-top: 48px; background: transparent; text-align: center;">';
-      html += '<p style="font-family:\'Inter\', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.6;">';
-      html += 'This log reflects actual changes detected by NEXUS. ';
-      html += 'Events are only recorded when skill states change as a result of new evidence.</p>';
+      // Truth integrity note
+      html += '<div style="padding:20px; border: 1px dashed var(--border); background: transparent; text-align: center; margin-top: 32px;">';
+      html += '  <p style="font-family:\'Inter\', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.6;">';
+      html += '    This log reflects verified engineering mutations detected by NEXUS. Events are only recorded when skill states advance through new evidence.';
+      html += '  </p>';
       html += '</div>';
 
       content.innerHTML = html;
@@ -96,7 +126,7 @@
     } catch(err) {
       loading.classList.add('hidden');
       if (err.status === 401) { window.location.href = '/login'; return; }
-      showError(error, 'Unable to load journey', 'Please try again.');
+      showError(error, 'TIMELINE RECONSTRUCTION FAILED', 'Could not load journey history from NEXUS engine.');
       error.classList.remove('hidden');
     }
   }

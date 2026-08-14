@@ -4,82 +4,92 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Initialize Atlas — NEXUS</title>
-  <meta name="description" content="Set up your NEXUS engineering atlas.">
+  <meta name="description" content="Initialize your NEXUS 2D engineering atlas.">
   <meta name="csrf-token" content="{{ csrf_token }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/style.css">
   <style>
-    .auth-error {
-      background: var(--coral-soft); border: 1px solid var(--coral); padding: 16px; margin-bottom: 24px; display: none; gap: 12px; align-items: flex-start;
-    }
-    .auth-error.show { display: flex; }
-    .auth-error-icon { color: var(--coral); margin-top: 2px; flex-shrink: 0; }
-    .auth-error-title { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--coral); text-transform: uppercase; margin-bottom: 4px; }
-    .auth-error-desc { font-size: 13px; color: var(--ink); line-height: 1.5; }
-
     /* Stepper Cartography Design */
-    .stepper { display: flex; gap: 24px; margin-bottom: 40px; position: relative; }
+    .stepper {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
     .step-item {
-      display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .step-marker {
-      width: 16px; height: 16px; border-radius: 50%;
-      border: 1px solid var(--muted); background: var(--surface);
-      display: flex; align-items: center; justify-content: center;
-      transition: all var(--t-fast);
+      width: 14px;
+      height: 14px;
+      border: 1px solid var(--muted);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .step-item.active .step-marker {
-      border-color: var(--primary); background: var(--primary);
+      border-color: var(--primary);
+      background: var(--primary);
     }
     .step-item.done .step-marker {
-      border-color: var(--primary); background: var(--surface);
-    }
-    .step-item.done .step-marker::after {
-      content: ''; width: 6px; height: 6px; background: var(--primary); border-radius: 50%;
+      border-color: var(--signal-mint);
+      background: var(--signal-mint);
     }
     .step-label {
-      font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-transform: uppercase;
     }
-    .step-item.active .step-label { color: var(--ink); }
+    .step-item.active .step-label {
+      color: var(--ink);
+      font-weight: 600;
+    }
 
-    .onboarding-panel { display: none; flex-direction: column; }
-    .onboarding-panel.active { display: flex; animation: fade-in 0.3s forwards; }
-    @keyframes fade-in {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .onboarding-panel {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
     }
-    
-    .select-input {
-      width: 100%; height: 40px; padding: 0 12px;
-      background: transparent; border: 1px solid var(--border);
-      color: var(--ink); font-family: 'Inter', sans-serif; font-size: 14px;
-      border-radius: 0; transition: border-color var(--t-fast);
-      appearance: none;
+    .onboarding-panel.active {
+      display: flex;
     }
-    .select-input:focus { outline: none; border-color: var(--primary); }
     
     .onboarding-actions {
-      display: flex; gap: 12px; margin-top: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
     }
   </style>
 </head>
 <body>
 
 <div class="auth-cartography-layout">
-  <div class="auth-bg-marks"></div>
   
+  <!-- Hero Section -->
   <div class="auth-hero-section">
-    <div class="auth-hero-brand">NEXUS // CARTOGRAPHY</div>
+    <div class="auth-hero-brand">NEXUS // CARTOGRAPHY PROTOCOL</div>
     <h1 class="auth-hero-title" id="hero-title">WHERE ARE<br>YOU HEADED?</h1>
     <p class="auth-hero-subtitle" id="hero-desc">Set your destination role so NEXUS can map the necessary territories.</p>
   </div>
   
+  <!-- Form Section -->
   <div class="auth-form-section">
-    <div class="auth-field-note" style="min-height: 480px; display: flex; flex-direction: column;">
+    <div class="auth-field-note" style="max-width: 480px; min-height: 480px; display: flex; flex-direction: column;">
       
-      <div class="stepper" aria-label="Onboarding progression">
+      <!-- Stepper -->
+      <div class="stepper" aria-label="Onboarding progress">
         <div class="step-item active" id="step-1">
           <div class="step-marker"></div>
           <div class="step-label">01 DESTINATION</div>
@@ -98,91 +108,91 @@
         </div>
       </div>
 
-      <div id="onboarding-error" class="auth-error" aria-live="assertive" role="alert">
-        <svg class="auth-error-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-        <div>
-          <div class="auth-error-title">Initialization Failed</div>
-          <div class="auth-error-desc" id="onboarding-error-text">Unable to save coordinates.</div>
-        </div>
+      <!-- Alert box -->
+      <div id="onboarding-error" class="system-notice system-notice-error hidden" style="margin-bottom: 20px;" role="alert">
+        <span class="system-notice-title">INITIALIZATION INTERRUPTED</span>
+        <span class="system-notice-desc" id="onboarding-error-text">Unable to save parameters.</span>
       </div>
 
-      <!-- Step 1 -->
+      <!-- Step 1: Destination -->
       <div class="onboarding-panel active" id="panel-1">
         <div class="auth-field-note-title">DESTINATION ROLE</div>
-        <p style="font-size: 13px; color: var(--ink); margin-bottom: 24px; line-height: 1.5;">Select the engineering discipline you are targeting. This determines the skill territories NEXUS will map.</p>
+        <p class="t-body" style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">
+          Select the engineering discipline you are targeting. This determines the skill territories NEXUS will map.
+        </p>
         
-        <div class="auth-input-group">
-          <label for="target-role">Target Role</label>
-          <select class="select-input" id="target-role" required>
-            <option value="">Select a role…</option>
-            <option value="Backend Engineer">Backend Engineer</option>
-            <option value="Frontend Engineer">Frontend Engineer</option>
-            <option value="Full Stack Engineer">Full Stack Engineer</option>
-            <option value="Data Engineer">Data Engineer</option>
+        <div class="form-group">
+          <label class="form-label" for="target-role">Target Role</label>
+          <select class="form-select" id="target-role" required>
+            <option value="">Select a destination role…</option>
+            <option value="Backend Engineer" selected>Backend Engineer</option>
           </select>
         </div>
       </div>
 
-      <!-- Step 2 -->
+      <!-- Step 2: Origin Coordinates -->
       <div class="onboarding-panel" id="panel-2">
-        <div class="auth-field-note-title">ORIGIN DATA</div>
-        <p style="font-size: 13px; color: var(--ink); margin-bottom: 24px; line-height: 1.5;">Connect your public GitHub username. NEXUS will survey your repositories for evidence. Your code is never cloned or stored.</p>
+        <div class="auth-field-note-title">ORIGIN DATA (GITHUB)</div>
+        <p class="t-body" style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">
+          Connect your GitHub username. NEXUS will survey public metadata and code structures for proof. Source code is never cloned or stored.
+        </p>
         
-        <div class="auth-input-group">
-          <label for="github-username">GitHub Username</label>
-          <input class="auth-input" type="text" id="github-username" placeholder="e.g. torvalds" autocomplete="off" spellcheck="false">
+        <div class="form-group">
+          <label class="form-label" for="github-username">GitHub Username</label>
+          <input class="form-input" type="text" id="github-username" placeholder="e.g. torvalds" autocomplete="off" spellcheck="false">
         </div>
       </div>
 
-      <!-- Step 3 -->
+      <!-- Step 3: Project Specifications -->
       <div class="onboarding-panel" id="panel-3">
         <div class="auth-field-note-title">PROJECT SPECIFICATIONS</div>
-        <p style="font-size: 13px; color: var(--ink); margin-bottom: 24px; line-height: 1.5;">NEXUS will now analyze your repositories to identify landmarks (projects) and signals (skills).</p>
+        <p class="t-body" style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">
+          NEXUS will survey your repositories to plot landmarks and skill signals across the 2D Atlas.
+        </p>
         
-        <div style="border: 1px solid var(--border); padding: 16px; margin-bottom: 16px;">
-          <div style="font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px;">EXECUTION PLAN</div>
-          <ul style="list-style: none; padding: 0; margin: 0; font-size: 12px; color: var(--ink); line-height: 1.6;">
-            <li>+ Discover repository metadata and languages</li>
-            <li>+ Map repository topics to technical signals</li>
-            <li>+ Plot skill depth across the 2D atlas</li>
+        <div style="border: 1px solid var(--border); padding: 16px; background: var(--surface);">
+          <div class="t-label" style="margin-bottom: 8px;">SURVEY EXECUTION PLAN</div>
+          <ul style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--ink);">
+            <li>+ Query repository trees and configuration markers</li>
+            <li>+ Extract deterministic evidence (API, DB, Tests, Auth)</li>
+            <li>+ Generate 2D Engineering Atlas coordinates</li>
           </ul>
         </div>
       </div>
 
-      <!-- Step 4 -->
+      <!-- Step 4: Survey Execution -->
       <div class="onboarding-panel" id="panel-4">
         <div class="auth-field-note-title">INITIALIZING SURVEY</div>
-        <p style="font-size: 13px; color: var(--ink); margin-bottom: 24px; line-height: 1.5;">Committing coordinates to NEXUS mapping engine...</p>
-        
-        <div style="display: flex; justify-content: center; align-items: center; height: 100px;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="animation: spin 1s linear infinite;">
-            <circle cx="12" cy="12" r="10" stroke="var(--border)"></circle>
-            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
-          </svg>
-          <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+        <div class="scanning-container" style="padding: 24px 0;">
+          <div class="tech-radar">
+            <div class="tech-radar-reticle"></div>
+          </div>
+          <div class="scanning-label">ANALYZING ENGINEERING SIGNALS...</div>
+          <p class="t-caption t-muted">Committing coordinates to NEXUS mapping engine...</p>
         </div>
       </div>
 
-      <div class="onboarding-actions">
-        <button type="button" class="auth-submit-btn" id="back-btn" style="visibility:hidden; background:var(--surface); color:var(--ink); border:1px solid var(--border);">←</button>
-        <button type="button" class="auth-submit-btn" id="next-btn">Next Phase</button>
+      <!-- Actions -->
+      <div class="onboarding-actions" style="margin-top: auto;">
+        <button type="button" class="btn btn-secondary btn-sm" id="back-btn" style="visibility:hidden;">
+          ← PREVIOUS
+        </button>
+        <button type="button" class="btn btn-primary" id="next-btn">
+          PROCEED →
+        </button>
       </div>
 
     </div>
   </div>
 </div>
 
+<script src="/static/js/main.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   var currentStep = 1;
   var totalSteps = 4;
 
-  var errorBanner = document.getElementById('onboarding-error');
+  var errorBox = document.getElementById('onboarding-error');
   var errorText = document.getElementById('onboarding-error-text');
   var heroTitle = document.getElementById('hero-title');
   var heroDesc = document.getElementById('hero-desc');
@@ -198,105 +208,93 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function showError(msg) {
     errorText.textContent = msg;
-    errorBanner.classList.add('show');
+    errorBox.classList.remove('hidden');
   }
-  function clearError() { errorBanner.classList.remove('show'); }
 
-  function updateStepUI(step) {
+  function hideError() {
+    errorBox.classList.add('hidden');
+  }
+
+  function updateUI() {
+    hideError();
+    heroTitle.innerHTML = stepContents[currentStep - 1].title;
+    heroDesc.textContent = stepContents[currentStep - 1].desc;
+
     for (var i = 1; i <= totalSteps; i++) {
-      var dot = document.getElementById('step-' + i);
-      dot.classList.remove('active', 'done');
-      if (i < step) {
-        dot.classList.add('done');
-      } else if (i === step) {
-        dot.classList.add('active');
+      var stepEl = document.getElementById('step-' + i);
+      var panelEl = document.getElementById('panel-' + i);
+      
+      stepEl.classList.remove('active', 'done');
+      panelEl.classList.remove('active');
+
+      if (i === currentStep) {
+        stepEl.classList.add('active');
+        panelEl.classList.add('active');
+      } else if (i < currentStep) {
+        stepEl.classList.add('done');
       }
     }
-    
-    for (var j = 1; j <= totalSteps; j++) {
-      var panel = document.getElementById('panel-' + j);
-      if (j === step) panel.classList.add('active');
-      else panel.classList.remove('active');
-    }
-    
-    backBtn.style.visibility = (step > 1 && step < 4) ? 'visible' : 'hidden';
 
-    if (step === 3) {
-      nextBtn.innerHTML = 'Execute Survey';
-    } else if (step === 4) {
+    backBtn.style.visibility = (currentStep > 1 && currentStep < totalSteps) ? 'visible' : 'hidden';
+
+    if (currentStep === totalSteps) {
       nextBtn.style.display = 'none';
       backBtn.style.display = 'none';
+      commitOnboarding();
     } else {
-      nextBtn.innerHTML = 'Next Phase';
-    }
-    
-    heroTitle.innerHTML = stepContents[step-1].title;
-    heroDesc.innerHTML = stepContents[step-1].desc;
-  }
-
-  async function saveAndFinish() {
-    var role = document.getElementById('target-role').value;
-    var github = document.getElementById('github-username').value.trim();
-
-    try {
-      var res = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken
-        },
-        body: JSON.stringify({
-          target_role: role || null,
-          github_username: github || null
-        })
-      });
-      if (res.ok) {
-        window.location.href = '/dashboard';
-      } else {
-        var data = await res.json().catch(function(){return {}});
-        showError(data.detail || 'Failed to save profile. Please try again.');
-        // Revert to step 3 if failed
-        currentStep = 3;
-        updateStepUI(currentStep);
-        nextBtn.style.display = 'block';
-        backBtn.style.display = 'block';
-      }
-    } catch(e) {
-      showError('Network error. Please try again.');
-      currentStep = 3;
-      updateStepUI(currentStep);
-      nextBtn.style.display = 'block';
-      backBtn.style.display = 'block';
+      nextBtn.textContent = (currentStep === totalSteps - 1) ? 'INITIALIZE SURVEY →' : 'PROCEED →';
     }
   }
+
+  backBtn.addEventListener('click', function() {
+    if (currentStep > 1) {
+      currentStep--;
+      updateUI();
+    }
+  });
 
   nextBtn.addEventListener('click', function() {
-    clearError();
     if (currentStep === 1) {
       var role = document.getElementById('target-role').value;
       if (!role) {
-        showError('Please select a destination role.');
+        showError('Please select a target engineering role.');
         return;
       }
-      currentStep++;
-      updateStepUI(currentStep);
     } else if (currentStep === 2) {
-      currentStep++;
-      updateStepUI(currentStep);
-    } else if (currentStep === 3) {
-      currentStep++;
-      updateStepUI(currentStep);
-      saveAndFinish();
+      var gh = document.getElementById('github-username').value.trim();
+      if (!gh) {
+        showError('GitHub username is required to discover evidence.');
+        return;
+      }
     }
+    currentStep++;
+    updateUI();
   });
 
-  backBtn.addEventListener('click', function() {
-    clearError();
-    if (currentStep > 1) {
-      currentStep--;
-      updateStepUI(currentStep);
+  async function commitOnboarding() {
+    var role = document.getElementById('target-role').value;
+    var gh = document.getElementById('github-username').value.trim();
+
+    try {
+      await apiFetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          github_username: gh,
+          target_role: role
+        })
+      });
+
+      setTimeout(function() {
+        window.location.href = '/dashboard';
+      }, 1200);
+
+    } catch(err) {
+      showError('Failed to initialize coordinates: ' + (err.detail || 'Network error'));
+      currentStep = 2;
+      updateUI();
     }
-  });
+  }
 });
 </script>
 </body>

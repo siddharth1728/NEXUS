@@ -1,39 +1,32 @@
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   NEXUS — Atlas Renderer
-   Deterministic 2D SVG Engineering Atlas
-   
-   TRUTH CONTRACT:
-   Every visual element traces to real NEXUS API data.
-   No frontend-only inference. No fabricated data.
-   If data is missing → honest empty state.
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NEXUS — 2D Engineering Atlas 2.0 Renderer
+   Deterministic Technical Cartography & Interactive Proof Routing
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 'use strict';
 
 var NexusAtlas = (function() {
 
-  // ── Layout constants (deterministic) ──────────────
-  var TERRITORY_PADDING = 30;
+  // ── Layout Constants ──────────────────────────────────────────────
+  var TERRITORY_PADDING = 24;
   var SIGNAL_RADIUS = 6;
-  var LANDMARK_SIZE = 8;
+  var LANDMARK_SIZE = 9;
   var LABEL_OFFSET = 16;
-  var TERRITORY_GAP = 40;
-  var COLUMN_WIDTH = 280;
-  var ROW_HEIGHT_PER_SIGNAL = 36;
-  var TERRITORY_HEADER = 40;
-  var MIN_TERRITORY_HEIGHT = 100;
+  var TERRITORY_GAP = 28;
+  var COLUMN_WIDTH = 290;
+  var ROW_HEIGHT = 38;
+  var TERRITORY_HEADER = 44;
+  var MIN_TERRITORY_HEIGHT = 120;
 
-  // ── Color mapping ────────────────────────────────
+  // ── Color System ──────────────────────────────────────────────────
   var STATE_COLORS = {
-    STRONG:     '#2FAE94',
-    DEVELOPING: '#4F46E5',
-    WEAK:       '#C98A2E',
-    MISSING:    '#7D7A73'
+    STRONG:     '#2FAE94', // Engineering Green
+    DEVELOPING: '#4F46E5', // Blueprint Blue
+    WEAK:       '#C98A2E', // Amber
+    MISSING:    '#D9655A'  // Rust / Coral
   };
 
-  // ── Deterministic territory positions ─────────────
-  // Categories are sorted alphabetically for stability.
-  // Territories are placed in a grid layout.
+  // ── Deterministic Territory Layout (Masonry) ──────────────────────
   function calculateLayout(territories, width) {
     var cols = Math.max(1, Math.floor(width / (COLUMN_WIDTH + TERRITORY_GAP)));
     var colWidth = Math.floor((width - (cols - 1) * TERRITORY_GAP) / cols);
@@ -41,23 +34,22 @@ var NexusAtlas = (function() {
     var colHeights = [];
     for (var i = 0; i < cols; i++) colHeights.push(TERRITORY_PADDING);
 
-    // Sort territories alphabetically for determinism
+    // Sort alphabetically for deterministic placement
     var sorted = territories.slice().sort(function(a, b) {
       return a.category.localeCompare(b.category);
     });
 
     sorted.forEach(function(territory) {
-      // Count total items (signals from landmarks + unexplored)
       var signalCount = 0;
-      territory.landmarks.forEach(function(lm) { signalCount += lm.signals.length; });
-      signalCount += territory.unexplored.length;
-      
+      (territory.landmarks || []).forEach(function(lm) { signalCount += (lm.signals || []).length; });
+      signalCount += (territory.unexplored || []).length;
+
       var height = Math.max(
         MIN_TERRITORY_HEIGHT,
-        TERRITORY_HEADER + signalCount * ROW_HEIGHT_PER_SIGNAL + TERRITORY_PADDING
+        TERRITORY_HEADER + signalCount * ROW_HEIGHT + TERRITORY_PADDING
       );
 
-      // Place in shortest column (masonry)
+      // Place in shortest column
       var minCol = 0;
       for (var c = 1; c < cols; c++) {
         if (colHeights[c] < colHeights[minCol]) minCol = c;
@@ -78,7 +70,7 @@ var NexusAtlas = (function() {
     return { positions: positions, totalHeight: totalHeight };
   }
 
-  // ── SVG element helpers ───────────────────────────
+  // ── SVG Helpers ───────────────────────────────────────────────────
   var SVG_NS = 'http://www.w3.org/2000/svg';
 
   function svgEl(tag, attrs) {
@@ -97,7 +89,7 @@ var NexusAtlas = (function() {
     return el;
   }
 
-  // ── Main render function ──────────────────────────
+  // ── Main Render Entrypoint ────────────────────────────────────────
   function render(container, data, options) {
     if (!container) return;
     if (!options) options = {};
@@ -105,68 +97,79 @@ var NexusAtlas = (function() {
     container.innerHTML = '';
 
     var territories = data.atlas_territories || [];
-    var targetRole = data.target_role || null;
-    var journey = data.engineering_journey || {};
+    var targetRole = data.target_role || 'Engineering';
 
-    // Empty state
     if (territories.length === 0) {
       renderEmptyAtlas(container, targetRole);
       return;
     }
 
-    var containerWidth = container.clientWidth || 800;
+    var containerWidth = container.clientWidth || 840;
     var layout = calculateLayout(territories, containerWidth);
 
     var svg = svgEl('svg', {
       'class': 'atlas-svg',
       'viewBox': '0 0 ' + containerWidth + ' ' + layout.totalHeight,
-      'role': 'img',
-      'aria-label': 'Engineering Atlas showing skill signals across territories'
+      'role': 'region',
+      'aria-label': 'Engineering Atlas — Technical Map of Capability Signals'
     });
 
-    // Grid background lines
+    // Grid Layer
     renderGrid(svg, containerWidth, layout.totalHeight);
 
-    // Group for dynamic paths
-    var pathsG = svgEl('g', { 'class': 'atlas-paths' });
-    svg.appendChild(pathsG);
+    // Route Tracing Path Group (Follow the Proof)
+    var pathsGroup = svgEl('g', { 'class': 'atlas-paths' });
+    svg.appendChild(pathsGroup);
 
-    // Render each territory
+    // Territories Layer
     var allSignalEls = [];
     var allLandmarkEls = [];
     var signalDataMap = {};
+    var landmarkPosMap = {};
 
     layout.positions.forEach(function(pos) {
       var result = renderTerritory(svg, pos, options);
       allSignalEls = allSignalEls.concat(result.signalEls);
       allLandmarkEls = allLandmarkEls.concat(result.landmarkEls);
+      
       Object.keys(result.signalDataMap).forEach(function(k) {
         signalDataMap[k] = result.signalDataMap[k];
+      });
+      Object.keys(result.landmarkPosMap).forEach(function(k) {
+        landmarkPosMap[k] = result.landmarkPosMap[k];
       });
     });
 
     container.appendChild(svg);
 
-    // Build legend
-    renderLegend(container);
+    // Render Semantic Accessible Fallback (hidden visually, available to screen readers)
+    renderAccessibleFallback(container, territories, targetRole);
 
-    // Build mobile summary
-    renderMobileSummary(container, territories);
-
-    // Store references for interaction
-    container._atlasData = {
-      signalEls: allSignalEls,
-      landmarkEls: allLandmarkEls,
-      signalDataMap: signalDataMap,
+    // Attach state to container
+    container._atlasState = {
       svg: svg,
-      pathsG: pathsG
+      pathsGroup: pathsGroup,
+      signals: allSignalEls,
+      landmarks: allLandmarkEls,
+      signalDataMap: signalDataMap,
+      landmarkPosMap: landmarkPosMap,
+      selectedSignal: null
     };
+
+    // Check URL query parameters for auto-selection (e.g. ?skill=Python or ?project=1)
+    var urlParams = new URLSearchParams(window.location.search);
+    var targetSkill = urlParams.get('skill');
+    if (targetSkill) {
+      setTimeout(function() {
+        NexusAtlas.selectSkillByName(container, targetSkill);
+      }, 150);
+    }
   }
 
-  // ── Render grid lines ─────────────────────────────
+  // ── Grid Lines ────────────────────────────────────────────────────
   function renderGrid(svg, width, height) {
     var g = svgEl('g', { 'class': 'atlas-grid', 'aria-hidden': 'true' });
-    var step = 60;
+    var step = 48;
     for (var x = step; x < width; x += step) {
       g.appendChild(svgEl('line', {
         'class': 'atlas-grid-line',
@@ -182,45 +185,47 @@ var NexusAtlas = (function() {
     svg.appendChild(g);
   }
 
-  // ── Render territory ──────────────────────────────
+  // ── Territory Renderer ────────────────────────────────────────────
   function renderTerritory(svg, pos, options) {
     var t = pos.territory;
     var g = svgEl('g', { 'class': 'atlas-territory' });
 
-    // Territory boundary (dashed rectangle)
+    // Boundary rectangle
     g.appendChild(svgEl('rect', {
       'class': 'atlas-territory-bg',
       x: pos.x, y: pos.y,
-      width: pos.width, height: pos.height,
-      rx: 4
+      width: pos.width, height: pos.height
     }));
 
-    // Territory label
-    g.appendChild(svgText(t.category.toUpperCase(), {
+    // Header Label
+    g.appendChild(svgText('TERRITORY // ' + t.category.toUpperCase(), {
       'class': 'atlas-territory-label',
-      x: pos.x + 8,
-      y: pos.y + 16
+      x: pos.x + 12,
+      y: pos.y + 20
     }));
 
     var signalEls = [];
     var landmarkEls = [];
     var signalDataMap = {};
+    var landmarkPosMap = {};
     var yOffset = pos.y + TERRITORY_HEADER;
 
-    // Render landmarks with their signals
-    t.landmarks.forEach(function(landmark) {
-      // Landmark diamond
-      var lmX = pos.x + 12;
+    // 1. Landmarks & Verified Signals
+    (t.landmarks || []).forEach(function(landmark) {
+      var lmX = pos.x + 16;
       var lmY = yOffset;
+
+      landmarkPosMap[landmark.project_id] = { x: lmX, y: lmY, name: landmark.project_name };
 
       var lmG = svgEl('g', {
         'class': 'atlas-landmark',
         'data-project-id': landmark.project_id,
         'role': 'button',
         'tabindex': '0',
-        'aria-label': 'Project: ' + escapeHtml(landmark.project_name)
+        'aria-label': 'Project Landmark: ' + landmark.project_name
       });
 
+      // Diamond Marker
       var diamond = svgEl('rect', {
         'class': 'atlas-landmark-icon',
         x: lmX - LANDMARK_SIZE/2,
@@ -231,361 +236,248 @@ var NexusAtlas = (function() {
       });
       lmG.appendChild(diamond);
 
-      lmG.appendChild(svgText(landmark.project_name, {
+      lmG.appendChild(svgText(landmark.project_name.toUpperCase(), {
         'class': 'atlas-landmark-label',
         x: lmX + LABEL_OFFSET,
         y: lmY + 4
       }));
 
-      svg.appendChild(lmG);
+      g.appendChild(lmG);
       landmarkEls.push(lmG);
-      yOffset += ROW_HEIGHT_PER_SIGNAL * 0.6;
+      yOffset += ROW_HEIGHT * 0.75;
 
-      // Render signals for this landmark
-      landmark.signals.forEach(function(signal) {
-        var sX = pos.x + 32;
+      // Signals under this landmark
+      (landmark.signals || []).forEach(function(signal) {
+        var sX = pos.x + 36;
         var sY = yOffset;
-        var stateClass = 'atlas-signal-' + (signal.state || 'MISSING').toLowerCase();
-        var key = 'signal-' + signal.skill_id;
+        var state = signal.state || 'MISSING';
+        var sigKey = 'signal-' + signal.skill_id;
 
-        var sG = svgEl('g', {
-          'class': 'atlas-signal ' + stateClass,
+        signalDataMap[sigKey] = {
+          skill_id: signal.skill_id,
+          skill_name: signal.skill_name,
+          state: state,
+          project_id: landmark.project_id,
+          project_name: landmark.project_name,
+          category: t.category,
+          evidence: signal.evidence || [],
+          pos: { x: sX, y: sY }
+        };
+
+        var sigG = svgEl('g', {
+          'class': 'atlas-signal atlas-signal-' + state.toLowerCase(),
           'data-skill-id': signal.skill_id,
           'data-skill-name': signal.skill_name,
-          'data-state': signal.state,
+          'data-project-id': landmark.project_id,
           'role': 'button',
           'tabindex': '0',
-          'aria-label': signal.skill_name + ': ' + signal.state
+          'aria-label': 'Signal: ' + signal.skill_name + ' (' + state + ')'
         });
 
-        sG.appendChild(svgEl('circle', {
+        // Circle marker
+        var dotColor = STATE_COLORS[state] || STATE_COLORS.MISSING;
+        var circle = svgEl('circle', {
           'class': 'atlas-signal-dot',
-          cx: sX, cy: sY, r: SIGNAL_RADIUS
-        }));
+          cx: sX, cy: sY,
+          r: SIGNAL_RADIUS,
+          fill: dotColor
+        });
+        sigG.appendChild(circle);
 
-        sG.appendChild(svgText(signal.skill_name, {
+        // Label
+        sigG.appendChild(svgText(signal.skill_name, {
           'class': 'atlas-signal-label',
           x: sX + LABEL_OFFSET,
           y: sY + 4
         }));
 
-        // State badge text
-        sG.appendChild(svgText(signal.state, {
-          'class': 'atlas-signal-label',
-          x: pos.x + pos.width - 8,
-          y: sY + 4,
-          'text-anchor': 'end',
-          'fill': STATE_COLORS[signal.state] || STATE_COLORS.MISSING,
-          'font-size': '9px',
-          'font-weight': '600',
-          'letter-spacing': '0.08em'
-        }));
+        // Interaction
+        sigG.addEventListener('click', function() {
+          NexusAtlas.selectSignal(svg.parentElement, sigKey);
+        });
 
-        svg.appendChild(sG);
-        signalEls.push(sG);
-        signalDataMap[key] = {
-          signal: signal,
-          landmark: { id: landmark.project_id, x: lmX, y: lmY },
-          el: sG,
-          x: sX, y: sY
-        };
+        sigG.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            NexusAtlas.selectSignal(svg.parentElement, sigKey);
+          }
+        });
 
-        // Click handler — Follow the Proof
-        (function(sig, sk, sn, st) {
-          sG.addEventListener('click', function() {
-            highlightSignal(container, sk);
-            if (typeof window.openEvidenceExplorer === 'function') {
-              window.openEvidenceExplorer(sk, sn, st);
-            }
-          });
-          sG.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              sG.click();
-            }
-          });
-        })(signal, signal.skill_id, signal.skill_name, signal.state);
-
-        yOffset += ROW_HEIGHT_PER_SIGNAL;
+        g.appendChild(sigG);
+        signalEls.push(sigG);
+        yOffset += ROW_HEIGHT;
       });
     });
 
-    // Render unexplored signals
-    t.unexplored.forEach(function(ue) {
-      var sX = pos.x + 32;
+    // 2. Unexplored Skills in Territory
+    (t.unexplored || []).forEach(function(unexploredSkill) {
+      var sX = pos.x + 20;
       var sY = yOffset;
-      var key = 'signal-' + ue.skill_id;
+      var sigKey = 'unexplored-' + (unexploredSkill.skill_id || unexploredSkill.name);
 
-      var sG = svgEl('g', {
-        'class': 'atlas-signal atlas-signal-missing',
-        'data-skill-id': ue.skill_id,
-        'data-skill-name': ue.skill_name,
-        'data-state': 'UNEXPLORED',
-        'role': 'button',
-        'tabindex': '0',
-        'aria-label': ue.skill_name + ': Unexplored'
-      });
-
-      sG.appendChild(svgEl('circle', {
-        'class': 'atlas-signal-dot',
-        cx: sX, cy: sY, r: SIGNAL_RADIUS
-      }));
-
-      sG.appendChild(svgText(ue.skill_name, {
-        'class': 'atlas-signal-label',
-        x: sX + LABEL_OFFSET,
-        y: sY + 4,
-        'fill': '#7D7A73'
-      }));
-
-      sG.appendChild(svgText('UNEXPLORED', {
-        'class': 'atlas-signal-label',
-        x: pos.x + pos.width - 8,
-        y: sY + 4,
-        'text-anchor': 'end',
-        'fill': '#7D7A73',
-        'font-size': '9px',
-        'font-weight': '600',
-        'letter-spacing': '0.08em'
-      }));
-
-      svg.appendChild(sG);
-      signalEls.push(sG);
-      signalDataMap[key] = {
-        signal: { skill_id: ue.skill_id, skill_name: ue.skill_name, state: 'MISSING', evidence: [] },
-        landmark: null,
-        el: sG,
-        x: sX, y: sY
+      signalDataMap[sigKey] = {
+        skill_id: unexploredSkill.skill_id,
+        skill_name: unexploredSkill.name || unexploredSkill.skill_name || 'Unexplored Skill',
+        state: 'MISSING',
+        project_id: null,
+        project_name: null,
+        category: t.category,
+        evidence: [],
+        pos: { x: sX, y: sY }
       };
 
-      sG.addEventListener('click', function() {
-        highlightSignal(container, ue.skill_id);
-        if (typeof window.openEvidenceExplorer === 'function') {
-          window.openEvidenceExplorer(ue.skill_id, ue.skill_name, 'MISSING');
-        }
-      });
-      sG.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sG.click(); }
+      var unG = svgEl('g', {
+        'class': 'atlas-signal atlas-signal-missing',
+        'data-skill-name': unexploredSkill.name,
+        'role': 'button',
+        'tabindex': '0',
+        'aria-label': 'Unexplored Area: ' + unexploredSkill.name
       });
 
-      yOffset += ROW_HEIGHT_PER_SIGNAL;
+      // Dashed circle for unexplored
+      var unCircle = svgEl('circle', {
+        'class': 'atlas-signal-dot',
+        cx: sX, cy: sY,
+        r: SIGNAL_RADIUS,
+        fill: 'none',
+        stroke: '#76726A',
+        'stroke-dasharray': '2 2'
+      });
+      unG.appendChild(unCircle);
+
+      unG.appendChild(svgText(unexploredSkill.name, {
+        'class': 'atlas-signal-label t-muted',
+        x: sX + LABEL_OFFSET,
+        y: sY + 4,
+        fill: '#76726A'
+      }));
+
+      unG.addEventListener('click', function() {
+        NexusAtlas.selectSignal(svg.parentElement, sigKey);
+      });
+
+      g.appendChild(unG);
+      signalEls.push(unG);
+      yOffset += ROW_HEIGHT;
     });
 
     svg.appendChild(g);
-    return { signalEls: signalEls, landmarkEls: landmarkEls, signalDataMap: signalDataMap };
+    return { signalEls: signalEls, landmarkEls: landmarkEls, signalDataMap: signalDataMap, landmarkPosMap: landmarkPosMap };
   }
 
-  // ── Highlight signal (Follow the Proof) ───────────
-  function highlightSignal(container, skillId) {
-    if (!container || !container._atlasData) return;
-    var data = container._atlasData;
-    var key = 'signal-' + skillId;
-    var target = data.signalDataMap[key];
+  // ── "Follow the Proof" Route Drawing & Selection ──────────────────
+  function selectSignal(container, sigKey) {
+    if (!container || !container._atlasState) return;
+    var state = container._atlasState;
+    var sigData = state.signalDataMap[sigKey];
+    if (!sigData) return;
 
-    // Clear existing paths
-    data.pathsG.innerHTML = '';
+    state.selectedSignal = sigKey;
 
-    // Dim all others
-    data.signalEls.forEach(function(el) {
-      el.classList.toggle('dimmed', el.getAttribute('data-skill-id') != skillId);
-      el.classList.toggle('highlighted', el.getAttribute('data-skill-id') == skillId);
-    });
-    data.landmarkEls.forEach(function(el) {
-      if (target && target.landmark) {
-        el.classList.toggle('dimmed',
-          el.getAttribute('data-project-id') != target.landmark.id
-        );
+    // 1. Highlight Selected Signal & Dim Others
+    state.signals.forEach(function(el) {
+      var id = el.getAttribute('data-skill-id');
+      var name = el.getAttribute('data-skill-name');
+      if ((id && sigData.skill_id && id == sigData.skill_id) || (name && name === sigData.skill_name)) {
+        el.classList.add('highlighted');
+        el.classList.remove('dimmed');
       } else {
+        el.classList.remove('highlighted');
         el.classList.add('dimmed');
       }
     });
 
-    // Draw SVG route line
-    if (target && target.landmark && target.landmark.x !== undefined) {
-       var pathD = 'M ' + target.landmark.x + ' ' + (target.landmark.y + 4) + 
-                   ' L ' + target.landmark.x + ' ' + target.y + 
-                   ' L ' + (target.x - 10) + ' ' + target.y;
-       var pathEl = svgEl('path', {
-         'class': 'atlas-proof-path visible',
-         'd': pathD
-       });
-       data.pathsG.appendChild(pathEl);
+    // 2. Dim Landmarks except the connecting project
+    state.landmarks.forEach(function(lm) {
+      var pId = lm.getAttribute('data-project-id');
+      if (sigData.project_id && pId == sigData.project_id) {
+        lm.classList.remove('dimmed');
+      } else {
+        lm.classList.add('dimmed');
+      }
+    });
+
+    // 3. Draw Route Path if attached to a Landmark
+    state.pathsGroup.innerHTML = '';
+    if (sigData.project_id && state.landmarkPosMap[sigData.project_id]) {
+      var lmPos = state.landmarkPosMap[sigData.project_id];
+      var sigPos = sigData.pos;
+
+      // Draw direct architectural route
+      var pathD = 'M ' + lmPos.x + ' ' + lmPos.y +
+                  ' L ' + (lmPos.x + 20) + ' ' + lmPos.y +
+                  ' L ' + (sigPos.x - 12) + ' ' + sigPos.y +
+                  ' L ' + sigPos.x + ' ' + sigPos.y;
+
+      var routePath = svgEl('path', {
+        'class': 'atlas-proof-path visible',
+        'd': pathD
+      });
+      state.pathsGroup.appendChild(routePath);
+    }
+
+    // 4. Open Field Note Drawer
+    if (typeof window.openEvidenceExplorer === 'function') {
+      window.openEvidenceExplorer(sigData.skill_id, sigData.skill_name, sigData.state, sigData.project_name, sigData.evidence);
     }
   }
 
-  // ── Clear highlight ───────────────────────────────
-  function clearHighlight(container) {
-    if (!container || !container._atlasData) return;
-    var data = container._atlasData;
-    data.pathsG.innerHTML = '';
-    data.signalEls.forEach(function(el) {
-      el.classList.remove('dimmed', 'highlighted');
-    });
-    data.landmarkEls.forEach(function(el) {
-      el.classList.remove('dimmed');
-    });
-  }
-
-  // ── Render legend ─────────────────────────────────
-  function renderLegend(container) {
-    // Remove existing legend
-    var existing = container.querySelector('.atlas-legend');
-    if (existing) existing.remove();
-
-    var legend = document.createElement('div');
-    legend.className = 'atlas-legend';
-    legend.setAttribute('aria-label', 'Atlas legend');
-
-    var items = [
-      { label: 'Proven', cls: 'atlas-legend-dot-strong' },
-      { label: 'Developing', cls: 'atlas-legend-dot-developing' },
-      { label: 'Weak', cls: 'atlas-legend-dot-weak' },
-      { label: 'Unexplored', cls: 'atlas-legend-dot-missing' }
-    ];
-
-    items.forEach(function(item) {
-      var div = document.createElement('div');
-      div.className = 'atlas-legend-item';
-      var dot = document.createElement('span');
-      dot.className = 'atlas-legend-dot ' + item.cls;
-      var text = document.createElement('span');
-      text.textContent = item.label;
-      div.appendChild(dot);
-      div.appendChild(text);
-      legend.appendChild(div);
-    });
-
-    container.appendChild(legend);
-  }
-
-  // ── Render mobile summary ─────────────────────────
-  function renderMobileSummary(container, territories) {
-    var existing = container.querySelector('.atlas-mobile-grid');
-    if (existing) existing.remove();
-
-    var wrapper = document.createElement('div');
-    wrapper.className = 'atlas-mobile-grid';
-
-    territories.forEach(function(t) {
-      var territoryDiv = document.createElement('div');
-      territoryDiv.className = 'atlas-mobile-territory';
-
-      var tLabel = document.createElement('div');
-      tLabel.className = 'atlas-mobile-territory-label';
-      tLabel.textContent = t.category.toUpperCase();
-      territoryDiv.appendChild(tLabel);
-
-      t.landmarks.forEach(function(lm) {
-        var lmDiv = document.createElement('div');
-        lmDiv.className = 'atlas-mobile-landmark';
-        
-        var lmHeader = document.createElement('div');
-        lmHeader.className = 'atlas-mobile-landmark-header';
-        lmHeader.innerHTML = '<span class="atlas-mobile-landmark-icon"></span>' + escapeHtml(lm.project_name);
-        lmDiv.appendChild(lmHeader);
-
-        var signalsList = document.createElement('div');
-        signalsList.className = 'atlas-mobile-signals';
-
-        lm.signals.forEach(function(s) {
-          var state = s.state || 'MISSING';
-          var item = document.createElement('div');
-          item.className = 'atlas-mobile-item';
-
-          var dot = document.createElement('span');
-          dot.className = 'atlas-mobile-dot';
-          dot.style.background = STATE_COLORS[state] || STATE_COLORS.MISSING;
-
-          var name = document.createElement('span');
-          name.className = 'atlas-mobile-item-name';
-          name.textContent = s.skill_name;
-
-          item.appendChild(dot);
-          item.appendChild(name);
-          signalsList.appendChild(item);
-
-          item.addEventListener('click', function() {
-            if (typeof window.openEvidenceExplorer === 'function') {
-              window.openEvidenceExplorer(s.skill_id, s.skill_name, state);
-            }
-          });
-        });
-
-        lmDiv.appendChild(signalsList);
-        territoryDiv.appendChild(lmDiv);
-      });
-
-      if (t.unexplored && t.unexplored.length > 0) {
-        var uHeader = document.createElement('div');
-        uHeader.className = 'atlas-mobile-landmark-header';
-        uHeader.style.color = 'var(--muted)';
-        uHeader.textContent = 'Unexplored Signals';
-        territoryDiv.appendChild(uHeader);
-
-        var uList = document.createElement('div');
-        uList.className = 'atlas-mobile-signals';
-
-        t.unexplored.forEach(function(u) {
-          var item = document.createElement('div');
-          item.className = 'atlas-mobile-item';
-
-          var dot = document.createElement('span');
-          dot.className = 'atlas-mobile-dot atlas-mobile-dot-unexplored';
-
-          var name = document.createElement('span');
-          name.className = 'atlas-mobile-item-name';
-          name.style.color = 'var(--muted)';
-          name.textContent = u.skill_name;
-
-          item.appendChild(dot);
-          item.appendChild(name);
-          uList.appendChild(item);
-
-          item.addEventListener('click', function() {
-            if (typeof window.openEvidenceExplorer === 'function') {
-              window.openEvidenceExplorer(u.skill_id, u.skill_name, 'MISSING');
-            }
-          });
-        });
-        territoryDiv.appendChild(uList);
+  function selectSkillByName(container, skillName) {
+    if (!container || !container._atlasState) return;
+    var map = container._atlasState.signalDataMap;
+    for (var key in map) {
+      if (map[key].skill_name.toLowerCase() === skillName.toLowerCase()) {
+        selectSignal(container, key);
+        return;
       }
+    }
+  }
 
-      wrapper.appendChild(territoryDiv);
+  // ── Accessible Semantic Fallback ──────────────────────────────────
+  function renderAccessibleFallback(container, territories, targetRole) {
+    var fallback = document.createElement('div');
+    fallback.className = 'sr-only';
+    fallback.style.position = 'absolute';
+    fallback.style.width = '1px';
+    fallback.style.height = '1px';
+    fallback.style.overflow = 'hidden';
+    fallback.style.clip = 'rect(0,0,0,0)';
+
+    var html = '<h2>Engineering Atlas Table for ' + escapeHtml(targetRole) + '</h2><ul>';
+    territories.forEach(function(t) {
+      html += '<li><h3>Territory: ' + escapeHtml(t.category) + '</h3><ul>';
+      (t.landmarks || []).forEach(function(lm) {
+        html += '<li>Project: ' + escapeHtml(lm.project_name) + '<ul>';
+        (lm.signals || []).forEach(function(s) {
+          html += '<li>Signal: ' + escapeHtml(s.skill_name) + ' — State: ' + escapeHtml(s.state) + '</li>';
+        });
+        html += '</ul></li>';
+      });
+      (t.unexplored || []).forEach(function(u) {
+        html += '<li>Unexplored: ' + escapeHtml(u.name) + ' — State: Missing</li>';
+      });
+      html += '</ul></li>';
     });
-
-    container.appendChild(wrapper);
+    html += '</ul>';
+    fallback.innerHTML = html;
+    container.appendChild(fallback);
   }
 
-  // ── Empty atlas ───────────────────────────────────
+  // ── Empty Atlas ───────────────────────────────────────────────────
   function renderEmptyAtlas(container, targetRole) {
-    var div = document.createElement('div');
-    div.className = 'atlas-empty';
-
-    var title = document.createElement('div');
-    title.className = 'atlas-empty-title';
-    title.textContent = 'Your engineering atlas is waiting';
-
-    var desc = document.createElement('p');
-    desc.className = 'atlas-empty-desc';
-    desc.textContent = 'Connect a GitHub repository and sync it to begin mapping your engineering identity. ' +
-      'NEXUS will analyze your actual work to discover evidence and calculate skill signals.';
-
-    var cta = document.createElement('a');
-    cta.href = '/projects';
-    cta.className = 'btn btn-primary';
-    cta.textContent = 'Add Your First Project';
-
-    div.appendChild(title);
-    div.appendChild(desc);
-    div.appendChild(cta);
-    container.appendChild(div);
+    container.innerHTML =
+      '<div class="empty-state" style="margin: 32px auto;">' +
+      '  <div class="page-eyebrow">UNSURVEYED COORDINATES</div>' +
+      '  <h2 class="empty-state-title">NO ATLAS DATA AVAILABLE</h2>' +
+      '  <p class="empty-state-desc">Your engineering Atlas begins with your first surveyed project repository.</p>' +
+      '  <a href="/projects" class="btn btn-primary">CONNECT REPOSITORY</a>' +
+      '</div>';
   }
 
-  // Public API
   return {
     render: render,
-    highlightSignal: highlightSignal,
-    clearHighlight: clearHighlight
+    selectSignal: selectSignal,
+    selectSkillByName: selectSkillByName
   };
 
 })();

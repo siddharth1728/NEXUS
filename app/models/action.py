@@ -7,6 +7,7 @@ from app.database.database import Base
 
 class ActionHistoryStatus(str, enum.Enum):
     PENDING = "PENDING"
+    STARTED = "STARTED"
     COMPLETED = "COMPLETED"
     DISMISSED = "DISMISSED"
 

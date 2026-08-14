@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}NEXUS{% endblock %}</title>
-  <meta name="description" content="Evidence-driven engineering intelligence platform.">
+  <title>{% block title %}NEXUS — 2D Engineering Atlas{% endblock %}</title>
+  <meta name="description" content="Evidence-driven engineering intelligence and 2D capability atlas platform.">
   <meta name="csrf-token" content="{{ csrf_token }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,43 +14,43 @@
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════
+<!-- ══════════════════════════════════════════════════════
      TOP NAVIGATION STRIP
-     ══════════════════════════════════════════════════ -->
+     ══════════════════════════════════════════════════════ -->
 <nav class="top-nav" aria-label="Main navigation">
 
-  <a href="/" class="top-nav-brand" aria-label="NEXUS home">
+  <a href="/" class="top-nav-brand" aria-label="NEXUS Atlas Home">
     <span class="top-nav-brand-mark">NEXUS</span>
   </a>
 
   <!-- Desktop navigation links -->
   <div class="top-nav-links" id="top-nav-links">
     <a href="/" class="top-nav-link{% if request.url.path in ['/', '/dashboard'] %} active{% endif %}" aria-label="Atlas">ATLAS</a>
-    <a href="/projects" class="top-nav-link{% if request.url.path == '/projects' %} active{% endif %}" aria-label="Projects">PROJECTS</a>
+    <a href="/projects" class="top-nav-link{% if request.url.path.startswith('/projects') %} active{% endif %}" aria-label="Projects">PROJECTS</a>
+    <a href="/lab" class="top-nav-link{% if request.url.path.startswith('/lab') %} active{% endif %}" aria-label="Lab">LAB</a>
     <a href="/evidence" class="top-nav-link{% if request.url.path == '/evidence' %} active{% endif %}" aria-label="Proof">PROOF</a>
     <a href="/skills" class="top-nav-link{% if request.url.path == '/skills' %} active{% endif %}" aria-label="Signals">SIGNALS</a>
     <a href="/gaps" class="top-nav-link{% if request.url.path == '/gaps' %} active{% endif %}" aria-label="Unexplored">UNEXPLORED</a>
     <a href="/journey" class="top-nav-link{% if request.url.path == '/journey' %} active{% endif %}" aria-label="Journey">JOURNEY</a>
     <a href="/profile" class="top-nav-link{% if request.url.path == '/profile' %} active{% endif %}" aria-label="Profile">PROFILE</a>
+    <a href="/settings" class="top-nav-link{% if request.url.path == '/settings' %} active{% endif %}" aria-label="Settings">SETTINGS</a>
   </div>
 
   <div class="top-nav-spacer"></div>
 
-  <!-- Right side meta -->
+  <!-- Right side metadata -->
   <div class="top-nav-meta" id="top-nav-meta">
-    <span class="top-nav-role" id="nav-target-role" title="Target role"></span>
+    <span class="top-nav-role" id="nav-target-role" title="Destination Role"></span>
     <div class="sync-status" id="nav-sync-status">
       <span class="sync-dot never" id="nav-sync-dot"></span>
       <span id="nav-sync-label">–</span>
     </div>
-    <div class="top-nav-avatar" id="nav-avatar" title="Profile" role="button" tabindex="0" aria-label="Open profile menu">–</div>
+    <div class="top-nav-avatar" id="nav-avatar" title="Profile dossier" role="button" tabindex="0" aria-label="Open profile dossier">–</div>
   </div>
 
-  <!-- Mobile hamburger -->
-  <button class="top-nav-hamburger" id="mobile-menu-toggle"
-          aria-label="Toggle navigation menu" aria-expanded="false">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <!-- Mobile hamburger toggle -->
+  <button class="top-nav-hamburger" id="mobile-menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <line x1="3" y1="6" x2="21" y2="6"></line>
       <line x1="3" y1="12" x2="21" y2="12"></line>
       <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -59,24 +59,25 @@
 </nav>
 
 <!-- Mobile slide-down menu -->
-<div class="mobile-nav-menu" id="mobile-nav-menu" aria-label="Mobile navigation">
+<div class="mobile-nav-menu" id="mobile-nav-menu" aria-label="Mobile menu">
   <a href="/" class="mobile-nav-menu-link{% if request.url.path in ['/', '/dashboard'] %} active{% endif %}">Atlas</a>
-  <a href="/projects" class="mobile-nav-menu-link{% if request.url.path == '/projects' %} active{% endif %}">Projects</a>
-  <a href="/skills" class="mobile-nav-menu-link{% if request.url.path == '/skills' %} active{% endif %}">Signals</a>
+  <a href="/projects" class="mobile-nav-menu-link{% if request.url.path.startswith('/projects') %} active{% endif %}">Projects</a>
+  <a href="/lab" class="mobile-nav-menu-link{% if request.url.path.startswith('/lab') %} active{% endif %}">Lab</a>
   <a href="/evidence" class="mobile-nav-menu-link{% if request.url.path == '/evidence' %} active{% endif %}">Proof</a>
+  <a href="/skills" class="mobile-nav-menu-link{% if request.url.path == '/skills' %} active{% endif %}">Signals</a>
   <a href="/gaps" class="mobile-nav-menu-link{% if request.url.path == '/gaps' %} active{% endif %}">Unexplored</a>
   <a href="/journey" class="mobile-nav-menu-link{% if request.url.path == '/journey' %} active{% endif %}">Journey</a>
   <a href="/profile" class="mobile-nav-menu-link{% if request.url.path == '/profile' %} active{% endif %}">Engineer</a>
   <a href="/settings" class="mobile-nav-menu-link{% if request.url.path == '/settings' %} active{% endif %}">Settings</a>
 </div>
 
-<!-- ── MAIN CONTENT AREA ───────────────────────────── -->
+<!-- ── MAIN CONTENT AREA ──────────────────────────────── -->
 <main class="main-content{% if request.url.path in ['/', '/dashboard'] %} atlas-main{% endif %}" id="main-content">
   {% block content %}{% endblock %}
 </main>
 
 <!-- ══════════════════════════════════════════════════════
-     MOBILE BOTTOM NAVIGATION
+     MOBILE BOTTOM NAVIGATION STRIP
      ══════════════════════════════════════════════════════ -->
 <nav class="mobile-bottom-nav" aria-label="Mobile bottom navigation">
   <div class="mobile-bottom-nav-inner">
@@ -94,12 +95,6 @@
       </svg>
       <span>Projects</span>
     </a>
-    <a href="/skills" class="mobile-nav-item{% if request.url.path == '/skills' %} active{% endif %}" aria-label="Signals">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-      </svg>
-      <span>Signals</span>
-    </a>
     <a href="/evidence" class="mobile-nav-item{% if request.url.path == '/evidence' %} active{% endif %}" aria-label="Proof">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
@@ -107,43 +102,46 @@
       </svg>
       <span>Proof</span>
     </a>
+    <a href="/skills" class="mobile-nav-item{% if request.url.path == '/skills' %} active{% endif %}" aria-label="Signals">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+      </svg>
+      <span>Signals</span>
+    </a>
     <a href="/profile" class="mobile-nav-item{% if request.url.path == '/profile' %} active{% endif %}" aria-label="Profile">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
         <circle cx="12" cy="7" r="4"></circle>
       </svg>
-      <span>Profile</span>
+      <span>Dossier</span>
     </a>
   </div>
 </nav>
 
 <!-- ══════════════════════════════════════════════════════
-     EVIDENCE EXPLORER / FIELD NOTE DRAWER
+     GLOBAL FIELD NOTE DRAWER (FOR DIRECT CALLS)
      ══════════════════════════════════════════════════════ -->
 <div class="drawer-overlay" id="drawer-overlay" aria-hidden="true"></div>
 
-<aside class="drawer" id="evidence-explorer-drawer"
-       role="dialog" aria-modal="true" aria-labelledby="drawer-skill-name">
+<aside class="drawer" id="evidence-explorer-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-skill-name">
   <div class="drawer-header">
     <div>
       <div class="drawer-eyebrow">FIELD NOTE</div>
-      <div class="drawer-title" id="drawer-skill-name">–</div>
+      <h2 class="drawer-title" id="drawer-skill-name">–</h2>
       <div class="drawer-state" id="drawer-state-badge"></div>
     </div>
-    <button class="drawer-close" onclick="closeDrawer('evidence-explorer-drawer')"
-            aria-label="Close field note">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <button class="drawer-close" onclick="closeDrawer('evidence-explorer-drawer')" aria-label="Close Field Note">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
       </svg>
     </button>
   </div>
   <div class="drawer-body" id="evidence-drawer-body">
-    <!-- populated by openEvidenceExplorer() -->
+    <!-- Populated dynamically -->
   </div>
   <div class="drawer-footer">
-    <p>Skill state is derived from available engineering evidence.
-       It reflects what NEXUS has observed — not your absolute ability.</p>
+    <p>Deterministic observations extracted from repository structures. Source code is never retained.</p>
   </div>
 </aside>
 

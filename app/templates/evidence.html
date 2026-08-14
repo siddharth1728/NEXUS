@@ -1,29 +1,55 @@
 {% extends "base.html" %}
-{% block title %}Proof — NEXUS{% endblock %}
+
+{% block title %}Proof Ledger — NEXUS{% endblock %}
+
 {% block content %}
-<div id="proof-page" style="max-width: 800px; margin: 0 auto;">
-  <header class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px;">
+<div id="proof-page" style="max-width: 960px; margin: 0 auto;">
+
+  <!-- ── Header ────────────────────────────────────────── -->
+  <header class="page-header">
     <div class="page-header-left">
-      <div class="page-eyebrow" style="margin-bottom: 16px;">ENGINEERING PROOF</div>
-      <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Proof</h1>
-      <p class="page-subtitle" style="font-family: 'Inter', sans-serif;">Evidence discovered by NEXUS across your projects.</p>
+      <div class="page-eyebrow">TRACEABILITY // EVIDENCE LEDGER</div>
+      <h1 class="page-title">Proof Ledger</h1>
+      <p class="page-subtitle">Deterministic engineering evidence extracted directly from your surveyed repositories.</p>
+    </div>
+    <div class="page-header-right">
+      <a href="/" class="btn btn-secondary btn-sm" aria-label="Return to Atlas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="12 8 8 12 12 16 12 8"></polygon>
+        </svg>
+        VIEW ON ATLAS
+      </a>
     </div>
   </header>
 
+  <!-- ── Loading State ─────────────────────────────────── -->
   <div id="proof-loading">
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
+    <div class="scanning-container">
+      <div class="tech-radar">
+        <div class="tech-radar-reticle"></div>
+      </div>
+      <div class="scanning-label">INDEXING VERIFIED PROOF...</div>
+    </div>
   </div>
+
+  <!-- ── Empty State ───────────────────────────────────── -->
   <div id="proof-empty" class="hidden"></div>
+
+  <!-- ── Error State ───────────────────────────────────── -->
   <div id="proof-error" class="hidden"></div>
-  <div id="proof-content" class="hidden" style="display: flex; flex-direction: column; gap: 40px;"></div>
+
+  <!-- ── Populated Content ─────────────────────────────── -->
+  <div id="proof-content" class="proof-ledger-container hidden"></div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function() {
+  'use strict';
+
   async function loadProof() {
     var loading = document.getElementById('proof-loading');
     var empty = document.getElementById('proof-empty');
@@ -35,78 +61,109 @@
       loading.classList.add('hidden');
 
       if (!projects || projects.length === 0) {
-        showEmptyState(empty, 'NO EVIDENCE PLOTTED',
-          'Connect a project and survey it to discover engineering evidence.');
+        showEmptyState(
+          empty,
+          'NO EVIDENCE SURVEYED',
+          'NEXUS requires at least one repository landmark to extract engineering proof.',
+          '<a href="/projects" class="btn btn-primary">CONNECT REPOSITORY</a>'
+        );
         empty.classList.remove('hidden');
         return;
       }
 
       var html = '';
-      var hasEvidence = false;
+      var totalEvidenceCount = 0;
 
       for (var i = 0; i < projects.length; i++) {
         var p = projects[i];
-        var snapshots = await apiFetch('/api/projects/' + p.id + '/snapshots');
-
-        if (snapshots.length === 0) continue;
-
-        var latest = snapshots[0];
-        var evidence;
+        var snapshots = [];
         try {
-          evidence = await apiFetch('/api/snapshots/' + latest.id + '/evidence');
+          snapshots = await apiFetch('/api/projects/' + p.id + '/snapshots');
         } catch(e) { continue; }
 
-        if (!evidence || evidence.length === 0) continue;
-        hasEvidence = true;
+        if (!snapshots || snapshots.length === 0) continue;
 
-        html += '<div class="proof-ledger mb-8">';
-        html += '<div style="font-family:\'DM Mono\', monospace; margin-bottom: 24px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; font-size:12px;">';
-        html += '<span style="color:var(--muted); margin-right:8px;">PROJECT //</span>';
-        html += '<span style="font-weight: 600; color:var(--ink);">' + escapeHtml(p.name) + '</span>';
+        var latest = snapshots[0];
+        var evidenceList = [];
+        try {
+          evidenceList = await apiFetch('/api/snapshots/' + latest.id + '/evidence');
+        } catch(e) { continue; }
+
+        if (!evidenceList || evidenceList.length === 0) continue;
+        totalEvidenceCount += evidenceList.length;
+
+        html += '<section class="proof-project-block" aria-labelledby="project-heading-' + p.id + '">';
+        
+        // Project Landmark Strip
+        html += '<div class="proof-project-header">';
+        html += '  <div class="proof-project-title" id="project-heading-' + p.id + '">';
+        html += '    <span class="t-muted">LANDMARK //</span> ' + escapeHtml(p.name);
+        html += '  </div>';
+        html += '  <div class="t-mono t-muted" style="font-size:11px;">';
+        html += '    SURVEYED ' + escapeHtml(formatRelativeTime(latest.captured_at));
+        html += '  </div>';
         html += '</div>';
 
-        evidence.forEach(function(e) {
-          html += '<div class="proof-ledger-item">';
-          html += '<div class="proof-ledger-grid">';
+        // Evidence Items
+        evidenceList.forEach(function(e) {
+          var skillNames = (e.skills || []).map(function(s) { return s.name; }).join(', ');
+          var primarySkill = (e.skills && e.skills.length > 0) ? e.skills[0].name : '';
+          var qualityPercent = Math.round((e.quality_score || 0) * 100);
+
+          html += '<article class="proof-item">';
           
-          html += '<div class="proof-ledger-label">WHAT WE FOUND</div>';
-          html += '<div class="proof-ledger-value t-mono" style="font-size:12px;">' + escapeHtml(e.source_reference || 'Unknown Source') + '</div>';
+          // Column 1: Source & Artifact
+          html += '  <div class="proof-item-cell">';
+          html += '    <span class="proof-item-label">WHAT WE FOUND</span>';
+          html += '    <div class="proof-item-source">' + escapeHtml(e.source_reference || 'Repository File') + '</div>';
+          html += '    <div class="t-caption mt-1" style="font-family:\'DM Mono\', monospace;">TYPE: ' + escapeHtml(e.type || 'CODE') + '</div>';
+          html += '  </div>';
 
-          html += '<div class="proof-ledger-label mt-3">WHY IT MATTERS</div>';
-          html += '<div class="proof-ledger-value mt-3">' + escapeHtml(e.raw_observation_text || 'Observation recorded during technical analysis.') + '</div>';
-
-          html += '<div class="proof-ledger-label mt-3">WHAT IT PROVES</div>';
-          html += '<div class="proof-ledger-value mt-3" style="display:flex; gap:8px; flex-wrap:wrap;">';
+          // Column 2: Observation & Meaning
+          html += '  <div class="proof-item-cell">';
+          html += '    <span class="proof-item-label">WHAT THIS PROVES</span>';
+          html += '    <div class="proof-item-value" style="font-weight: 500; margin-bottom: 6px;">';
           if (e.skills && e.skills.length > 0) {
             e.skills.forEach(function(s) {
-              html += '<span class="badge" style="background:var(--primary); color:#fff;">' + escapeHtml(s.name) + '</span>';
+              html += '<span class="badge badge-developing" style="margin-right: 6px;">' + escapeHtml(s.name) + '</span>';
             });
           } else {
-            html += '<span class="t-muted" style="font-style:italic;">General architectural insight</span>';
+            html += '<span class="t-muted">General Architectural Signal</span>';
           }
-          html += '</div>';
+          html += '    </div>';
+          html += '    <span class="proof-item-label">WHY IT MATTERS</span>';
+          html += '    <div class="proof-item-value t-muted" style="font-size: 13px;">';
+          html += escapeHtml(e.raw_observation_text || 'Observation verified during deterministic analysis.');
+          html += '    </div>';
+          html += '  </div>';
 
-          html += '<div class="proof-ledger-label mt-3">CURRENT SIGNAL</div>';
-          html += '<div class="proof-ledger-value mt-3" style="font-family:\'DM Mono\', monospace; font-size:11px; text-transform:uppercase; color:var(--muted);">';
-          html += escapeHtml(e.type) + ' // QUALITY ' + ((e.quality_score || 0) * 100).toFixed(0) + '%';
-          html += '</div>';
-          
-          html += '</div>'; // End proof-ledger-grid
+          // Column 3: Quality & Actions
+          html += '  <div class="proof-item-cell" style="align-items: flex-end; justify-content: center; gap: 12px;">';
+          html += '    <div class="t-mono t-muted" style="font-size: 11px; text-align: right;">';
+          html += '      PROOF QUALITY // ' + qualityPercent + '%';
+          html += '    </div>';
+          html += '    <div style="display: flex; gap: 8px;">';
+          if (primarySkill) {
+            html += '      <a href="/?skill=' + encodeURIComponent(primarySkill) + '" class="btn btn-secondary btn-sm" title="Locate on Engineering Atlas">';
+            html += '        LOCATE ON ATLAS';
+            html += '      </a>';
+          }
+          html += '    </div>';
+          html += '  </div>';
 
-          html += '<div class="proof-ledger-actions">';
-          html += '<a href="/?skill=' + (e.skills && e.skills.length > 0 ? encodeURIComponent(e.skills[0].name) : '') + '" class="btn btn-secondary btn-sm">';
-          html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg> LOCATE ON ATLAS';
-          html += '</a>';
-          html += '</div>';
-
-          html += '</div>'; // End proof-ledger-item
+          html += '</article>';
         });
-        html += '</div>';
+
+        html += '</section>';
       }
 
-      if (!hasEvidence) {
-        showEmptyState(empty, 'NO EVIDENCE FOUND',
-          'Survey your projects to discover engineering evidence.');
+      if (totalEvidenceCount === 0) {
+        showEmptyState(
+          empty,
+          'NO VERIFIED PROOF DISCOVERED',
+          'NEXUS surveyed your connected projects but found no deterministic engineering evidence matching the taxonomy.',
+          '<a href="/projects" class="btn btn-primary">MANAGE PROJECTS</a>'
+        );
         empty.classList.remove('hidden');
         return;
       }
@@ -117,7 +174,7 @@
     } catch(err) {
       loading.classList.add('hidden');
       if (err.status === 401) { window.location.href = '/login'; return; }
-      showError(error, 'Unable to load proof', 'Please try again.');
+      showError(error, 'SURVEY INTERRUPTED', 'Could not load proof ledger data from NEXUS engine.');
       error.classList.remove('hidden');
     }
   }

@@ -1,0 +1,533 @@
+{% extends "base.html" %}
+
+{% block title %}Project Landmark Intelligence — NEXUS{% endblock %}
+
+{% block head %}
+<style>
+  .project-intel-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 1024px) {
+    .project-intel-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .landmark-section {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .landmark-section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--primary);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .dimension-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .dimension-card {
+    border: 1px solid var(--border);
+    background: var(--elevated);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .dimension-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .signal-capsule {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: var(--elevated);
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .signal-capsule:hover {
+    border-color: var(--primary);
+  }
+
+  .evolution-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    padding-left: 20px;
+  }
+  .evolution-timeline::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: 2px;
+    background: var(--border);
+  }
+  .evolution-item {
+    position: relative;
+    padding-bottom: 8px;
+  }
+  .evolution-item::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--primary);
+    background: var(--surface);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1280px;">
+
+  <!-- ── Header ────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+        <a href="/projects" class="t-mono" style="color: var(--muted); font-size: 11px; text-decoration: none;">← REPOSITORY LANDMARKS</a>
+        <span style="color: var(--border);">//</span>
+        <span class="page-eyebrow" id="proj-eyebrow" style="margin: 0;">PROJECT INTELLIGENCE</span>
+      </div>
+      <h1 class="page-title" id="proj-title">SURVEYING LANDMARK...</h1>
+      <p class="page-subtitle" id="proj-subtitle">Extracting verified signals, maturity coverage, and next engineering growth.</p>
+    </div>
+    <div class="page-actions" id="proj-actions" style="visibility: hidden;">
+      <button class="btn btn-secondary btn-sm" id="survey-btn">SURVEY NOW</button>
+      <a href="/" class="btn btn-primary btn-sm" id="locate-atlas-btn">LOCATE ON ATLAS</a>
+    </div>
+  </div>
+
+  <!-- ── Loading State ─────────────────────────────────── -->
+  <div id="intel-loading" class="scanning-container" style="padding: 80px 0;">
+    <div class="tech-radar">
+      <div class="tech-radar-reticle"></div>
+    </div>
+    <div class="scanning-label">ANALYZING PROJECT INTELLIGENCE...</div>
+    <p class="t-caption t-muted">Synthesizing snapshot artifacts, evidence categories, and signal coverage...</p>
+  </div>
+
+  <!-- ── Error State ───────────────────────────────────── -->
+  <div id="intel-error" class="hidden">
+    <div class="empty-state" style="border-color: var(--coral);">
+      <div class="page-eyebrow" style="color: var(--coral);">COMMUNICATION INTERRUPTED</div>
+      <h2 class="empty-state-title">FAILED TO LOAD PROJECT INTELLIGENCE</h2>
+      <p class="empty-state-desc" id="error-message">Unable to retrieve intelligence data for this repository landmark.</p>
+      <a href="/projects" class="btn btn-secondary btn-sm">RETURN TO LANDMARKS</a>
+    </div>
+  </div>
+
+  <!-- ── Main Intelligence View ────────────────────────── -->
+  <div id="intel-content" class="hidden">
+    
+    <!-- Meta Summary Strip -->
+    <div class="stats-row" style="margin-bottom: 24px;">
+      <div class="stat-chip">
+        <div class="stat-value" id="stat-depth" style="color:var(--primary);">–</div>
+        <div class="stat-label">Engineering Depth</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-value" id="stat-artifacts">–</div>
+        <div class="stat-label">File Artifacts</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-value" id="stat-observations">–</div>
+        <div class="stat-label">Observations</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-value" id="stat-surveyed" style="font-size: 13px;">–</div>
+        <div class="stat-label">Last Surveyed</div>
+      </div>
+    </div>
+
+    <div class="project-intel-grid">
+      
+      <!-- Left Column: Signals, Evidence, Dimensions, Quests -->
+      <div>
+        
+        <!-- 1. What You Built (Metadata & Detected Stack) -->
+        <div class="landmark-section">
+          <div class="landmark-section-title">WHAT YOU BUILT // CONTEXT</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px;">
+            <div>
+              <div class="t-label">REPOSITORY</div>
+              <a href="#" id="meta-repo-url" target="_blank" rel="noopener" class="t-mono" style="color: var(--primary); text-decoration: none; word-break: break-all;">–</a>
+            </div>
+            <div>
+              <div class="t-label">DETECTED LANGUAGES</div>
+              <div id="meta-languages" class="t-body" style="font-weight: 500;">–</div>
+            </div>
+            <div>
+              <div class="t-label">DETECTED FRAMEWORKS &amp; TOOLS</div>
+              <div id="meta-frameworks" class="t-body" style="font-weight: 500;">–</div>
+            </div>
+            <div>
+              <div class="t-label">SURVEY STATUS</div>
+              <div id="meta-status" class="t-mono t-small">–</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Project Signal Map (What This Proves) -->
+        <div class="landmark-section">
+          <div class="landmark-section-title">
+            <span>WHAT THIS PROVES // SIGNALS</span>
+            <span class="t-caption t-muted">Click signal to open Field Note</span>
+          </div>
+          <div id="signals-container" style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 3. Engineering Dimension Maturity (No Fake Scores!) -->
+        <div class="landmark-section">
+          <div class="landmark-section-title">ENGINEERING DIMENSION COVERAGE</div>
+          <div class="dimension-grid" id="dimensions-container">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 4. What Could Grow Next (Proof Quests for this Project) -->
+        <div class="landmark-section">
+          <div class="landmark-section-title">WHAT COULD GROW NEXT // MISSIONS</div>
+          <div id="quests-container" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 5. What Nexus Found (Categorized Evidence Ledger) -->
+        <div class="landmark-section">
+          <div class="landmark-section-title">WHAT NEXUS FOUND // EVIDENCE LEDGER</div>
+          <div id="evidence-categories-container" style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Guidance, Advice & Project Journey -->
+      <div>
+        
+        <!-- "Should You Improve This Project?" Guidance -->
+        <div class="landmark-section" style="border-color: var(--primary);">
+          <div class="landmark-section-title">STRATEGIC GUIDANCE</div>
+          <h3 id="guidance-headline" style="font-family: 'Newsreader', serif; font-size: 18px; margin-bottom: 8px;">–</h3>
+          <p id="guidance-rationale" class="t-body" style="font-size: 13px; color: var(--ink); line-height: 1.5;">–</p>
+        </div>
+
+        <!-- Concepts You Can Explore in Engineering Lab -->
+        <div class="landmark-section">
+          <div class="landmark-section-title">CONCEPTS YOU CAN EXPLORE</div>
+          <div id="project-lab-concepts" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Project Evolution (Snapshot History) -->
+        <div class="landmark-section">
+          <div class="landmark-section-title">PROJECT JOURNEY // EVOLUTION</div>
+          <div class="evolution-timeline" id="evolution-container">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  'use strict';
+
+  var _projectId = window.location.pathname.split('/').filter(Boolean).pop();
+  var _intelData = null;
+
+  async function loadProjectIntelligence() {
+    var loading = document.getElementById('intel-loading');
+    var error = document.getElementById('intel-error');
+    var content = document.getElementById('intel-content');
+    var actions = document.getElementById('proj-actions');
+
+    try {
+      _intelData = await apiFetch('/api/projects/' + _projectId + '/intelligence');
+      loading.classList.add('hidden');
+
+      renderIntelligence(_intelData);
+      content.classList.remove('hidden');
+      actions.style.visibility = 'visible';
+
+    } catch(err) {
+      loading.classList.add('hidden');
+      if (err.status === 401) { window.location.href = '/login'; return; }
+      document.getElementById('error-message').textContent = err.detail || 'Unable to retrieve project intelligence.';
+      error.classList.remove('hidden');
+    }
+  }
+
+  function renderIntelligence(data) {
+    var meta = data.metadata;
+
+    // Header & Meta
+    document.getElementById('proj-eyebrow').textContent = 'LANDMARK // REPOSITORY #' + meta.project_id;
+    document.getElementById('proj-title').textContent = meta.name.toUpperCase();
+    document.getElementById('proj-subtitle').textContent = 'Engineering Intelligence dossier for ' + meta.name + '.';
+    
+    document.getElementById('stat-depth').textContent = (data.depth_level || 'FOUNDATION').replace('_', ' ');
+    document.getElementById('stat-artifacts').textContent = meta.artifact_count;
+    document.getElementById('stat-observations').textContent = meta.observation_count;
+    document.getElementById('stat-surveyed').textContent = meta.last_surveyed ? formatRelativeTime(meta.last_surveyed) : 'Never surveyed';
+
+    // Context section
+    var repoLink = document.getElementById('meta-repo-url');
+    if (meta.repo_url) {
+      repoLink.href = meta.repo_url;
+      repoLink.textContent = meta.repo_url.replace('https://github.com/', '');
+    } else {
+      repoLink.textContent = meta.name;
+    }
+
+    document.getElementById('meta-languages').textContent = meta.detected_languages.join(', ') || 'Not observed';
+    document.getElementById('meta-frameworks').textContent = meta.detected_frameworks.join(', ') || 'Not observed';
+    document.getElementById('meta-status').innerHTML = '<span class="badge badge-developing">' + escapeHtml(meta.snapshot_status) + '</span>';
+
+    // Action button hooks
+    document.getElementById('survey-btn').onclick = function() { syncThisProject(); };
+    document.getElementById('locate-atlas-btn').href = '/?skill=' + (data.signals[0] ? encodeURIComponent(data.signals[0].skill_name) : '');
+
+    // Signals Map
+    var signalsContainer = document.getElementById('signals-container');
+    signalsContainer.innerHTML = '';
+    
+    if (data.signals.length === 0) {
+      signalsContainer.innerHTML = '<div class="t-caption t-muted">No signals mapped yet. Execute a survey to discover evidence.</div>';
+    } else {
+      data.signals.forEach(function(sig) {
+        var el = document.createElement('div');
+        el.className = 'signal-capsule';
+        el.innerHTML = 
+          '<div>' + renderStateBadge(sig.state) + '</div>' +
+          '<div style="font-weight: 500; font-size: 13px;">' + escapeHtml(sig.skill_name) + '</div>' +
+          (sig.evidence_count > 0 ? '<div class="t-mono t-caption" style="color:var(--muted); font-size:10px;">(' + sig.evidence_count + ' ev)</div>' : '');
+        
+        el.onclick = function() {
+          openEvidenceExplorer(null, sig.skill_name, sig.state, meta.name, []);
+        };
+        signalsContainer.appendChild(el);
+      });
+    }
+
+    // Dimensions
+    var dimContainer = document.getElementById('dimensions-container');
+    dimContainer.innerHTML = '';
+    data.dimensions.forEach(function(dim) {
+      var card = document.createElement('div');
+      card.className = 'dimension-card';
+      
+      var badgeCls = dim.status === 'PROVEN' ? 'badge-strong' : (dim.status === 'DEVELOPING' ? 'badge-developing' : 'badge-missing');
+      card.innerHTML = 
+        '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+        '  <span class="dimension-name">' + escapeHtml(dim.display_name) + '</span>' +
+        '  <span class="badge ' + badgeCls + '">' + escapeHtml(dim.status) + '</span>' +
+        '</div>' +
+        '<div class="t-caption t-muted mt-1">' + escapeHtml(dim.evidence_notes) + '</div>';
+      dimContainer.appendChild(card);
+    });
+
+    // Strategic Guidance
+    document.getElementById('guidance-headline').textContent = data.guidance.headline;
+    document.getElementById('guidance-rationale').textContent = data.guidance.rationale;
+
+    // Growth Opportunities / Quests
+    var questsContainer = document.getElementById('quests-container');
+    questsContainer.innerHTML = '';
+
+    if (data.growth_opportunities.length === 0) {
+      questsContainer.innerHTML = '<div class="t-caption t-muted">All primary destination signals for this repository are currently proven.</div>';
+    } else {
+      data.growth_opportunities.forEach(function(q) {
+        var item = document.createElement('div');
+        item.style.border = '1px solid var(--border)';
+        item.style.background = 'var(--elevated)';
+        item.style.padding = '14px 16px';
+        item.innerHTML = 
+          '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">' +
+          '  <div>' +
+          '    <div class="t-label" style="color:var(--primary); font-size:10px;">PROOF QUEST</div>' +
+          '    <div style="font-family:\'Newsreader\', serif; font-size:16px; font-weight:500;">' + escapeHtml(q.title) + '</div>' +
+          '    <div class="t-body mt-1" style="font-size:13px;">' + escapeHtml(q.mission_brief) + '</div>' +
+          '    <div class="t-caption t-muted mt-1">' + escapeHtml(q.verification_expectations) + '</div>' +
+          '  </div>' +
+          '  <button class="btn btn-secondary btn-sm" id="begin-quest-' + escapeHtml(q.action_key) + '">BEGIN QUEST</button>' +
+          '</div>';
+
+        var btn = item.querySelector('#begin-quest-' + escapeHtml(q.action_key));
+        btn.onclick = async function() {
+          try {
+            await apiFetch('/api/quests/begin', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action_key: q.action_key, project_id: Number(_projectId) })
+            });
+            showToast('Proof Quest started. Implement changes in your repo, then survey.', 'info');
+            loadProjectIntelligence();
+          } catch(e) {
+            showToast('Could not begin quest.', 'error');
+          }
+        };
+        questsContainer.appendChild(item);
+      });
+    }
+
+    // Evidence Categories
+    var evCatContainer = document.getElementById('evidence-categories-container');
+    evCatContainer.innerHTML = '';
+
+    if (data.evidence_categories.length === 0) {
+      evCatContainer.innerHTML = '<div class="t-caption t-muted">No raw observations extracted yet.</div>';
+    } else {
+      data.evidence_categories.forEach(function(cat) {
+        var box = document.createElement('div');
+        box.style.border = '1px solid var(--border)';
+        box.style.padding = '14px 16px';
+        box.style.background = 'var(--elevated)';
+
+        var itemsHtml = '';
+        cat.items.forEach(function(item) {
+          itemsHtml += 
+            '<div style="padding:8px 0; border-bottom:1px solid var(--border);">' +
+            '  <div style="display:flex; justify-content:space-between; font-size:12px;">' +
+            '    <span class="t-mono" style="color:var(--primary);">' + escapeHtml(item.source_reference || 'File') + '</span>' +
+            '    <span class="t-caption t-muted">Quality: ' + Math.round(item.quality_score * 100) + '%</span>' +
+            '  </div>' +
+            '  <div class="t-body mt-1" style="font-size:13px;">' + escapeHtml(item.raw_observation_text || '–') + '</div>' +
+            '</div>';
+        });
+
+        box.innerHTML = 
+          '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">' +
+          '  <span class="t-label">' + escapeHtml(cat.category_name) + '</span>' +
+          '  <span class="badge badge-developing">' + cat.evidence_count + ' SIGNALS</span>' +
+          '</div>' +
+          '<div>' + itemsHtml + '</div>';
+        evCatContainer.appendChild(box);
+      });
+    }
+
+    // Concepts You Can Explore
+    var labConceptsContainer = document.getElementById('project-lab-concepts');
+    labConceptsContainer.innerHTML = '';
+    var skillConceptMap = {
+      'REST APIs': { key: 'HTTP_REQUEST_LIFECYCLE', name: 'HTTP Request Lifecycle' },
+      'Python': { key: 'HTTP_REQUEST_LIFECYCLE', name: 'API Routing & Dispatch' },
+      'Authentication': { key: 'AUTHENTICATION_FLOWS', name: 'Stateless JWT Auth' },
+      'PostgreSQL': { key: 'DATABASE_PERSISTENCE', name: 'Relational Modeling' },
+      'Database Design': { key: 'DATABASE_MIGRATIONS', name: 'Database Migrations' },
+      'Testing': { key: 'AUTOMATED_TESTING', name: 'Automated Test Suites' },
+      'Docker': { key: 'CONTAINERIZATION_DOCKER', name: 'Docker Containerization' },
+      'Git': { key: 'CI_CD_AUTOMATION', name: 'CI/CD Automation' }
+    };
+
+    var seenKeys = {};
+    (data.signals || []).forEach(function(sig) {
+      var mapped = skillConceptMap[sig.skill_name];
+      if (mapped && !seenKeys[mapped.key]) {
+        seenKeys[mapped.key] = true;
+        var row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.alignItems = 'center';
+        row.style.padding = '8px 12px';
+        row.style.background = 'var(--elevated)';
+        row.style.border = '1px solid var(--border)';
+        row.style.fontSize = '12px';
+        row.innerHTML = 
+          '<div>' +
+          '  <span class="t-label" style="font-size:9px;">' + escapeHtml(sig.skill_name) + '</span>' +
+          '  <div style="font-weight:600; margin-top:2px;">' + escapeHtml(mapped.name) + '</div>' +
+          '</div>' +
+          '<a href="/lab/' + escapeHtml(mapped.key) + '" class="t-mono" style="color:var(--primary); font-size:11px; text-decoration:none;">[ EXPLORE → ]</a>';
+        labConceptsContainer.appendChild(row);
+      }
+    });
+
+    if (Object.keys(seenKeys).length === 0) {
+      labConceptsContainer.innerHTML = '<div class="t-caption t-muted">Survey this repository to discover relevant engineering concepts.</div>';
+    }
+
+    // Evolution
+    var evoContainer = document.getElementById('evolution-container');
+    evoContainer.innerHTML = '';
+
+    if (data.evolution.length === 0) {
+      evoContainer.innerHTML = '<div class="t-caption t-muted">Project journey begins with the first survey.</div>';
+    } else {
+      data.evolution.forEach(function(step) {
+        var stepEl = document.createElement('div');
+        stepEl.className = 'evolution-item';
+        stepEl.innerHTML = 
+          '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+          '  <span class="t-label" style="font-size:10px;">SURVEY 0' + step.survey_number + '</span>' +
+          '  <span class="t-caption t-muted">' + formatRelativeTime(step.captured_at) + '</span>' +
+          '</div>' +
+          '<div class="t-body mt-1" style="font-size:13px; font-weight:500;">' + escapeHtml(step.summary) + '</div>' +
+          '<div class="t-mono t-caption mt-1" style="font-size:10px; color:var(--muted);">' +
+          '  SHA: ' + (step.commit_sha ? step.commit_sha.substring(0, 7) : '–') + ' // ' + step.artifact_count + ' artifacts' +
+          '</div>';
+        evoContainer.appendChild(stepEl);
+      });
+    }
+  }
+
+  async function syncThisProject() {
+    var btn = document.getElementById('survey-btn');
+    btn.disabled = true;
+    btn.textContent = 'SURVEYING...';
+    showToast('Executing deterministic repository survey...', 'info');
+
+    try {
+      await apiFetch('/api/projects/' + _projectId + '/sync', {
+        method: 'POST'
+      });
+      showToast('Survey completed. Intelligence & Atlas updated.', 'success');
+      loadProjectIntelligence();
+    } catch(err) {
+      showToast('Survey failed: ' + (err.detail || 'Error'), 'error');
+      btn.disabled = false;
+      btn.textContent = 'SURVEY NOW';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadProjectIntelligence);
+})();
+</script>
+{% endblock %}

@@ -1,29 +1,55 @@
 {% extends "base.html" %}
+
 {% block title %}Signals — NEXUS{% endblock %}
+
 {% block content %}
-<div id="signals-page" style="max-width: 800px; margin: 0 auto;">
-  <header class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px;">
+<div id="signals-page" style="max-width: 960px; margin: 0 auto;">
+
+  <!-- ── Header ────────────────────────────────────────── -->
+  <header class="page-header">
     <div class="page-header-left">
-      <div class="page-eyebrow" style="margin-bottom: 16px;">SURVEY LOG</div>
-      <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Extracted Signals</h1>
-      <p class="page-subtitle" style="font-family: 'Inter', sans-serif;">Deterministic skill states derived from engineering evidence.</p>
+      <div class="page-eyebrow">OBSERVED CAPABILITIES // SIGNALS</div>
+      <h1 class="page-title">Signals</h1>
+      <p class="page-subtitle">Deterministic skill signals calculated from verified engineering proof.</p>
+    </div>
+    <div class="page-header-right">
+      <a href="/" class="btn btn-secondary btn-sm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="12 8 8 12 12 16 12 8"></polygon>
+        </svg>
+        VIEW ON ATLAS
+      </a>
     </div>
   </header>
 
+  <!-- ── Loading State ─────────────────────────────────── -->
   <div id="signals-loading">
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
+    <div class="scanning-container">
+      <div class="tech-radar">
+        <div class="tech-radar-reticle"></div>
+      </div>
+      <div class="scanning-label">AGGREGATING SKILL SIGNALS...</div>
+    </div>
   </div>
+
+  <!-- ── Empty State ───────────────────────────────────── -->
   <div id="signals-empty" class="hidden"></div>
+
+  <!-- ── Error State ───────────────────────────────────── -->
   <div id="signals-error" class="hidden"></div>
-  <div id="signals-content" class="hidden"></div>
+
+  <!-- ── Content ───────────────────────────────────────── -->
+  <div id="signals-content" class="hidden" style="display: flex; flex-direction: column; gap: 32px;"></div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function() {
+  'use strict';
+
   async function loadSignals() {
     var loading = document.getElementById('signals-loading');
     var empty = document.getElementById('signals-empty');
@@ -35,8 +61,12 @@
       loading.classList.add('hidden');
 
       if (!skills || skills.length === 0) {
-        showEmptyState(empty, 'NO SIGNALS DETECTED',
-          'NEXUS hasn\'t calculated any skill signals yet. Sync a project to generate evidence.');
+        showEmptyState(
+          empty,
+          'NO SIGNALS EXTRACTED',
+          'NEXUS has not yet observed enough evidence to calculate skill signals. Connect and survey your repositories.',
+          '<a href="/projects" class="btn btn-primary">SURVEY REPOSITORIES</a>'
+        );
         empty.classList.remove('hidden');
         return;
       }
@@ -48,38 +78,62 @@
         else groups.MISSING.push(s);
       });
 
-      var labels = { STRONG: 'Proven', DEVELOPING: 'Developing', WEAK: 'Weak', MISSING: 'Unexplored' };
+      var groupConfig = [
+        { key: 'STRONG', label: 'Proven Signals', desc: 'Sufficient high-quality, diverse proof across multiple artifacts.' },
+        { key: 'DEVELOPING', label: 'Developing Signals', desc: 'Verified implementation evidence actively emerging in projects.' },
+        { key: 'WEAK', label: 'Weak Signals', desc: 'Single observation or low-diversity evidence requiring expansion.' },
+        { key: 'MISSING', label: 'Unexplored Signals', desc: 'No verifiable engineering evidence observed in surveyed repositories yet.' }
+      ];
+
       var html = '';
 
-      ['STRONG', 'DEVELOPING', 'WEAK', 'MISSING'].forEach(function(state) {
-        if (groups[state].length === 0) return;
-        html += '<div style="margin-bottom: 40px;">';
-        html += '<div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px;">';
-        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase;">' + escapeHtml(labels[state]) + '</span>';
-        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 11px; color: var(--muted);">' + groups[state].length + '</span>';
+      groupConfig.forEach(function(grp) {
+        var items = groups[grp.key] || [];
+        if (items.length === 0) return;
+
+        html += '<section style="border: 1px solid var(--border); background: var(--surface);">';
+        
+        // Group Header
+        html += '<div style="padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--elevated); display: flex; justify-content: space-between; align-items: baseline;">';
+        html += '  <div>';
+        html += '    <span class="t-subheading" style="margin-right: 8px;">' + escapeHtml(grp.label) + '</span>';
+        html += '    <span class="t-caption t-muted">' + escapeHtml(grp.desc) + '</span>';
+        html += '  </div>';
+        html += '  <span class="t-mono t-muted" style="font-size: 11px;">COUNT // ' + items.length + '</span>';
         html += '</div>';
 
-        html += '<div style="display:flex; flex-direction:column; gap: 8px;">';
-        groups[state].forEach(function(s) {
-          html += '<div style="display:flex; justify-content:space-between; align-items:center; padding: 12px 16px; border: 1px solid var(--border); background: var(--surface); cursor: pointer;" onclick="window.location.href=\'/evidence\'">';
+        // Signal Items List
+        html += '<div style="display: flex; flex-direction: column;">';
+        items.forEach(function(s) {
+          html += '<div style="padding: 14px 20px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; gap: 16px;">';
           
-          html += '<div style="display:flex; align-items:center; gap: 12px;">';
-          html += '<span style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; ' + 
-                  (state==='STRONG'?'background:var(--signal-mint)':state==='DEVELOPING'?'background:var(--primary)':state==='WEAK'?'background:var(--amber)':'border: 1px dashed var(--muted)') + 
-                  '"></span>';
-          html += '<span style="font-family:\'Inter\', sans-serif; font-weight: 500; font-size: 14px; color: var(--ink);">' + escapeHtml(s.skill_name) + '</span>';
-          html += '</div>';
-          
-          html += '<span class="drawer-state-badge state-' + state.toLowerCase() + '" style="margin:0;">' + escapeHtml(state) + '</span>';
+          // Signal info
+          html += '  <div style="display: flex; align-items: center; gap: 12px;">';
+          html += '    <span class="badge ' + (s.state ? 'state-' + s.state.toLowerCase() : 'state-missing') + '">';
+          html += escapeHtml(s.state || 'MISSING');
+          html += '    </span>';
+          html += '    <span style="font-family:\'Inter\', sans-serif; font-weight:600; font-size:14px; color:var(--ink);">' + escapeHtml(s.skill_name) + '</span>';
+          html += '  </div>';
+
+          // Actions
+          html += '  <div style="display: flex; gap: 8px;">';
+          html += '    <a href="/?skill=' + encodeURIComponent(s.skill_name) + '" class="btn btn-secondary btn-sm">LOCATE ON ATLAS</a>';
+          html += '    <a href="/evidence" class="btn btn-ghost btn-sm">VIEW PROOF</a>';
+          html += '  </div>';
+
           html += '</div>';
         });
-        html += '</div></div>';
+        html += '</div>';
+
+        html += '</section>';
       });
 
-      html += '<div style="padding:24px; border: 1px solid var(--border); margin-top: 48px; background: transparent; text-align: center;">';
-      html += '<p style="font-family:\'Inter\', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.6;">';
-      html += 'Skill signals reflect what NEXUS has observed in your engineering work — not your absolute ability. ';
-      html += 'An "Unexplored" state means NEXUS hasn\'t found enough evidence yet.</p>';
+      // Context note
+      html += '<div style="padding:20px; border: 1px dashed var(--border); background: transparent; text-align: center;">';
+      html += '  <p style="font-family:\'Inter\', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.6;">';
+      html += '    Skill signals reflect what NEXUS has observed in your engineering work — not your absolute ability. ';
+      html += '    An "Unexplored" state simply means NEXUS has not found enough evidence yet.';
+      html += '  </p>';
       html += '</div>';
 
       content.innerHTML = html;
@@ -88,7 +142,7 @@
     } catch(err) {
       loading.classList.add('hidden');
       if (err.status === 401) { window.location.href = '/login'; return; }
-      showError(error, 'Unable to load signals', 'Please try again.');
+      showError(error, 'SIGNAL CALCULATION FAILED', 'Unable to retrieve skill states from NEXUS engine.');
       error.classList.remove('hidden');
     }
   }

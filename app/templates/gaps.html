@@ -1,33 +1,59 @@
 {% extends "base.html" %}
-{% block title %}Unexplored — NEXUS{% endblock %}
-{% block content %}
-<div id="unexplored-page" style="max-width: 800px; margin: 0 auto;">
-  <header class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px;">
-    <div class="page-header-left">
-      <div class="page-eyebrow" style="margin-bottom: 16px;">UNEXPLORED TERRITORY</div>
-      <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Unexplored</h1>
-      <p class="page-subtitle" style="font-family: 'Inter', sans-serif;">Areas where NEXUS hasn't found enough evidence yet.</p>
-    </div>
-  </header>
 
-  <div id="gaps-loading">
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
+{% block title %}Unexplored Territory — NEXUS{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  
+  <!-- ── Header ────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">CARTOGRAPHY // UNEXPLORED CAPABILITIES</div>
+      <h1 class="page-title">UNEXPLORED SIGNALS</h1>
+      <p class="page-subtitle">Territories where NEXUS hasn't found enough evidence yet for your destination role.</p>
+    </div>
+    <div class="page-actions">
+      <a href="/" class="btn btn-secondary btn-sm">VIEW ON ATLAS →</a>
+    </div>
   </div>
-  <div id="gaps-empty" class="hidden"></div>
+
+  <!-- ── Loading State ─────────────────────────────────── -->
+  <div id="gaps-loading" class="scanning-container" style="padding: 60px 0;">
+    <div class="tech-radar">
+      <div class="tech-radar-reticle"></div>
+    </div>
+    <div class="scanning-label">EVALUATING DESTINATION GAPS...</div>
+    <p class="t-caption t-muted">Comparing current skill state coordinates against destination benchmark...</p>
+  </div>
+
+  <!-- ── Error State ───────────────────────────────────── -->
   <div id="gaps-error" class="hidden"></div>
+
+  <!-- ── Empty State ───────────────────────────────────── -->
+  <div id="gaps-empty" class="hidden">
+    <div class="empty-state">
+      <div class="page-eyebrow" style="color: var(--signal-mint);">SURVEY HARMONY</div>
+      <h2 class="empty-state-title">ALL DESTINATION SIGNALS PROVEN</h2>
+      <p class="empty-state-desc">Your surveyed repositories have proven all required capabilities for your destination role.</p>
+      <a href="/" class="btn btn-primary">EXPLORE ATLAS</a>
+    </div>
+  </div>
+
+  <!-- ── Gaps List ─────────────────────────────────────── -->
   <div id="gaps-content" class="hidden"></div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function() {
+  'use strict';
+
   async function loadGaps() {
     var loading = document.getElementById('gaps-loading');
-    var empty = document.getElementById('gaps-empty');
     var error = document.getElementById('gaps-error');
+    var empty = document.getElementById('gaps-empty');
     var content = document.getElementById('gaps-content');
 
     try {
@@ -35,49 +61,55 @@
       loading.classList.add('hidden');
 
       if (!gaps || gaps.length === 0) {
-        showEmptyState(empty, 'NO UNEXPLORED TERRITORY',
-          'NEXUS has found evidence for all skills required by your target role, or you haven\'t set a target role yet.');
         empty.classList.remove('hidden');
         return;
       }
 
-      var html = '<div style="display:flex; flex-direction:column; gap: 8px;">';
+      var html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
 
       gaps.forEach(function(g) {
-        html += '<div style="display:flex; justify-content:space-between; align-items:center; padding: 16px; border: 1px dashed var(--muted); background: transparent;">';
+        html += '<div class="proof-ledger-item" style="display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 20px; padding: 16px 20px;">';
         
-        html += '<div style="display:flex; align-items:center; gap: 12px;">';
-        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase;">' + escapeHtml(g.severity) + '</span>';
-        html += '<span style="font-family:\'Inter\', sans-serif; font-weight: 500; font-size: 14px; color: var(--ink);">' + escapeHtml(g.skill) + '</span>';
-        html += '</div>';
-        
-        html += '<div style="display:flex; gap: 12px; align-items: center;">';
-        html += '<div style="display:flex; flex-direction: column; align-items: flex-end;">';
-        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase;">Current</span>';
-        html += '<span class="drawer-state-badge state-' + g.actual_state.toLowerCase() + '" style="margin:0;">' + escapeHtml(g.actual_state) + '</span>';
-        html += '</div>';
-        
-        html += '<span style="color: var(--muted);">→</span>';
-        
-        html += '<div style="display:flex; flex-direction: column; align-items: flex-end;">';
-        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase;">Required</span>';
-        html += '<span class="drawer-state-badge state-' + g.required_state.toLowerCase() + '" style="margin:0;">' + escapeHtml(g.required_state) + '</span>';
-        html += '</div>';
-        html += '</div>';
-        
+        // Col 1: Skill & Category
+        html += '  <div>';
+        html += '    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">';
+        html += '      <span class="t-label">' + escapeHtml(g.category || 'TERRITORY') + '</span>';
+        html += '      ' + renderSeverityBadge(g.severity);
+        html += '    </div>';
+        html += '    <div style="font-family:\'Newsreader\', serif; font-size: 18px; font-weight: 500; color: var(--ink);">' + escapeHtml(g.skill) + '</div>';
+        html += '  </div>';
+
+        // Col 2: Current vs Expected State
+        html += '  <div style="display: flex; align-items: center; gap: 12px;">';
+        html += '    <div style="display: flex; flex-direction: column; gap: 2px;">';
+        html += '      <span class="t-label">CURRENT</span>';
+        html += '      ' + renderStateBadge(g.actual_state);
+        html += '    </div>';
+        html += '    <span style="color: var(--muted); font-size: 16px;">→</span>';
+        html += '    <div style="display: flex; flex-direction: column; gap: 2px;">';
+        html += '      <span class="t-label">EXPECTED</span>';
+        html += '      ' + renderStateBadge(g.required_state);
+        html += '    </div>';
+        html += '  </div>';
+
+        // Col 3: Actions
+        html += '  <div style="display: flex; gap: 8px; justify-content: flex-end;">';
+        html += '    <a href="/?skill=' + encodeURIComponent(g.skill) + '" class="btn btn-primary btn-sm">PROVE IN QUEST →</a>';
+        html += '  </div>';
+
         html += '</div>';
       });
 
       html += '</div>';
 
-      // Context note
-      html += '<div style="padding:24px; border: 1px solid var(--border); margin-top: 48px; background: transparent; text-align: center;">';
-      html += '<div class="page-eyebrow mb-2">UNDERSTANDING GAPS</div>';
-      html += '<p style="font-family:\'Inter\', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.6;">';
-      html += 'An unexplored area means NEXUS hasn\'t found enough evidence to match your target role requirements. ';
-      html += 'This is <strong>not</strong> a claim about what you can or cannot do — it\'s a reflection of what NEXUS has observed. ';
-      html += 'Sync more repositories or build new work to increase evidence visibility.';
-      html += '</p></div>';
+      // Explanatory note
+      html += '<div style="padding:20px; border: 1px dashed var(--border); background: transparent; text-align: center; margin-top: 16px;">';
+      html += '  <div class="page-eyebrow mb-1">DETERMINISTIC TRUTH CONTRACT</div>';
+      html += '  <p style="font-family:\'Inter\', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.6;">';
+      html += '    An unexplored state is <strong>not</strong> a judgment of your capability. It simply reflects what NEXUS has verified from public code evidence. ';
+      html += '    Complete the associated <strong>Proof Quest</strong> and sync your repository to verify new capability signals.';
+      html += '  </p>';
+      html += '</div>';
 
       content.innerHTML = html;
       content.classList.remove('hidden');
@@ -85,7 +117,7 @@
     } catch(err) {
       loading.classList.add('hidden');
       if (err.status === 401) { window.location.href = '/login'; return; }
-      showError(error, 'Unable to load gaps', 'Please try again.');
+      showError(error, 'GAP EVALUATION FAILED', 'Could not retrieve gap intelligence from NEXUS engine.');
       error.classList.remove('hidden');
     }
   }

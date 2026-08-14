@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}Engineering Lab Lesson — NEXUS{% endblock %}
+
+{% block head %}
+<style>
+  .lab-lesson-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 1024px) {
+    .lab-lesson-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .lesson-section {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .lesson-section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--primary);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* 2D Technical Diagram Flow */
+  .diagram-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    padding-left: 24px;
+    margin: 20px 0;
+  }
+  .diagram-flow::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    left: 8px;
+    width: 2px;
+    background: var(--border);
+  }
+  .diagram-node {
+    border: 1px solid var(--border);
+    background: var(--elevated);
+    padding: 12px 16px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .diagram-node:hover, .diagram-node.active {
+    border-color: var(--primary);
+    background: var(--surface);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .diagram-node::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 14px;
+    width: 8px;
+    height: 8px;
+    border: 2px solid var(--primary);
+    background: var(--surface);
+  }
+  .diagram-node.active::before {
+    background: var(--primary);
+  }
+
+  .challenge-option {
+    border: 1px solid var(--border);
+    background: var(--elevated);
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 13px;
+    transition: border-color 0.15s ease;
+  }
+  .challenge-option:hover {
+    border-color: var(--primary);
+  }
+  .challenge-option.selected-correct {
+    border-color: var(--forest);
+    background: rgba(34, 197, 94, 0.05);
+  }
+  .challenge-option.selected-wrong {
+    border-color: var(--coral);
+    background: rgba(239, 68, 68, 0.05);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1280px;">
+
+  <!-- ── Header ────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+        <a href="/lab" class="t-mono" style="color: var(--muted); font-size: 11px; text-decoration: none;">← ENGINEERING LAB</a>
+        <span style="color: var(--border);">//</span>
+        <span class="page-eyebrow" id="lesson-domain" style="margin: 0;">LESSON</span>
+      </div>
+      <h1 class="page-title" id="lesson-title">LOADING CONCEPT...</h1>
+      <p class="page-subtitle" id="lesson-subtitle">–</p>
+    </div>
+    <div class="page-actions" id="lesson-actions" style="visibility: hidden;">
+      <a href="#" class="btn btn-primary btn-sm" id="quest-link-btn">PROVE IN QUEST →</a>
+    </div>
+  </div>
+
+  <!-- ── Loading State ─────────────────────────────────── -->
+  <div id="lesson-loading" class="scanning-container" style="padding: 80px 0;">
+    <div class="tech-radar">
+      <div class="tech-radar-reticle"></div>
+    </div>
+    <div class="scanning-label">EXTRACTING CONCEPT DOSSIER...</div>
+    <p class="t-caption t-muted">Synthesizing architectural theory, project evidence, and interactive diagram...</p>
+  </div>
+
+  <!-- ── Main Lesson Dossier ───────────────────────────── -->
+  <div id="lesson-content" class="hidden">
+    
+    <!-- Context Connection Banner -->
+    <div class="lesson-section" style="border-left: 4px solid var(--primary); background: var(--elevated);">
+      <div class="t-label" style="color: var(--primary);">WHY YOU ARE SEEING THIS</div>
+      <p class="t-body mt-1" id="why-seeing-text" style="font-size: 14px; font-weight: 500; color: var(--ink);">–</p>
+    </div>
+
+    <div class="lab-lesson-grid">
+      
+      <!-- Left Column: Visual Diagram, Theory, Try It, Explain It -->
+      <div>
+        
+        <!-- 1. Interactive 2D Architecture Diagram -->
+        <div class="lesson-section">
+          <div class="lesson-section-title">
+            <span>2D TECHNICAL DIAGRAM // EXECUTION FLOW</span>
+            <span class="t-caption t-muted">Click step to inspect technical layer</span>
+          </div>
+          <div class="diagram-flow" id="diagram-container">
+            <!-- Rendered by JS -->
+          </div>
+          <div id="diagram-detail-box" style="border-top: 1px dashed var(--border); padding-top: 12px; margin-top: 12px;">
+            <div class="t-label" id="diag-detail-label">SELECT A STEP ABOVE</div>
+            <div class="t-body mt-1" id="diag-detail-text" style="font-size: 13px;">Click on any step in the architectural flow to inspect technical behavior.</div>
+          </div>
+        </div>
+
+        <!-- 2. Why It Matters & Learning Objectives -->
+        <div class="landmark-section lesson-section">
+          <div class="lesson-section-title">ENGINEERING SIGNIFICANCE // WHY IT MATTERS</div>
+          <p class="t-body" id="why-matters-text" style="font-size: 14px; line-height: 1.5; color: var(--ink); margin-bottom: 16px;">–</p>
+          
+          <div class="t-label">LEARNING OBJECTIVES</div>
+          <ul id="objectives-list" class="t-body mt-2" style="font-size: 13px; padding-left: 20px; line-height: 1.6;">
+            <!-- Rendered by JS -->
+          </ul>
+        </div>
+
+        <!-- 3. Try It (Deterministic Engineering Challenge) -->
+        <div class="lesson-section" id="try-it-section">
+          <div class="lesson-section-title">TRY IT // ENGINEERING THOUGHT CHALLENGE</div>
+          <p class="t-body" id="challenge-prompt" style="font-weight: 500; font-size: 14px; margin-bottom: 14px;">–</p>
+          <div id="challenge-options-container">
+            <!-- Rendered by JS -->
+          </div>
+          <div id="challenge-feedback" class="hidden" style="margin-top: 14px; padding: 12px 16px; border: 1px solid var(--border); background: var(--elevated);">
+            <div class="t-label" id="feedback-headline">–</div>
+            <div class="t-body mt-1" id="feedback-explanation" style="font-size: 13px;">–</div>
+            <div class="t-caption mt-2" id="feedback-principle" style="font-weight: 600; color: var(--primary);">–</div>
+          </div>
+        </div>
+
+        <!-- 4. Explain It In Your Own Words -->
+        <div class="lesson-section">
+          <div class="lesson-section-title">EXPLAIN IT // SYNTHESIZE IN YOUR OWN WORDS</div>
+          <p class="t-body" id="explain-prompt-text" style="font-size: 13px; margin-bottom: 12px;">–</p>
+          <textarea id="explain-input" class="form-control" rows="3" placeholder="Write your concise technical explanation here..."></textarea>
+          <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+            <button class="btn btn-secondary btn-sm" id="explain-submit-btn">SUBMIT EXPLANATION</button>
+          </div>
+          <div id="explain-feedback" class="hidden mt-2" style="padding: 10px 14px; background: var(--elevated); border: 1px solid var(--border); font-size: 12px;">
+            <span style="color: var(--primary); font-weight: 600;">Recorded.</span> Explaining concepts in your own words builds deep architectural intuition.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: See It In Your Project & Proof Connection -->
+      <div>
+        
+        <!-- See It In Your Project -->
+        <div class="lesson-section">
+          <div class="lesson-section-title">SEE IT IN YOUR WORK</div>
+          <div id="project-evidence-container">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- How It Manifests in Repositories -->
+        <div class="lesson-section">
+          <div class="lesson-section-title">OBSERVABLE REPOSITORY PATTERNS</div>
+          <p class="t-body" id="how-appears-text" style="font-size: 13px; color: var(--ink); line-height: 1.5;">–</p>
+        </div>
+
+        <!-- Next Engineering Step -->
+        <div class="lesson-section" style="border-color: var(--primary);">
+          <div class="lesson-section-title">NEXT EXPEDITION</div>
+          <div class="t-body" style="font-size: 13px; margin-bottom: 12px;">
+            Ready to turn theoretical understanding into verifiable repository proof?
+          </div>
+          <a href="/dashboard" class="btn btn-primary btn-sm" style="width: 100%; text-align: center;" id="sidebar-quest-btn">
+            OPEN PROOF QUEST
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  'use strict';
+
+  var _conceptKey = window.location.pathname.split('/').filter(Boolean).pop();
+  var _lessonData = null;
+
+  async function loadLesson() {
+    var loading = document.getElementById('lesson-loading');
+    var content = document.getElementById('lesson-content');
+    var actions = document.getElementById('lesson-actions');
+
+    try {
+      _lessonData = await apiFetch('/api/lab/concepts/' + _conceptKey);
+      loading.classList.add('hidden');
+
+      renderLesson(_lessonData);
+      content.classList.remove('hidden');
+      actions.style.visibility = 'visible';
+
+    } catch(err) {
+      loading.classList.add('hidden');
+      if (err.status === 401) { window.location.href = '/login'; return; }
+      showToast('Failed to load concept lesson.', 'error');
+    }
+  }
+
+  function renderLesson(data) {
+    // Header
+    document.getElementById('lesson-domain').textContent = data.domain.toUpperCase() + ' // ' + data.difficulty;
+    document.getElementById('lesson-title').textContent = data.title;
+    document.getElementById('lesson-subtitle').textContent = data.short_description;
+
+    // Why seeing
+    document.getElementById('why-seeing-text').textContent = data.why_user_is_seeing_this;
+
+    // Significance & Objectives
+    document.getElementById('why-matters-text').textContent = data.why_it_matters;
+    
+    var objList = document.getElementById('objectives-list');
+    objList.innerHTML = '';
+    data.learning_objectives.forEach(function(obj) {
+      var li = document.createElement('li');
+      li.textContent = obj;
+      objList.appendChild(li);
+    });
+
+    // Repository patterns
+    document.getElementById('how-appears-text').textContent = data.how_it_appears_in_projects;
+
+    // 2D Diagram
+    var diagContainer = document.getElementById('diagram-container');
+    diagContainer.innerHTML = '';
+    data.diagram_steps.forEach(function(step, idx) {
+      var node = document.createElement('div');
+      node.className = 'diagram-node' + (idx === 0 ? ' active' : '');
+      node.innerHTML = 
+        '<div style="display: flex; justify-content: space-between; font-size: 11px;">' +
+        '  <span class="t-mono" style="color: var(--primary);">STEP 0' + step.step_number + '</span>' +
+        '  <span class="t-caption t-muted">' + escapeHtml(step.layer) + '</span>' +
+        '</div>' +
+        '<div style="font-weight: 600; font-size: 13px; margin-top: 2px;">' + escapeHtml(step.label) + '</div>';
+
+      node.onclick = function() {
+        document.querySelectorAll('.diagram-node').forEach(function(n) { n.classList.remove('active'); });
+        node.classList.add('active');
+        document.getElementById('diag-detail-label').textContent = 'STEP 0' + step.step_number + ' // ' + step.label.toUpperCase();
+        document.getElementById('diag-detail-text').textContent = step.technical_detail;
+      };
+      diagContainer.appendChild(node);
+    });
+
+    if (data.diagram_steps.length > 0) {
+      document.getElementById('diag-detail-label').textContent = 'STEP 01 // ' + data.diagram_steps[0].label.toUpperCase();
+      document.getElementById('diag-detail-text').textContent = data.diagram_steps[0].technical_detail;
+    }
+
+    // See it in your project
+    var projContainer = document.getElementById('project-evidence-container');
+    projContainer.innerHTML = '';
+
+    if (data.user_projects_using_this.length === 0) {
+      projContainer.innerHTML = '<div class="t-caption t-muted">No evidence for this concept observed in your repositories yet. Complete the Proof Quest to build it.</div>';
+    } else {
+      data.user_projects_using_this.forEach(function(ref) {
+        var box = document.createElement('div');
+        box.style.border = '1px solid var(--border)';
+        box.style.background = 'var(--elevated)';
+        box.style.padding = '12px 14px';
+        box.style.marginBottom = '8px';
+
+        var obsHtml = ref.sample_observations.map(function(o) {
+          return '<div class="t-caption" style="margin-top: 4px; color: var(--ink);">• ' + escapeHtml(o) + '</div>';
+        }).join('');
+
+        box.innerHTML = 
+          '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+          '  <a href="/projects/' + ref.project_id + '" class="t-mono" style="color: var(--primary); font-weight: 600; font-size: 12px; text-decoration: none;">' + escapeHtml(ref.project_name) + ' →</a>' +
+          '  <span class="badge badge-strong" style="font-size: 9px;">' + ref.evidence_count + ' SIGNALS</span>' +
+          '</div>' +
+          obsHtml;
+        projContainer.appendChild(box);
+      });
+    }
+
+    // Try It Challenge
+    var challenge = data.try_it_challenge;
+    document.getElementById('challenge-prompt').textContent = challenge.prompt;
+    var optContainer = document.getElementById('challenge-options-container');
+    optContainer.innerHTML = '';
+
+    challenge.options.forEach(function(opt) {
+      var optEl = document.createElement('div');
+      optEl.className = 'challenge-option';
+      optEl.innerHTML = 
+        '<input type="radio" name="challenge-radio" style="margin-top: 2px;">' +
+        '<div>' + escapeHtml(opt.text) + '</div>';
+
+      optEl.onclick = function() {
+        document.querySelectorAll('.challenge-option').forEach(function(el) {
+          el.className = 'challenge-option';
+        });
+
+        var feedbackBox = document.getElementById('challenge-feedback');
+        feedbackBox.classList.remove('hidden');
+
+        if (opt.is_correct) {
+          optEl.classList.add('selected-correct');
+          document.getElementById('feedback-headline').textContent = '✓ CORRECT ARCHITECTURAL INTUITION';
+          document.getElementById('feedback-headline').style.color = 'var(--forest)';
+        } else {
+          optEl.classList.add('selected-wrong');
+          document.getElementById('feedback-headline').textContent = '✗ ARCHITECTURAL RECONSIDERATION';
+          document.getElementById('feedback-headline').style.color = 'var(--coral)';
+        }
+
+        document.getElementById('feedback-explanation').textContent = opt.explanation;
+        document.getElementById('feedback-principle').textContent = 'Core Principle: ' + challenge.engineering_principle;
+      };
+      optContainer.appendChild(optEl);
+    });
+
+    // Explain It Prompt
+    document.getElementById('explain-prompt-text').textContent = data.explain_it_prompt;
+    document.getElementById('explain-submit-btn').onclick = function() {
+      var val = document.getElementById('explain-input').value.trim();
+      if (!val) { showToast('Please write a brief explanation first.', 'warning'); return; }
+      document.getElementById('explain-feedback').classList.remove('hidden');
+      showToast('Reflection recorded.', 'success');
+    };
+
+    // Quest buttons
+    var questBtn = document.getElementById('quest-link-btn');
+    var sidebarQuestBtn = document.getElementById('sidebar-quest-btn');
+    if (data.related_action_key) {
+      questBtn.href = '/dashboard';
+      sidebarQuestBtn.href = '/dashboard';
+    } else {
+      questBtn.href = '/projects';
+      sidebarQuestBtn.href = '/projects';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadLesson);
+})();
+</script>
+{% endblock %}

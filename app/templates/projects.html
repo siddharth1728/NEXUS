@@ -1,78 +1,90 @@
 {% extends "base.html" %}
-{% block title %}Projects — NEXUS{% endblock %}
+
+{% block title %}Repository Landmarks — NEXUS{% endblock %}
+
 {% block content %}
-<div id="projects-page" style="max-width: 800px; margin: 0 auto;">
-
-  <header class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end;">
-    <div class="page-header-left">
-      <div class="page-eyebrow" style="margin-bottom: 16px;">LANDMARKS</div>
-      <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Projects</h1>
-      <p class="page-subtitle" style="font-family: 'Inter', sans-serif;">Repositories surveyed for engineering evidence.</p>
+<div class="page-container">
+  
+  <!-- ── Header ────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">CARTOGRAPHY // REPOSITORY LANDMARKS</div>
+      <h1 class="page-title">SURVEYED REPOSITORIES</h1>
+      <p class="page-subtitle">Public repositories surveyed by NEXUS to extract deterministic engineering proof.</p>
     </div>
-    <div class="page-header-right">
-      <button class="btn btn-primary" id="connect-repo-btn" style="border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; padding: 8px 16px;">
-        ADD REPOSITORY
-      </button>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openConnectModal()">+ CONNECT REPOSITORY</button>
     </div>
-  </header>
-
-  <!-- Loading -->
-  <div id="projects-loading">
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
-    <div class="skeleton skeleton-row" style="margin-bottom:8px;"></div>
   </div>
 
-  <!-- Error -->
+  <!-- ── Loading State ─────────────────────────────────── -->
+  <div id="projects-loading" class="scanning-container" style="padding: 60px 0;">
+    <div class="tech-radar">
+      <div class="tech-radar-reticle"></div>
+    </div>
+    <div class="scanning-label">SURVEYING REPOSITORY LANDMARKS...</div>
+    <p class="t-caption t-muted">Scanning repository configurations and snapshot trees...</p>
+  </div>
+
+  <!-- ── Error State ───────────────────────────────────── -->
   <div id="projects-error" class="hidden">
-    <div class="error-state" style="padding: 48px; border: 1px solid var(--border); text-align: left;">
-      <div class="error-state-title" style="font-family:'DM Mono', monospace; color: var(--coral); text-transform: uppercase;">SURVEY FAILED</div>
-      <p class="error-state-desc" style="color: var(--ink);">Unable to load projects.</p>
-      <button class="btn btn-secondary btn-sm" onclick="window.location.reload()" style="border-radius:0;">RETRY RENDER</button>
+    <div class="empty-state" style="border-color: var(--coral);">
+      <div class="page-eyebrow" style="color: var(--coral);">COMMUNICATION INTERRUPTED</div>
+      <h2 class="empty-state-title">FAILED TO LOAD REPOSITORIES</h2>
+      <p class="empty-state-desc">Unable to retrieve connected repositories. Please verify your connection.</p>
+      <button class="btn btn-secondary btn-sm" onclick="loadProjects()">RETRY SURVEY</button>
     </div>
   </div>
 
-  <!-- Empty -->
+  <!-- ── Empty State ───────────────────────────────────── -->
   <div id="projects-empty" class="hidden">
-    <div class="empty-state" style="text-align:left;padding:48px; border: 1px solid var(--border);">
-      <div style="margin-bottom:32px;">
-        <div class="page-eyebrow" style="margin-bottom:8px;">NO LANDMARKS</div>
-        <h2 style="font-size:24px;font-family:'Newsreader', serif;color:var(--ink);margin-bottom:12px;letter-spacing:-0.5px;">NO PROJECTS FOUND</h2>
-        <p style="font-size:14px;color:var(--muted);max-width:520px;line-height:1.6;">Connect a GitHub repository to let NEXUS survey your engineering work.</p>
-      </div>
-      <button class="btn btn-primary" onclick="openConnectModal()" style="border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em;">CONNECT REPOSITORY</button>
+    <div class="empty-state">
+      <div class="page-eyebrow">UNSURVEYED COORDINATES</div>
+      <h2 class="empty-state-title">NO REPOSITORIES SURVEYED YET</h2>
+      <p class="empty-state-desc">Connect a public GitHub repository to let NEXUS survey your work and extract verifiable skill signals.</p>
+      <button class="btn btn-primary" onclick="openConnectModal()">CONNECT FIRST REPOSITORY</button>
     </div>
   </div>
 
-  <!-- Projects grid -->
-  <div id="projects-list" class="hidden" style="display: flex; flex-direction: column; gap: 8px;"></div>
+  <!-- ── Projects Grid ─────────────────────────────────── -->
+  <div id="projects-list" class="expedition-grid hidden"></div>
 
 </div>
 
-<!-- Connect Repository Field Note -->
-<div class="field-note-overlay" id="connect-modal" role="dialog" aria-modal="true" aria-labelledby="connect-modal-title">
-  <div class="field-note" id="connect-note" style="border-radius: 0; border: 1px solid var(--border); box-shadow: 8px 8px 0px rgba(0,0,0,0.05);">
-    <div class="field-note-header">
-      <div class="field-note-eyebrow">DISCOVER</div>
-      <div class="field-note-title" id="connect-modal-title" style="font-family: 'Newsreader', serif;">Connect Repository</div>
-      <button class="field-note-close" onclick="closeModal('connect-modal')" aria-label="Close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-      </button>
+<!-- ── Connect Repository Field Note Modal ────────────── -->
+<div class="drawer-overlay" id="connect-modal" role="dialog" aria-modal="true" aria-labelledby="connect-modal-title"></div>
+
+<div class="atlas-drawer" id="connect-drawer" style="width: 520px;">
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-eyebrow">DISCOVER REPOSITORIES</div>
+      <h2 class="drawer-title" id="connect-modal-title">Connect Landmark</h2>
     </div>
-    <div class="field-note-body">
-      <p class="t-small t-muted mb-6" style="line-height:1.6; margin-bottom: 24px;">
-        NEXUS will fetch your public repositories from GitHub and let you choose which to survey.
-      </p>
-      <div class="form-error-box hidden" id="connect-error">
-        <span id="connect-error-text">Could not fetch repositories.</span>
-      </div>
-      <div id="repos-list" style="margin-bottom: 24px;"></div>
-      <div class="mt-6" style="display:flex;gap:8px;justify-content:flex-end;">
-        <button class="btn btn-ghost btn-sm" onclick="closeModal('connect-modal')" style="border-radius:0;">CANCEL</button>
-        <button class="btn btn-primary" id="fetch-repos-btn" onclick="fetchRepositories()" style="border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em;">
-          FETCH REPOSITORIES
-        </button>
+    <button class="drawer-close" onclick="closeConnectModal()" aria-label="Close modal">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+  
+  <div class="drawer-body">
+    <p class="t-body" style="font-size: 13px; color: var(--muted);">
+      Select a public GitHub repository from your profile to survey for engineering proof. Source code is never cloned or stored.
+    </p>
+
+    <div id="repos-loading" class="hidden">
+      <div class="scanning-container" style="padding: 24px 0;">
+        <div class="tech-radar" style="width: 48px; height: 48px;"></div>
+        <div class="scanning-label" style="font-size: 11px;">FETCHING GITHUB REPOSITORIES...</div>
       </div>
     </div>
+
+    <div id="repos-list" style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;"></div>
+  </div>
+
+  <div class="drawer-footer">
+    <button class="btn btn-secondary btn-full" onclick="fetchRepositories()">REFRESH GITHUB REPOSITORIES</button>
   </div>
 </div>
 {% endblock %}
@@ -83,6 +95,7 @@
   'use strict';
 
   var _projects = [];
+  var _availableQuests = [];
 
   async function loadProjects() {
     var loading = document.getElementById('projects-loading');
@@ -92,13 +105,20 @@
 
     try {
       _projects = await apiFetch('/api/projects/');
+      try {
+        _availableQuests = await apiFetch('/api/quests');
+      } catch(qe) {
+        _availableQuests = [];
+      }
+
       loading.classList.add('hidden');
 
-      if (_projects.length === 0) {
+      if (!_projects || _projects.length === 0) {
         empty.classList.remove('hidden');
         return;
       }
 
+      list.innerHTML = '';
       list.classList.remove('hidden');
 
       for (var i = 0; i < _projects.length; i++) {
@@ -120,176 +140,182 @@
 
     try {
       snapshots = await apiFetch('/api/projects/' + p.id + '/snapshots');
-      if (snapshots.length > 0) {
+      if (snapshots && snapshots.length > 0) {
         latestSnap = snapshots[0];
         artifactCount = latestSnap.artifact_count || 0;
         observationCount = latestSnap.observation_count || 0;
       }
     } catch(e) {}
 
-    var status = latestSnap ? latestSnap.status : null;
-    var syncedAgo = latestSnap ? formatRelativeTime(latestSnap.captured_at) : 'Never synced';
+    var status = latestSnap ? latestSnap.status : 'IDLE';
+    var syncedAgo = latestSnap ? formatRelativeTime(latestSnap.captured_at) : 'Never surveyed';
     var projectId = Number(p.id);
+
+    // Find quests available for this repository
+    var matchingQuests = (_availableQuests || []).filter(function(q) {
+      return q.project_id === projectId;
+    });
+
+    var questsHtml = '';
+    if (matchingQuests.length > 0) {
+      questsHtml = '<div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border);">' +
+                   '  <div class="t-label" style="color: var(--primary); font-size: 10px; margin-bottom: 6px;">PROOF QUESTS AVAILABLE HERE:</div>';
+      matchingQuests.forEach(function(mq) {
+        questsHtml += '<div style="display: flex; justify-content: space-between; align-items: center; background: var(--elevated); padding: 6px 8px; margin-bottom: 4px; font-size: 12px;">' +
+                      '  <span>' + escapeHtml(mq.title) + '</span>' +
+                      '  <a href="/dashboard" class="t-mono" style="font-size: 10px; color: var(--primary); text-decoration: none;">[ OPEN QUEST ]</a>' +
+                      '</div>';
+      });
+      questsHtml += '</div>';
+    }
 
     var card = document.createElement('div');
     card.className = 'expedition-card';
 
-    var eyebrow = document.createElement('div');
-    eyebrow.className = 'expedition-eyebrow';
-    eyebrow.textContent = 'REPOSITORY / ' + (status || 'UNSURVEYED');
-    card.appendChild(eyebrow);
+    var statusClass = status === 'COMPLETED' ? 'badge-strong' : (status === 'ANALYZING' ? 'badge-developing' : 'badge-missing');
 
-    var title = document.createElement('div');
-    title.className = 'expedition-title';
-    title.textContent = p.name || '–';
-    card.appendChild(title);
+    card.innerHTML =
+      '<div class="expedition-eyebrow">LANDMARK // REPOSITORY #' + projectId + '</div>' +
+      '<a href="/projects/' + projectId + '" class="expedition-title" style="color:var(--ink); text-decoration:none; display:inline-block;">' + escapeHtml(p.name || 'Repository') + ' →</a>' +
+      '<div class="expedition-detail">' +
+      '  <div class="t-mono t-small mb-2">' +
+      '    STATUS: <span class="badge ' + statusClass + '">' + escapeHtml(status) + '</span>' +
+      '  </div>' +
+      '  <div class="t-caption">SURVEYED: ' + escapeHtml(syncedAgo) + '</div>' +
+      '  <div class="t-caption mt-1">DISCOVERED: ' + artifactCount + ' artifacts, ' + observationCount + ' observations.</div>' +
+      questsHtml +
+      '</div>' +
+      '<div class="expedition-actions">' +
+      '  <a href="/projects/' + projectId + '" class="btn btn-primary btn-sm">INTELLIGENCE</a>' +
+      '  <button class="btn btn-secondary btn-sm" id="sync-btn-' + projectId + '" ' + (status === 'ANALYZING' ? 'disabled' : '') + '>' +
+      '    ' + (status === 'ANALYZING' ? 'SURVEYING...' : 'SURVEY NOW') +
+      '  </button>' +
+      '  <a href="/evidence" class="btn btn-ghost btn-sm">PROOF</a>' +
+      '</div>';
 
-    var detail = document.createElement('div');
-    detail.className = 'expedition-detail';
-    
-    var statusText = status === 'COMPLETED' ? 'Survey completed' : 
-                     status === 'ANALYZING' ? 'Analyzing repository...' : 
-                     status === 'FAILED' ? 'Survey failed' : 'Awaiting first survey';
-                     
-    detail.innerHTML =
-      '<span class="t-mono">' + statusText + ' (' + syncedAgo + ')</span><br>' +
-      'Discovered ' + artifactCount + ' artifacts and ' + observationCount + ' raw observations.';
-    card.appendChild(detail);
+    var btn = card.querySelector('#sync-btn-' + projectId);
+    btn.onclick = function() { syncProject(projectId); };
 
-    var actions = document.createElement('div');
-    actions.className = 'expedition-actions';
-    
-    var syncBtn = document.createElement('button');
-    syncBtn.className = 'btn btn-secondary btn-sm';
-    syncBtn.style.fontFamily = "'DM Mono', monospace";
-    syncBtn.id = 'sync-btn-' + projectId;
-    syncBtn.textContent = status === 'ANALYZING' ? 'ANALYZING...' : 'SURVEY REPOSITORY';
-    syncBtn.disabled = status === 'ANALYZING';
-    syncBtn.onclick = function() { syncProject(projectId); };
-    actions.appendChild(syncBtn);
-
-    if (status === 'COMPLETED') {
-       var viewBtn = document.createElement('a');
-       viewBtn.className = 'btn btn-primary btn-sm';
-       viewBtn.style.fontFamily = "'DM Mono', monospace";
-       viewBtn.href = '/?project=' + projectId;
-       viewBtn.textContent = 'VIEW ON ATLAS';
-       actions.appendChild(viewBtn);
-    }
-
-    card.appendChild(actions);
     return card;
   }
 
-  window.openConnectModal = function() {
-    document.getElementById('connect-modal').classList.add('active');
-    document.getElementById('connect-note').classList.add('active');
-    document.getElementById('connect-modal').setAttribute('aria-hidden', 'false');
-  };
-
-  window.closeModal = function(id) {
-    document.getElementById(id).classList.remove('active');
-    document.getElementById('connect-note').classList.remove('active');
-    document.getElementById(id).setAttribute('aria-hidden', 'true');
-  };
-
-  document.getElementById('connect-repo-btn').addEventListener('click', openConnectModal);
-
-  window.fetchRepositories = async function() {
-    var btn = document.getElementById('fetch-repos-btn');
-    var list = document.getElementById('repos-list');
-    var err = document.getElementById('connect-error');
-
-    err.classList.add('hidden');
-    btn.disabled = true;
-    btn.textContent = 'FETCHING...';
-
-    try {
-      var repos = await apiFetch('/api/github/repositories');
-      list.innerHTML = '';
-      
-      if (repos.length === 0) {
-        list.innerHTML = '<div class="t-muted t-small">No public repositories found.</div>';
-      } else {
-        repos.forEach(function(r) {
-          var row = document.createElement('div');
-          row.style.display = 'flex';
-          row.style.justifyContent = 'space-between';
-          row.style.padding = '12px';
-          row.style.borderBottom = '1px solid var(--border)';
-          
-          var left = document.createElement('div');
-          left.innerHTML = '<div style="font-family:\'DM Mono\', monospace; font-size: 12px;">' + escapeHtml(r.name) + '</div><div style="font-size: 11px; color: var(--muted);">' + escapeHtml(r.language || 'Unknown') + '</div>';
-          
-          var addBtn = document.createElement('button');
-          addBtn.className = 'btn btn-secondary btn-sm';
-          addBtn.style.borderRadius = '0';
-          addBtn.textContent = 'ADD';
-          addBtn.onclick = function() { 
-            addBtn.disabled = true;
-            addBtn.textContent = 'ADDING...';
-            createProject(r.name, r.id, addBtn); 
-          };
-          
-          row.appendChild(left);
-          row.appendChild(addBtn);
-          list.appendChild(row);
-        });
-      }
-    } catch(e) {
-      document.getElementById('connect-error-text').textContent = 'Unable to fetch repositories from GitHub.';
-      err.classList.remove('hidden');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'FETCH REPOSITORIES';
-    }
-  };
-
-  window.syncProject = async function(projectId) {
+  async function syncProject(projectId) {
     var btn = document.getElementById('sync-btn-' + projectId);
     if (btn) {
       btn.disabled = true;
       btn.textContent = 'SURVEYING...';
     }
-    
+    showToast('Executing deterministic repository survey...', 'info');
+
     try {
       await apiFetch('/api/projects/' + projectId + '/sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
+        method: 'POST'
       });
-      window.location.reload();
-    } catch (e) {
+      showToast('Survey completed. Signals & Atlas updated.', 'success');
+      loadProjects();
+    } catch(err) {
+      showToast('Survey failed: ' + (err.detail || 'GitHub rate limit or network issue.'), 'error');
       if (btn) {
         btn.disabled = false;
-        btn.textContent = 'SURVEY';
+        btn.textContent = 'SURVEY NOW';
       }
-      alert('Failed to survey project');
+    }
+  }
+
+  window.openConnectModal = function() {
+    document.getElementById('connect-modal').classList.add('active');
+    document.getElementById('connect-drawer').classList.add('active');
+    fetchRepositories();
+  };
+
+  window.closeConnectModal = function() {
+    document.getElementById('connect-modal').classList.remove('active');
+    document.getElementById('connect-drawer').classList.remove('active');
+  };
+
+  window.fetchRepositories = async function() {
+    var list = document.getElementById('repos-list');
+    var loading = document.getElementById('repos-loading');
+    list.innerHTML = '';
+    loading.classList.remove('hidden');
+
+    try {
+      var repos = await apiFetch('/api/github/repos');
+      loading.classList.add('hidden');
+
+      if (!repos || repos.length === 0) {
+        list.innerHTML = '<div class="t-caption t-muted">No public repositories found. Verify your GitHub username in Profile.</div>';
+        return;
+      }
+
+      var connectedIds = _projects.map(function(p) { return p.github_repo_id; });
+
+      repos.forEach(function(repo) {
+        var isConnected = connectedIds.indexOf(repo.id) !== -1;
+        var item = document.createElement('div');
+        item.style.border = '1px solid var(--border)';
+        item.style.padding = '12px 16px';
+        item.style.background = 'var(--surface)';
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.alignItems = 'center';
+        item.style.gap = '12px';
+
+        item.innerHTML =
+          '<div>' +
+          '  <div class="t-mono" style="font-weight: 500; font-size: 13px;">' + escapeHtml(repo.name) + '</div>' +
+          '  <div class="t-caption t-muted">' + escapeHtml(repo.description || 'No description') + '</div>' +
+          '</div>' +
+          '<div>' +
+          (isConnected ?
+            '<span class="badge badge-strong">CONNECTED</span>' :
+            '<button class="btn btn-primary btn-sm" id="conn-btn-' + repo.id + '">CONNECT</button>'
+          ) +
+          '</div>';
+
+        if (!isConnected) {
+          var btn = item.querySelector('#conn-btn-' + repo.id);
+          btn.onclick = function() { connectRepo(repo, btn); };
+        }
+
+        list.appendChild(item);
+      });
+
+    } catch(err) {
+      loading.classList.add('hidden');
+      list.innerHTML = '<div class="t-caption t-muted">Failed to query GitHub repositories: ' + escapeHtml(err.detail || 'Rate limit or authentication failure.') + '</div>';
     }
   };
 
-  window.createProject = async function(name, repo_id, btn) {
+  async function connectRepo(repo, btn) {
+    btn.disabled = true;
+    btn.textContent = 'CONNECTING...';
+
     try {
-      await apiFetch('/api/projects/', {
+      var newProject = await apiFetch('/api/projects/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ name: name, github_repo_id: repo_id })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: repo.name,
+          github_repo_id: repo.id,
+          github_repo_full_name: repo.full_name,
+          repo_url: repo.html_url
+        })
       });
-      closeModal('connect-modal');
-      window.location.reload();
-    } catch(e) {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'ADD';
-      }
-      alert('Failed to add project');
+
+      showToast('Landmark repository connected.', 'success');
+      closeConnectModal();
+      loadProjects();
+
+      // Trigger automatic initial survey
+      syncProject(newProject.id);
+
+    } catch(err) {
+      showToast('Failed to connect repository: ' + (err.detail || 'Error'), 'error');
+      btn.disabled = false;
+      btn.textContent = 'CONNECT';
     }
-  };
+  }
 
   document.addEventListener('DOMContentLoaded', loadProjects);
 })();

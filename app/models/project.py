@@ -21,6 +21,10 @@ class Project(Base):
     user = relationship("User", back_populates="projects")
     snapshots = relationship("RepositorySnapshot", back_populates="project", cascade="all, delete-orphan")
 
+    __table_args__ = (
+        UniqueConstraint('user_id', 'github_repo_id', name='uq_user_github_repo'),
+    )
+
 class RepositorySnapshot(Base):
     __tablename__ = "repository_snapshots"
 

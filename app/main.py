@@ -7,7 +7,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
-from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba, identity
+from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba, identity, lab
 
 app = FastAPI(title="NEXUS")
 
@@ -43,6 +43,7 @@ app.include_router(skills.router, prefix="/api")
 app.include_router(gaps.router, prefix="/api")
 app.include_router(nba.router, prefix="/api")
 app.include_router(identity.router, prefix="/api")
+app.include_router(lab.router, prefix="/api")
 
 @app.get("/health", tags=["Health"])
 def health_check():
@@ -90,6 +91,18 @@ def dashboard_page(request: Request):
 def projects_page(request: Request):
     return render_with_csrf(request, "projects.html")
 
+@app.get("/projects/{project_id}", response_class=HTMLResponse, tags=["Frontend"])
+def project_detail_page(request: Request, project_id: int):
+    return render_with_csrf(request, "project_detail.html")
+
+@app.get("/lab", response_class=HTMLResponse, tags=["Frontend"])
+def lab_page(request: Request):
+    return render_with_csrf(request, "lab.html")
+
+@app.get("/lab/{concept_key}", response_class=HTMLResponse, tags=["Frontend"])
+def lab_detail_page(request: Request, concept_key: str):
+    return render_with_csrf(request, "lab_detail.html")
+
 @app.get("/skills", response_class=HTMLResponse, tags=["Frontend"])
 def skills_page(request: Request):
     return render_with_csrf(request, "skills.html")
@@ -113,3 +126,5 @@ def settings_page(request: Request):
 @app.get("/journey", response_class=HTMLResponse, tags=["Frontend"])
 def journey_page(request: Request):
     return render_with_csrf(request, "journey.html")
+
+

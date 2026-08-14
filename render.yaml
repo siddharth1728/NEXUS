@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: nexus-platform
+    env: python
+    region: oregon
+    plan: starter
+    buildCommand: "pip install -r requirements.txt && alembic upgrade head && python -m app.db.seed"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nexus-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: APP_BASE_URL
+        sync: false
+      - key: EMAIL_PROVIDER
+        value: stub
+      - key: EMAIL_FROM
+        value: noreply@nexus.local
+
+databases:
+  - name: nexus-db
+    plan: starter
+    databaseName: nexus_prod
+    user: nexus_user

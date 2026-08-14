@@ -10,147 +10,109 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/style.css">
-  <style>
-    .auth-error {
-      background: var(--coral-soft); border: 1px solid var(--coral); padding: 16px; margin-bottom: 24px; display: none; gap: 12px; align-items: flex-start;
-    }
-    .auth-error.show { display: flex; }
-    .auth-error-icon { color: var(--coral); margin-top: 2px; flex-shrink: 0; }
-    .auth-error-title { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--coral); text-transform: uppercase; margin-bottom: 4px; }
-    .auth-error-desc { font-size: 13px; color: var(--ink); line-height: 1.5; }
-  </style>
 </head>
 <body>
 
 <div class="auth-cartography-layout">
-  <div class="auth-bg-marks"></div>
   
   <div class="auth-hero-section">
     <div class="auth-hero-brand">NEXUS // NEW SURVEY</div>
     <h1 class="auth-hero-title">BEGIN YOUR ENGINEERING MAP</h1>
-    <p class="auth-hero-subtitle">Connect the work you've already built and discover what it proves. Generate a deterministic atlas of your engineering identity.</p>
+    <p class="auth-hero-subtitle">
+      Connect the work you've already built and discover what it proves. Generate a deterministic atlas of your engineering identity.
+    </p>
   </div>
   
   <div class="auth-form-section">
     <div class="auth-field-note">
       <div class="auth-field-note-title">ORIGIN COORDINATES</div>
       
-      <div class="auth-error" id="register-error" role="alert" aria-live="assertive">
-        <svg class="auth-error-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-        <div>
-          <div class="auth-error-title" id="register-error-title">Initialization Failed</div>
-          <div class="auth-error-desc" id="register-error-message">Unable to create account.</div>
-        </div>
+      <div class="system-notice system-notice-error hidden" id="register-error" role="alert" style="margin-bottom: 20px;">
+        <span class="system-notice-title" id="register-error-title">INITIALIZATION FAILED</span>
+        <span class="system-notice-desc" id="register-error-desc">Unable to create account.</span>
       </div>
       
-      <form id="register-form" novalidate>
-        <div class="auth-input-group">
-          <label for="full_name">Engineer Name</label>
-          <input type="text" id="full_name" class="auth-input" required autocomplete="name" placeholder="Grace Hopper">
+      <form id="register-form" novalidate style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="form-group">
+          <label class="form-label" for="full_name">Engineer Name</label>
+          <input type="text" id="full_name" class="form-input" required autocomplete="name" placeholder="Grace Hopper">
         </div>
 
-        <div class="auth-input-group">
-          <label for="email">Email Coordinate</label>
-          <input type="email" id="email" class="auth-input" required autocomplete="username" placeholder="grace@example.com">
+        <div class="form-group">
+          <label class="form-label" for="email">Account Coordinate (Email)</label>
+          <input type="email" id="email" class="form-input" required autocomplete="username" placeholder="grace@example.com">
         </div>
         
-        <div class="auth-input-group">
-          <label for="password">Access Key (Min 8 Chars)</label>
-          <input type="password" id="password" class="auth-input" required autocomplete="new-password" placeholder="••••••••">
+        <div class="form-group">
+          <label class="form-label" for="password">Access Key (Min 8 Characters)</label>
+          <input type="password" id="password" class="form-input" required autocomplete="new-password" placeholder="••••••••">
         </div>
         
-        <button type="submit" class="auth-submit-btn" id="submit-btn">Begin Survey</button>
+        <button type="submit" class="auth-submit-btn" id="submit-btn">BEGIN SURVEY</button>
       </form>
       
       <div class="auth-meta-links">
-        <a href="/login" style="color:var(--primary); font-weight:500;">← Return to existing survey</a>
+        <a href="/login" style="color:var(--primary); font-weight:600;">← Return to existing survey</a>
       </div>
     </div>
   </div>
 </div>
 
+<script src="/static/js/main.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var form = document.getElementById('register-form');
   var errorBox = document.getElementById('register-error');
   var errorTitle = document.getElementById('register-error-title');
-  var errorMsg = document.getElementById('register-error-message');
+  var errorDesc = document.getElementById('register-error-desc');
   var submitBtn = document.getElementById('submit-btn');
-  var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
   function showError(title, msg) {
     errorTitle.textContent = title;
-    errorMsg.textContent = msg;
-    errorBox.classList.add('show');
-    submitBtn.textContent = 'Begin Survey';
+    errorDesc.textContent = msg;
+    errorBox.classList.remove('hidden');
+    submitBtn.textContent = 'BEGIN SURVEY';
     submitBtn.disabled = false;
   }
 
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
-    errorBox.classList.remove('show');
+    errorBox.classList.add('hidden');
     
     var name = document.getElementById('full_name').value.trim();
     var email = document.getElementById('email').value.trim();
     var password = document.getElementById('password').value;
 
     if (!name || !email || !password) {
-      showError('Validation Error', 'All fields are required.');
+      showError('VALIDATION ERROR', 'All coordinate fields are required.');
       return;
     }
     if (password.length < 8) {
-      showError('Security Error', 'Access Key must be at least 8 characters long.');
+      showError('SECURITY ERROR', 'Access Key must be at least 8 characters long.');
       return;
     }
 
-    submitBtn.textContent = 'Initializing...';
+    submitBtn.textContent = 'INITIALIZING...';
     submitBtn.disabled = true;
 
     try {
-      var res = await fetch('/api/auth/register', {
+      await apiFetch('/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name, email: email, password: password })
       });
 
-      if (!res.ok) {
-        var errData = {};
-        try { errData = await res.json(); } catch(e) {}
-        
-        var msg = 'Registration failed. Please try again.';
-        if (errData.detail) {
-          if (Array.isArray(errData.detail)) msg = errData.detail[0].msg;
-          else if (typeof errData.detail === 'string') msg = errData.detail;
-        }
-        showError('Registration Failed', msg);
-        return;
-      }
-      
       // Auto-login
-      var loginRes = await fetch('/api/auth/login', {
+      await apiFetch('/api/auth/login', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken 
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email, password: password })
       });
-      
-      if (!loginRes.ok) {
-        window.location.href = '/login';
-        return;
-      }
+
       window.location.href = '/onboarding';
-      
+
     } catch(err) {
-      showError('Network Error', 'Could not reach NEXUS servers.');
+      showError('REGISTRATION INTERRUPTED', err.detail || 'Could not register coordinates.');
     }
   });
 });

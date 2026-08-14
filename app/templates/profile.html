@@ -1,80 +1,91 @@
 {% extends "base.html" %}
-{% block title %}Profile — NEXUS{% endblock %}
-{% block content %}
-<div id="profile-page" style="max-width: 600px; margin: 0 auto;">
 
-  <header class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px;">
+{% block title %}Engineer Dossier — NEXUS{% endblock %}
+
+{% block content %}
+<div id="profile-page" style="max-width: 680px; margin: 0 auto;">
+
+  <!-- ── Header ────────────────────────────────────────── -->
+  <header class="page-header">
     <div class="page-header-left">
-      <div class="page-eyebrow" style="margin-bottom: 16px;">ENGINEER DOSSIER</div>
-      <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Profile</h1>
-      <p class="page-subtitle" style="font-family: 'Inter', sans-serif;">Your identity and engineering target. Changes here affect how NEXUS interprets your work.</p>
+      <div class="page-eyebrow">ENGINEERING IDENTITY // DOSSIER</div>
+      <h1 class="page-title">Engineer Dossier</h1>
+      <p class="page-subtitle">Your identity coordinates and target role. These parameters shape your Atlas boundaries.</p>
     </div>
   </header>
 
-  <!-- Save banner -->
-  <div class="alert-banner alert-success hidden" id="save-success" role="status" style="border: 1px solid var(--signal-mint); background: transparent; color: var(--ink); padding: 16px; margin-bottom: 32px; display: flex; align-items: center; gap: 12px; font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase;">
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--signal-mint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-    <span>Profile updated successfully.</span>
+  <!-- Save feedback banners -->
+  <div class="system-notice system-notice-success hidden" id="save-success" style="margin-bottom: 24px; position: static;">
+    <span class="system-notice-title">DOSSIER UPDATED</span>
+    <span class="system-notice-desc">Identity coordinates saved successfully. Atlas mapping parameters refreshed.</span>
   </div>
 
-  <div class="alert-banner alert-error hidden" id="save-error" role="alert" style="border: 1px solid var(--coral); background: transparent; color: var(--ink); padding: 16px; margin-bottom: 32px; display: flex; align-items: center; gap: 12px; font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase;">
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--coral)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-    <span id="save-error-text">Failed to save profile.</span>
+  <div class="system-notice system-notice-error hidden" id="save-error" style="margin-bottom: 24px; position: static;">
+    <span class="system-notice-title">UPDATE INTERRUPTED</span>
+    <span class="system-notice-desc" id="save-error-text">Failed to update dossier coordinates.</span>
   </div>
 
-  <form id="profile-form" novalidate>
+  <form id="profile-form" novalidate style="display: flex; flex-direction: column; gap: 36px;">
 
     <!-- Section 1: Identity -->
-    <div style="margin-bottom: 48px;">
-      <div style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 24px;">Identity</div>
+    <section style="border: 1px solid var(--border); background: var(--surface); padding: 24px;">
+      <div class="t-subheading" style="border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 20px;">
+        01 // IDENTITY PARAMETERS
+      </div>
 
-      <div class="form-group" style="margin-bottom: 24px;">
-        <label class="form-label" for="name" style="font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase;">Full name</label>
-        <input class="form-input" type="text" id="name" name="name" placeholder="Your full name" autocomplete="name" style="border-radius: 0; border: 1px solid var(--border); padding: 12px;">
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label class="form-label" for="name">Engineer Full Name</label>
+        <input class="form-input" type="text" id="name" name="name" placeholder="Grace Hopper" autocomplete="name">
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="email" style="font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase;">Email address</label>
-        <input class="form-input" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" style="border-radius: 0; border: 1px solid var(--border); padding: 12px;">
-        <div class="form-hint" style="margin-top: 8px; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--muted);">Used to log in. Contact support to change your email.</div>
+        <label class="form-label" for="email">Account Coordinate (Email)</label>
+        <input class="form-input" type="email" id="email" name="email" placeholder="engineer@example.com" autocomplete="email" disabled style="background: var(--paper); color: var(--muted);">
+        <div class="form-hint">Unique identifier used for authentication. Managed in Settings.</div>
       </div>
-    </div>
+    </section>
 
-    <!-- Section 2: GitHub -->
-    <div style="margin-bottom: 48px;">
-      <div style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 24px;">GitHub</div>
+    <!-- Section 2: Origin Coordinates (GitHub) -->
+    <section style="border: 1px solid var(--border); background: var(--surface); padding: 24px;">
+      <div class="t-subheading" style="border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 20px;">
+        02 // ORIGIN COORDINATES (GITHUB)
+      </div>
 
       <div class="form-group">
-        <label class="form-label" for="github-username" style="font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase;">GitHub username</label>
-        <input class="form-input" type="text" id="github-username" name="github_username" placeholder="e.g. torvalds" autocomplete="off" spellcheck="false" style="border-radius: 0; border: 1px solid var(--border); padding: 12px;">
-        <div class="form-hint" id="github-hint" style="margin-top: 8px; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--muted);">Used to discover and survey your public repositories. Your code is never stored.</div>
+        <label class="form-label" for="github-username">GitHub Handle</label>
+        <input class="form-input" type="text" id="github-username" name="github_username" placeholder="e.g. torvalds" autocomplete="off" spellcheck="false">
+        <div class="form-hint" id="github-hint">
+          NEXUS surveys public metadata and repository structures under this account. Source code is never persisted.
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Section 3: Target Role -->
-    <div style="margin-bottom: 48px;">
-      <div style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 24px;">Target Role</div>
+    <!-- Section 3: Target Role Destination -->
+    <section style="border: 1px solid var(--border); background: var(--surface); padding: 24px;">
+      <div class="t-subheading" style="border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 20px;">
+        03 // DESTINATION ROLE
+      </div>
 
       <div class="form-group">
-        <label class="form-label" for="target-role" style="font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase;">Target role</label>
-        <select class="form-select" id="target-role" name="target_role" style="border-radius: 0; border: 1px solid var(--border); padding: 12px; font-family: 'Inter', sans-serif;">
-          <option value="">Not set</option>
+        <label class="form-label" for="target-role">Target Engineering Role</label>
+        <select class="form-select" id="target-role" name="target_role">
+          <option value="">No target set</option>
           <option value="Backend Engineer">Backend Engineer</option>
         </select>
-        <div class="form-hint" style="margin-top: 8px; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--muted);">NEXUS uses this to map skill requirements in your Atlas and recommend your next expedition.</div>
+        <div class="form-hint">Defines the benchmark taxonomy used to compute gap severities and next expedition recommendations.</div>
       </div>
 
-      <!-- Role requirements preview -->
-      <div id="role-requirements" class="hidden" style="margin-top: 24px;">
-        <div class="page-eyebrow" style="margin-bottom: 12px;">REQUIRED SIGNALS</div>
-        <div id="role-skills-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      <!-- Role preview -->
+      <div id="role-requirements" class="hidden" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <div class="page-eyebrow" style="margin-bottom: 8px;">BENCHMARK SIGNALS FOR THIS ROLE</div>
+        <div id="role-skills-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
       </div>
-    </div>
+    </section>
 
-    <!-- Save -->
-    <div style="display:flex;align-items:center;gap:12px;padding-top:32px;border-top:1px solid var(--border);">
-      <button type="submit" class="btn btn-primary" id="save-btn" style="border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em;">SAVE CHANGES</button>
-      <button type="button" class="btn btn-ghost" id="cancel-btn" style="border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em;">CANCEL</button>
+    <!-- Form Actions -->
+    <div style="display: flex; gap: 12px; align-items: center; padding-top: 12px;">
+      <button type="submit" class="btn btn-primary" id="save-btn">SAVE DOSSIER</button>
+      <button type="button" class="btn btn-ghost" id="cancel-btn">RESET CHANGES</button>
     </div>
 
   </form>
@@ -120,16 +131,15 @@
       return;
     }
 
-    // Hardcode backend engineer requirements for demo
     var skills = [];
     if (roleName === 'Backend Engineer') {
-      skills = ['Python', 'SQL', 'FastAPI', 'System Design', 'Git'];
+      skills = ['Python', 'SQL', 'FastAPI', 'System Architecture', 'Git', 'Testing', 'CI/CD', 'Docker'];
     }
 
     if (skills.length > 0) {
       var html = '';
       skills.forEach(function(s) {
-        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 9px; text-transform: uppercase; padding: 4px 8px; border: 1px solid var(--border); color: var(--muted);">' + escapeHtml(s) + '</span>';
+        html += '<span class="badge" style="background:var(--paper); border:1px solid var(--border); color:var(--ink);">' + escapeHtml(s) + '</span>';
       });
       list.innerHTML = html;
       reqContainer.classList.remove('hidden');
@@ -163,15 +173,12 @@
     var role = document.getElementById('target-role').value;
 
     btn.disabled = true;
-    btn.textContent = 'SAVING...';
+    btn.textContent = 'SAVING DOSSIER...';
 
     try {
       var updated = await apiFetch('/api/profile', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name,
           github_username: github,
@@ -184,8 +191,10 @@
       _originalValues.target_role = updated.target_role || '';
 
       success.classList.remove('hidden');
-      
-      // Update top nav if present
+      btn.disabled = false;
+      btn.textContent = 'SAVE DOSSIER';
+
+      // Update Nav Target Role if present
       var navRole = document.getElementById('nav-target-role');
       if (navRole) {
         if (updated.target_role) {
@@ -197,11 +206,10 @@
       }
 
     } catch(e) {
-      document.getElementById('save-error-text').textContent = 'Failed to update profile. Please try again.';
+      document.getElementById('save-error-text').textContent = 'Failed to update profile coordinates. ' + (e.detail || '');
       err.classList.remove('hidden');
-    } finally {
       btn.disabled = false;
-      btn.textContent = 'SAVE CHANGES';
+      btn.textContent = 'SAVE DOSSIER';
     }
   });
 

@@ -10,65 +10,51 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/style.css">
-  <style>
-    .auth-error {
-      background: var(--coral-soft); border: 1px solid var(--coral); padding: 16px; margin-bottom: 24px; display: none; gap: 12px; align-items: flex-start;
-    }
-    .auth-error.show { display: flex; }
-    .auth-error-icon { color: var(--coral); margin-top: 2px; flex-shrink: 0; }
-    .auth-error-title { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--coral); text-transform: uppercase; margin-bottom: 4px; }
-    .auth-error-desc { font-size: 13px; color: var(--ink); line-height: 1.5; }
-  </style>
 </head>
 <body>
 
 <div class="auth-cartography-layout">
-  <div class="auth-bg-marks"></div>
   
   <div class="auth-hero-section">
-    <div class="auth-hero-brand">NEXUS // ENGINEERING INTELLIGENCE</div>
+    <div class="auth-hero-brand">NEXUS // 2D ENGINEERING ATLAS</div>
     <h1 class="auth-hero-title">BUILD PROOF.<br>NOT JUST A RESUME.</h1>
-    <p class="auth-hero-subtitle">Explore what your engineering work actually demonstrates. Connect your artifacts and map your capabilities.</p>
+    <p class="auth-hero-subtitle">
+      Explore what your engineering work actually demonstrates. Connect your artifacts and map your capabilities deterministically.
+    </p>
   </div>
   
   <div class="auth-form-section">
     <div class="auth-field-note">
       <div class="auth-field-note-title">AUTHENTICATION SURVEY</div>
       
-      <div class="auth-error" id="auth-error" role="alert" aria-live="assertive">
-        <svg class="auth-error-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-        <div>
-          <div class="auth-error-title" id="auth-error-title">Authentication Failed</div>
-          <div class="auth-error-desc" id="auth-error-desc">Invalid credentials.</div>
-        </div>
+      <div class="system-notice system-notice-error hidden" id="auth-error" role="alert" style="margin-bottom: 20px;">
+        <span class="system-notice-title" id="auth-error-title">AUTHENTICATION FAILED</span>
+        <span class="system-notice-desc" id="auth-error-desc">Invalid email or access key.</span>
       </div>
       
-      <form id="login-form" novalidate>
-        <div class="auth-input-group">
-          <label for="email">Email Coordinate</label>
-          <input type="email" id="email" name="email" class="auth-input" required autofocus autocomplete="username" placeholder="engineer@example.com">
+      <form id="login-form" novalidate style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="form-group">
+          <label class="form-label" for="email">Account Coordinate (Email)</label>
+          <input type="email" id="email" name="email" class="form-input" required autofocus autocomplete="username" placeholder="engineer@example.com">
         </div>
         
-        <div class="auth-input-group">
-          <label for="password">Access Key</label>
-          <input type="password" id="password" name="password" class="auth-input" required autocomplete="current-password" placeholder="••••••••">
+        <div class="form-group">
+          <label class="form-label" for="password">Access Key (Password)</label>
+          <input type="password" id="password" name="password" class="form-input" required autocomplete="current-password" placeholder="••••••••">
         </div>
         
-        <button type="submit" class="auth-submit-btn" id="submit-btn">Initialize Session</button>
+        <button type="submit" class="auth-submit-btn" id="submit-btn">INITIALIZE SESSION</button>
       </form>
       
       <div class="auth-meta-links">
         <a href="/forgot-password">Reset access key</a>
-        <a href="/register" style="color:var(--primary); font-weight:500;">Begin new survey →</a>
+        <a href="/register" style="color:var(--primary); font-weight:600;">Begin new survey →</a>
       </div>
     </div>
   </div>
 </div>
 
+<script src="/static/js/main.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var form = document.getElementById('login-form');
@@ -76,50 +62,39 @@ document.addEventListener('DOMContentLoaded', function() {
   var errorTitle = document.getElementById('auth-error-title');
   var errorDesc = document.getElementById('auth-error-desc');
   var submitBtn = document.getElementById('submit-btn');
-  var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
   function showError(title, msg) {
     errorTitle.textContent = title;
     errorDesc.textContent = msg;
-    errorBox.classList.add('show');
-    submitBtn.textContent = 'Initialize Session';
+    errorBox.classList.remove('hidden');
+    submitBtn.textContent = 'INITIALIZE SESSION';
     submitBtn.disabled = false;
   }
 
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
-    errorBox.classList.remove('show');
-    submitBtn.textContent = 'Authenticating...';
+    errorBox.classList.add('hidden');
+    submitBtn.textContent = 'AUTHENTICATING...';
     submitBtn.disabled = true;
 
     var email = document.getElementById('email').value.trim();
     var password = document.getElementById('password').value;
 
     if (!email || !password) {
-      showError('Validation Error', 'Both email and access key are required.');
+      showError('VALIDATION FAILED', 'Both email coordinate and access key are required.');
       return;
     }
 
     try {
-      var res = await fetch('/api/auth/login', {
+      await apiFetch('/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email, password: password })
       });
 
-      if (!res.ok) {
-        var errData = {};
-        try { errData = await res.json(); } catch(e) {}
-        showError('Authentication Failed', errData.detail || 'Invalid email or access key.');
-        return;
-      }
-
       window.location.href = '/dashboard';
     } catch(err) {
-      showError('Network Error', 'Could not reach NEXUS servers.');
+      showError('ACCESS INTERRUPTION', err.detail || 'Invalid email or access key.');
     }
   });
 });

@@ -6,7 +6,9 @@ from app.core.csrf import verify_csrf_token
 from app.database.database import get_db
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectResponse, RepositorySnapshotResponse
+from app.schemas.project_intelligence import ProjectIntelligenceResponse
 from app.services import project_service
+from app.services.project_intelligence_service import get_project_intelligence
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -24,6 +26,14 @@ def create_project(project_data: ProjectCreate, db: Session = Depends(get_db), c
 def get_project(project_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     p = project_service.get_project(db, project_id, current_user.id)
     return ProjectResponse(id=p.id, user_id=p.user_id, github_repo_id=p.github_repo_id, name=p.name)
+
+@router.get("/{project_id}/intelligence", response_model=ProjectIntelligenceResponse)
+def get_project_intelligence_endpoint(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return get_project_intelligence(db, project_id, current_user.id)
 
 @router.post("/{project_id}/sync", response_model=RepositorySnapshotResponse, dependencies=[Depends(verify_csrf_token)])
 async def sync_project(project_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
