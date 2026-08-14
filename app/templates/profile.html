@@ -5,7 +5,7 @@
 
   <header class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px;">
     <div class="page-header-left">
-      <div class="page-eyebrow" style="margin-bottom: 16px;">ACCOUNT</div>
+      <div class="page-eyebrow" style="margin-bottom: 16px;">ENGINEER DOSSIER</div>
       <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Profile</h1>
       <p class="page-subtitle" style="font-family: 'Inter', sans-serif;">Your identity and engineering target. Changes here affect how NEXUS interprets your work.</p>
     </div>
@@ -91,7 +91,7 @@
 
   async function loadProfile() {
     try {
-      var identity = await apiFetch('/api/identity');
+      var identity = await apiFetch('/api/profile');
       
       var nameEl = document.getElementById('name');
       var emailEl = document.getElementById('email');
@@ -166,7 +166,7 @@
     btn.textContent = 'SAVING...';
 
     try {
-      var updated = await apiFetch('/api/identity', {
+      var updated = await apiFetch('/api/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

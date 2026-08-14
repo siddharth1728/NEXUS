@@ -42,7 +42,6 @@ async def run_audit():
             await page.fill("input[id=full_name]", "Audit User")
             await page.fill("input[id=email]", email)
             await page.fill("input[id=password]", "AuditPass123!")
-            await page.fill("input[id=confirm_password]", "AuditPass123!")
             await page.click("button[type=submit]")
             await page.wait_for_timeout(1000)
             

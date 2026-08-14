@@ -59,36 +59,49 @@
         if (!evidence || evidence.length === 0) continue;
         hasEvidence = true;
 
-        html += '<div>';
-        html += '<div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px;">';
-        html += '<div style="display:flex; align-items:center; gap: 12px;">';
-        html += '<span style="width: 8px; height: 8px; border: 1px solid var(--primary); background: transparent; transform: rotate(45deg);"></span>';
-        html += '<span style="font-family:\'DM Mono\', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--ink); text-transform: uppercase;">' + escapeHtml(p.name) + '</span>';
-        html += '</div>';
+        html += '<div class="proof-ledger mb-8">';
+        html += '<div style="font-family:\'DM Mono\', monospace; margin-bottom: 24px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; font-size:12px;">';
+        html += '<span style="color:var(--muted); margin-right:8px;">PROJECT //</span>';
+        html += '<span style="font-weight: 600; color:var(--ink);">' + escapeHtml(p.name) + '</span>';
         html += '</div>';
 
-        html += '<div style="display:flex; flex-direction:column; gap: 1px; border-left: 1px solid var(--border); margin-left: 4px; padding-left: 16px;">';
         evidence.forEach(function(e) {
-          html += '<div style="padding: 16px; border: 1px solid var(--border); background: var(--surface); position: relative;">';
-          html += '<div style="position: absolute; left: -25px; top: 24px; width: 8px; height: 1px; background: var(--border);"></div>';
+          html += '<div class="proof-ledger-item">';
+          html += '<div class="proof-ledger-grid">';
           
-          html += '<div style="font-family:\'Inter\', sans-serif; font-size: 14px; color: var(--ink); margin-bottom: 12px;">' + escapeHtml(e.source_reference || '–') + '</div>';
-          
-          html += '<div style="display:flex; gap: 12px; margin-bottom: 12px;">';
-          html += '<span style="font-family:\'DM Mono\', monospace; font-size: 9px; text-transform: uppercase; padding: 2px 6px; border: 1px solid var(--border); color: var(--muted);">' + escapeHtml(e.type) + '</span>';
-          html += '<span style="font-family:\'DM Mono\', monospace; font-size: 9px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center;">Quality: ' + ((e.quality_score || 0) * 100).toFixed(0) + '%</span>';
-          html += '</div>';
+          html += '<div class="proof-ledger-label">WHAT WE FOUND</div>';
+          html += '<div class="proof-ledger-value t-mono" style="font-size:12px;">' + escapeHtml(e.source_reference || 'Unknown Source') + '</div>';
 
+          html += '<div class="proof-ledger-label mt-3">WHY IT MATTERS</div>';
+          html += '<div class="proof-ledger-value mt-3">' + escapeHtml(e.raw_observation_text || 'Observation recorded during technical analysis.') + '</div>';
+
+          html += '<div class="proof-ledger-label mt-3">WHAT IT PROVES</div>';
+          html += '<div class="proof-ledger-value mt-3" style="display:flex; gap:8px; flex-wrap:wrap;">';
           if (e.skills && e.skills.length > 0) {
-            html += '<div style="display:flex; gap: 8px; flex-wrap: wrap;">';
             e.skills.forEach(function(s) {
-              html += '<span style="font-family:\'DM Mono\', monospace; font-size: 9px; text-transform: uppercase; padding: 2px 6px; background: var(--primary); color: #fff; border-radius: 2px;">' + escapeHtml(s.name) + '</span>';
+              html += '<span class="badge" style="background:var(--primary); color:#fff;">' + escapeHtml(s.name) + '</span>';
             });
-            html += '</div>';
+          } else {
+            html += '<span class="t-muted" style="font-style:italic;">General architectural insight</span>';
           }
           html += '</div>';
+
+          html += '<div class="proof-ledger-label mt-3">CURRENT SIGNAL</div>';
+          html += '<div class="proof-ledger-value mt-3" style="font-family:\'DM Mono\', monospace; font-size:11px; text-transform:uppercase; color:var(--muted);">';
+          html += escapeHtml(e.type) + ' // QUALITY ' + ((e.quality_score || 0) * 100).toFixed(0) + '%';
+          html += '</div>';
+          
+          html += '</div>'; // End proof-ledger-grid
+
+          html += '<div class="proof-ledger-actions">';
+          html += '<a href="/?skill=' + (e.skills && e.skills.length > 0 ? encodeURIComponent(e.skills[0].name) : '') + '" class="btn btn-secondary btn-sm">';
+          html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg> LOCATE ON ATLAS';
+          html += '</a>';
+          html += '</div>';
+
+          html += '</div>'; // End proof-ledger-item
         });
-        html += '</div></div>';
+        html += '</div>';
       }
 
       if (!hasEvidence) {

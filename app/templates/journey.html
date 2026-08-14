@@ -4,8 +4,8 @@
 <div id="journey-page" style="max-width: 800px; margin: 0 auto;">
   <header class="page-header" style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px;">
     <div class="page-header-left">
-      <div class="page-eyebrow" style="margin-bottom: 16px;">ENGINEERING TIMELINE</div>
-      <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Journey</h1>
+      <div class="page-eyebrow" style="margin-bottom: 16px;">EXPEDITION LOG</div>
+      <h1 class="page-title" style="font-family: 'Newsreader', serif; font-size: 32px; letter-spacing: -0.02em;">Expedition Log</h1>
       <p class="page-subtitle" style="font-family: 'Inter', sans-serif;">How your engineering identity has evolved over time.</p>
     </div>
   </header>
@@ -45,70 +45,48 @@
         return;
       }
 
-      var html = '<div style="display: flex; flex-direction: column; gap: 40px;">';
+      var html = '<div class="journey-timeline">';
+
+      // "You are here" marker at the top
+      html += '<div class="journey-event" style="padding-bottom: 32px;">';
+      html += '<div class="journey-event-dot" style="background: var(--surface); border: 2px solid var(--primary); width:12px; height:12px; left:-25px; top:2px;"></div>';
+      html += '<div class="journey-event-time" style="color:var(--primary); font-weight:600;">◉ CURRENT LOCATION</div>';
+      html += '<div class="journey-event-text">Your present engineering identity based on latest surveys.</div>';
+      html += '</div>';
 
       // Transitions timeline
       if (transitions.length > 0) {
-        html += '<div>';
-        html += '<div style="font-family:\'DM Mono\', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px;">Skill Transitions</div>';
-        
-        html += '<div style="display:flex; flex-direction:column; gap: 1px; border-left: 1px solid var(--border); margin-left: 4px; padding-left: 16px;">';
-
         transitions.forEach(function(t) {
-          html += '<div style="padding: 16px; border: 1px solid var(--border); background: var(--surface); position: relative;">';
-          html += '<div style="position: absolute; left: -25px; top: 24px; width: 8px; height: 1px; background: var(--border);"></div>';
-          
-          html += '<div style="display:flex; justify-content:space-between; align-items:flex-start;">';
-          
-          html += '<div>';
-          html += '<div style="font-family:\'Inter\', sans-serif; font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 4px;">' + escapeHtml(t.skill_name) + '</div>';
-          
-          html += '<div style="display:flex; align-items:center; gap: 8px; font-family:\'DM Mono\', monospace; font-size: 10px; text-transform: uppercase;">';
-          html += '<span style="color: var(--muted);">' + escapeHtml(t.previous_state || 'NEW') + '</span>';
-          html += '<span style="color: var(--muted);">→</span>';
-          html += '<span class="drawer-state-badge state-' + t.new_state.toLowerCase() + '" style="margin:0;">' + escapeHtml(t.new_state) + '</span>';
+          html += '<div class="journey-event">';
+          html += '<div class="journey-event-dot journey-event-dot-transition"></div>';
+          html += '<div class="journey-event-time">' + escapeHtml(formatRelativeTime(t.changed_at)) + '</div>';
+          html += '<div class="journey-event-text">';
+          html += '<span style="font-weight:600;">' + escapeHtml(t.skill_name) + '</span> evolved from ';
+          html += '<span class="t-muted">' + escapeHtml(t.previous_state || 'NEW') + '</span> to ';
+          html += '<span class="badge badge-' + t.new_state.toLowerCase() + '" style="margin-left:4px;">' + escapeHtml(t.new_state) + '</span>';
           html += '</div>';
           html += '</div>';
-          
-          html += '<div style="font-family:\'DM Mono\', monospace; font-size: 10px; color: var(--muted);">' + escapeHtml(formatRelativeTime(t.changed_at)) + '</div>';
-          
-          html += '</div></div>';
         });
-
-        html += '</div></div>';
       }
 
       // Recent discoveries
       if (discoveries.length > 0) {
-        html += '<div>';
-        html += '<div style="font-family:\'DM Mono\', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px;">Recent Discoveries</div>';
-        
-        html += '<div style="display:flex; flex-direction:column; gap: 1px; border-left: 1px solid var(--border); margin-left: 4px; padding-left: 16px;">';
-
         discoveries.forEach(function(d) {
-          html += '<div style="padding: 16px; border: 1px solid var(--border); background: var(--surface); position: relative;">';
-          html += '<div style="position: absolute; left: -25px; top: 24px; width: 8px; height: 1px; background: var(--border);"></div>';
-          
-          html += '<div style="display:flex; gap: 12px; margin-bottom: 8px;">';
-          html += '<span style="font-family:\'DM Mono\', monospace; font-size: 9px; text-transform: uppercase; padding: 2px 6px; border: 1px solid var(--border); color: var(--muted);">' + escapeHtml(d.type) + '</span>';
-          html += '</div>';
-          
-          html += '<div style="font-family:\'Inter\', sans-serif; font-size: 13px; color: var(--ink); line-height: 1.5; margin-bottom: 8px;">' + escapeHtml(d.observation) + '</div>';
-          
-          html += '<div style="font-family:\'DM Mono\', monospace; font-size: 10px; color: var(--muted);">' + escapeHtml(d.artifact_path.split('/').pop() || d.artifact_path) + '</div>';
-          
+          html += '<div class="journey-event">';
+          html += '<div class="journey-event-dot journey-event-dot-discovery"></div>';
+          html += '<div class="journey-event-time">RECENT DISCOVERY // ' + escapeHtml(d.type) + '</div>';
+          html += '<div class="journey-event-text">' + escapeHtml(d.observation) + '</div>';
+          html += '<div class="t-caption mt-2" style="font-family:\'DM Mono\', monospace;">' + escapeHtml(d.artifact_path.split('/').pop() || d.artifact_path) + '</div>';
           html += '</div>';
         });
-
-        html += '</div></div>';
       }
       
       html += '</div>';
 
       // Truth note
-      html += '<div style="padding:24px; border: 1px solid var(--border); margin-top: 48px; background: transparent; text-align: center;">';
+      html += '<div style="padding:24px; border: 1px dashed var(--border); margin-top: 48px; background: transparent; text-align: center;">';
       html += '<p style="font-family:\'Inter\', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.6;">';
-      html += 'This timeline reflects actual changes detected by NEXUS. ';
+      html += 'This log reflects actual changes detected by NEXUS. ';
       html += 'Events are only recorded when skill states change as a result of new evidence.</p>';
       html += '</div>';
 

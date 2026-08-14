@@ -48,26 +48,30 @@
 
 </div>
 
-<!-- Connect Repository Modal -->
-<div class="modal-overlay" id="connect-modal" role="dialog" aria-modal="true" aria-labelledby="connect-modal-title">
-  <div class="modal" style="border-radius: 0; border: 1px solid var(--border); box-shadow: 8px 8px 0px rgba(0,0,0,0.05);">
-    <button class="modal-close" onclick="closeModal('connect-modal')" aria-label="Close">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-    </button>
-    <div class="page-eyebrow mb-4">DISCOVER</div>
-    <div class="modal-title" id="connect-modal-title" style="font-family: 'Newsreader', serif;">Connect Repository</div>
-    <p class="t-small t-muted mb-6" style="line-height:1.6;">
-      NEXUS will fetch your public repositories from GitHub and let you choose which to survey.
-    </p>
-    <div class="form-error-box hidden" id="connect-error">
-      <span id="connect-error-text">Could not fetch repositories.</span>
-    </div>
-    <div id="repos-list" style="margin-bottom: 24px;"></div>
-    <div class="mt-6" style="display:flex;gap:8px;justify-content:flex-end;">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('connect-modal')" style="border-radius:0;">CANCEL</button>
-      <button class="btn btn-primary" id="fetch-repos-btn" onclick="fetchRepositories()" style="border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em;">
-        FETCH REPOSITORIES
+<!-- Connect Repository Field Note -->
+<div class="field-note-overlay" id="connect-modal" role="dialog" aria-modal="true" aria-labelledby="connect-modal-title">
+  <div class="field-note" id="connect-note" style="border-radius: 0; border: 1px solid var(--border); box-shadow: 8px 8px 0px rgba(0,0,0,0.05);">
+    <div class="field-note-header">
+      <div class="field-note-eyebrow">DISCOVER</div>
+      <div class="field-note-title" id="connect-modal-title" style="font-family: 'Newsreader', serif;">Connect Repository</div>
+      <button class="field-note-close" onclick="closeModal('connect-modal')" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
+    </div>
+    <div class="field-note-body">
+      <p class="t-small t-muted mb-6" style="line-height:1.6; margin-bottom: 24px;">
+        NEXUS will fetch your public repositories from GitHub and let you choose which to survey.
+      </p>
+      <div class="form-error-box hidden" id="connect-error">
+        <span id="connect-error-text">Could not fetch repositories.</span>
+      </div>
+      <div id="repos-list" style="margin-bottom: 24px;"></div>
+      <div class="mt-6" style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('connect-modal')" style="border-radius:0;">CANCEL</button>
+        <button class="btn btn-primary" id="fetch-repos-btn" onclick="fetchRepositories()" style="border-radius: 0; font-family: 'DM Mono', monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em;">
+          FETCH REPOSITORIES
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -128,78 +132,64 @@
     var projectId = Number(p.id);
 
     var card = document.createElement('div');
-    card.style.display = 'flex';
-    card.style.justifyContent = 'space-between';
-    card.style.alignItems = 'center';
-    card.style.padding = '16px';
-    card.style.border = '1px solid var(--border)';
-    card.style.background = 'var(--surface)';
+    card.className = 'expedition-card';
 
-    // Left
-    var left = document.createElement('div');
-    left.style.display = 'flex';
-    left.style.flexDirection = 'column';
-    left.style.gap = '8px';
+    var eyebrow = document.createElement('div');
+    eyebrow.className = 'expedition-eyebrow';
+    eyebrow.textContent = 'REPOSITORY / ' + (status || 'UNSURVEYED');
+    card.appendChild(eyebrow);
+
+    var title = document.createElement('div');
+    title.className = 'expedition-title';
+    title.textContent = p.name || '–';
+    card.appendChild(title);
+
+    var detail = document.createElement('div');
+    detail.className = 'expedition-detail';
     
-    var header = document.createElement('div');
-    header.style.display = 'flex';
-    header.style.alignItems = 'center';
-    header.style.gap = '12px';
-    header.innerHTML = '<span style="width: 8px; height: 8px; border: 1px solid var(--primary); background: transparent; transform: rotate(45deg);"></span>';
-    var name = document.createElement('span');
-    name.style.fontFamily = "'DM Mono', monospace";
-    name.style.fontWeight = '500';
-    name.style.fontSize = '14px';
-    name.style.color = 'var(--ink)';
-    name.textContent = p.name || '–';
-    header.appendChild(name);
-    left.appendChild(header);
+    var statusText = status === 'COMPLETED' ? 'Survey completed' : 
+                     status === 'ANALYZING' ? 'Analyzing repository...' : 
+                     status === 'FAILED' ? 'Survey failed' : 'Awaiting first survey';
+                     
+    detail.innerHTML =
+      '<span class="t-mono">' + statusText + ' (' + syncedAgo + ')</span><br>' +
+      'Discovered ' + artifactCount + ' artifacts and ' + observationCount + ' raw observations.';
+    card.appendChild(detail);
 
-    var meta = document.createElement('div');
-    meta.style.display = 'flex';
-    meta.style.alignItems = 'center';
-    meta.style.gap = '12px';
-    meta.style.fontFamily = "'Inter', sans-serif";
-    meta.style.fontSize = '12px';
-    meta.style.color = 'var(--muted)';
-    
-    var statusText = status === 'COMPLETED' ? 'Synced' : status === 'ANALYZING' ? 'Analyzing' : status === 'FAILED' ? 'Failed' : 'Not synced';
-    meta.innerHTML =
-      '<span>' + statusText + ' (' + syncedAgo + ')</span>' +
-      '<span>·</span>' +
-      '<span>' + artifactCount + ' Artifacts</span>' +
-      '<span>·</span>' +
-      '<span>' + observationCount + ' Observations</span>';
-    left.appendChild(meta);
-
-    // Right Actions
     var actions = document.createElement('div');
-    actions.style.display = 'flex';
-    actions.style.gap = '12px';
+    actions.className = 'expedition-actions';
     
     var syncBtn = document.createElement('button');
     syncBtn.className = 'btn btn-secondary btn-sm';
-    syncBtn.style.borderRadius = '0';
     syncBtn.style.fontFamily = "'DM Mono', monospace";
-    syncBtn.style.textTransform = 'uppercase';
-    syncBtn.style.fontSize = '10px';
     syncBtn.id = 'sync-btn-' + projectId;
-    syncBtn.textContent = 'SURVEY';
+    syncBtn.textContent = status === 'ANALYZING' ? 'ANALYZING...' : 'SURVEY REPOSITORY';
+    syncBtn.disabled = status === 'ANALYZING';
     syncBtn.onclick = function() { syncProject(projectId); };
     actions.appendChild(syncBtn);
 
-    card.appendChild(left);
+    if (status === 'COMPLETED') {
+       var viewBtn = document.createElement('a');
+       viewBtn.className = 'btn btn-primary btn-sm';
+       viewBtn.style.fontFamily = "'DM Mono', monospace";
+       viewBtn.href = '/?project=' + projectId;
+       viewBtn.textContent = 'VIEW ON ATLAS';
+       actions.appendChild(viewBtn);
+    }
+
     card.appendChild(actions);
     return card;
   }
 
   window.openConnectModal = function() {
-    document.getElementById('connect-modal').classList.add('show');
+    document.getElementById('connect-modal').classList.add('active');
+    document.getElementById('connect-note').classList.add('active');
     document.getElementById('connect-modal').setAttribute('aria-hidden', 'false');
   };
 
   window.closeModal = function(id) {
-    document.getElementById(id).classList.remove('show');
+    document.getElementById(id).classList.remove('active');
+    document.getElementById('connect-note').classList.remove('active');
     document.getElementById(id).setAttribute('aria-hidden', 'true');
   };
 
@@ -215,7 +205,7 @@
     btn.textContent = 'FETCHING...';
 
     try {
-      var repos = await apiFetch('/api/github/repos');
+      var repos = await apiFetch('/api/github/repositories');
       list.innerHTML = '';
       
       if (repos.length === 0) {
@@ -235,7 +225,11 @@
           addBtn.className = 'btn btn-secondary btn-sm';
           addBtn.style.borderRadius = '0';
           addBtn.textContent = 'ADD';
-          addBtn.onclick = function() { createProject(r.name, r.url); };
+          addBtn.onclick = function() { 
+            addBtn.disabled = true;
+            addBtn.textContent = 'ADDING...';
+            createProject(r.name, r.id, addBtn); 
+          };
           
           row.appendChild(left);
           row.appendChild(addBtn);
@@ -251,7 +245,32 @@
     }
   };
 
-  window.createProject = async function(name, url) {
+  window.syncProject = async function(projectId) {
+    var btn = document.getElementById('sync-btn-' + projectId);
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'SURVEYING...';
+    }
+    
+    try {
+      await apiFetch('/api/projects/' + projectId + '/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+      });
+      window.location.reload();
+    } catch (e) {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'SURVEY';
+      }
+      alert('Failed to survey project');
+    }
+  };
+
+  window.createProject = async function(name, repo_id, btn) {
     try {
       await apiFetch('/api/projects/', {
         method: 'POST',
@@ -259,11 +278,15 @@
           'Content-Type': 'application/json',
           'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
-        body: JSON.stringify({ name: name, repository_url: url })
+        body: JSON.stringify({ name: name, github_repo_id: repo_id })
       });
       closeModal('connect-modal');
       window.location.reload();
     } catch(e) {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'ADD';
+      }
       alert('Failed to add project');
     }
   };

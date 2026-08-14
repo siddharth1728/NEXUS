@@ -85,51 +85,38 @@ function renderSeverityBadge(severity) {
   return '<span class="badge badge-severity-low">LOW</span>';
 }
 
-/* ── Toast system ───────────────────────────────────── */
-var _TOAST_ICONS = {
-  success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
-  warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-  error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
-  info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
-};
-
+/* ── System Notice (formerly Toast) ───────────────────── */
 function showToast(message, type, duration) {
   if (type === undefined) type = 'info';
   if (duration === undefined) duration = 4000;
 
   var container = document.getElementById('toast-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'toast-container';
-    container.className = 'toast-container';
-    container.setAttribute('aria-live', 'polite');
-    document.body.appendChild(container);
-  }
+  if (!container) return;
 
-  var toast = document.createElement('div');
-  toast.className = 'toast toast-' + type;
-  toast.setAttribute('role', 'alert');
+  var notice = document.createElement('div');
+  notice.className = 'system-notice system-notice-' + type;
+  notice.setAttribute('role', 'alert');
 
-  var iconSpan = document.createElement('span');
-  iconSpan.className = 'toast-icon';
-  iconSpan.innerHTML = _TOAST_ICONS[type] || _TOAST_ICONS.info;
+  var titleSpan = document.createElement('span');
+  titleSpan.className = 'system-notice-title';
+  titleSpan.textContent = type;
 
-  var textSpan = document.createElement('span');
-  textSpan.className = 'toast-text';
-  textSpan.textContent = message;
+  var descSpan = document.createElement('span');
+  descSpan.className = 'system-notice-desc';
+  descSpan.textContent = message;
 
-  toast.appendChild(iconSpan);
-  toast.appendChild(textSpan);
+  notice.appendChild(titleSpan);
+  notice.appendChild(descSpan);
 
   var dismiss = function() {
-    toast.classList.add('removing');
-    setTimeout(function() { toast.remove(); }, 220);
+    notice.classList.add('removing');
+    setTimeout(function() { notice.remove(); }, 220);
   };
 
-  toast.addEventListener('click', dismiss);
-  container.appendChild(toast);
+  notice.addEventListener('click', dismiss);
+  container.appendChild(notice);
   if (duration > 0) setTimeout(dismiss, duration);
-  return toast;
+  return notice;
 }
 
 /* ── Drawer system ──────────────────────────────────── */
@@ -373,43 +360,40 @@ window.openEvidenceExplorer = async function(skillId, skillName, state) {
     }
 
     var summary = document.createElement('p');
-    summary.className = 't-caption mb-4';
-    summary.textContent = evidence.length + ' evidence signal' + (evidence.length !== 1 ? 's' : '') + ' contributing to this state.';
+    summary.className = 't-caption mb-6';
+    summary.innerHTML = '<span style="color:var(--primary); font-family:\'DM Mono\', monospace; text-transform:uppercase;">' + evidence.length + ' evidence signal' + (evidence.length !== 1 ? 's' : '') + '</span> contributing to this state.';
     body.appendChild(summary);
+
+    var ledgerContainer = document.createElement('div');
+    ledgerContainer.className = 'proof-ledger';
 
     evidence.forEach(function(e) {
       var item = document.createElement('div');
-      item.className = 'evidence-item';
+      item.className = 'proof-ledger-item';
+      
+      var grid = document.createElement('div');
+      grid.className = 'proof-ledger-grid';
+      
       var path = (e.source_reference || '').split(/[\/\\]/).pop() || e.source_reference || '–';
       var quality = ((e.quality_score || 0) * 100).toFixed(0);
 
-      var textDiv = document.createElement('div');
-      textDiv.className = 'evidence-item-text';
-      textDiv.textContent = e.raw_observation_text || '–';
+      grid.innerHTML =
+        '<div class="proof-ledger-label">SOURCE</div>' +
+        '<div class="proof-ledger-value t-mono" style="font-size:11px;">' + escapeHtml(path) + '</div>' +
+        
+        '<div class="proof-ledger-label mt-3">OBSERVATION</div>' +
+        '<div class="proof-ledger-value mt-3" style="font-size:13px;">' + escapeHtml(e.raw_observation_text || '–') + '</div>' +
+        
+        '<div class="proof-ledger-label mt-3">SIGNAL</div>' +
+        '<div class="proof-ledger-value mt-3" style="font-family:\'DM Mono\', monospace; font-size:11px; text-transform:uppercase; color:var(--muted);">' + 
+        escapeHtml(e.type || '–') + ' // QUALITY ' + quality + '%' +
+        '</div>';
 
-      var metaDiv = document.createElement('div');
-      metaDiv.className = 'evidence-item-meta';
-
-      var typeBadge = document.createElement('span');
-      typeBadge.className = 'badge badge-type';
-      typeBadge.textContent = e.type || '–';
-
-      var sourceCode = document.createElement('code');
-      sourceCode.className = 'evidence-source';
-      sourceCode.textContent = path;
-
-      var scoreSpan = document.createElement('span');
-      scoreSpan.className = 'evidence-score';
-      scoreSpan.textContent = 'Quality ' + quality + '%';
-
-      metaDiv.appendChild(typeBadge);
-      metaDiv.appendChild(sourceCode);
-      metaDiv.appendChild(scoreSpan);
-
-      item.appendChild(textDiv);
-      item.appendChild(metaDiv);
-      body.appendChild(item);
+      item.appendChild(grid);
+      ledgerContainer.appendChild(item);
     });
+    
+    body.appendChild(ledgerContainer);
   } catch (err) {
     showError(body, 'Failed to Load Evidence', 'Unable to retrieve evidence details.');
   }

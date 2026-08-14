@@ -127,6 +127,10 @@ var NexusAtlas = (function() {
     // Grid background lines
     renderGrid(svg, containerWidth, layout.totalHeight);
 
+    // Group for dynamic paths
+    var pathsG = svgEl('g', { 'class': 'atlas-paths' });
+    svg.appendChild(pathsG);
+
     // Render each territory
     var allSignalEls = [];
     var allLandmarkEls = [];
@@ -154,7 +158,8 @@ var NexusAtlas = (function() {
       signalEls: allSignalEls,
       landmarkEls: allLandmarkEls,
       signalDataMap: signalDataMap,
-      svg: svg
+      svg: svg,
+      pathsG: pathsG
     };
   }
 
@@ -280,7 +285,7 @@ var NexusAtlas = (function() {
         signalEls.push(sG);
         signalDataMap[key] = {
           signal: signal,
-          landmark: landmark,
+          landmark: { id: landmark.project_id, x: lmX, y: lmY },
           el: sG,
           x: sX, y: sY
         };
@@ -377,6 +382,9 @@ var NexusAtlas = (function() {
     var key = 'signal-' + skillId;
     var target = data.signalDataMap[key];
 
+    // Clear existing paths
+    data.pathsG.innerHTML = '';
+
     // Dim all others
     data.signalEls.forEach(function(el) {
       el.classList.toggle('dimmed', el.getAttribute('data-skill-id') != skillId);
@@ -385,18 +393,31 @@ var NexusAtlas = (function() {
     data.landmarkEls.forEach(function(el) {
       if (target && target.landmark) {
         el.classList.toggle('dimmed',
-          el.getAttribute('data-project-id') != target.landmark.project_id
+          el.getAttribute('data-project-id') != target.landmark.id
         );
       } else {
         el.classList.add('dimmed');
       }
     });
+
+    // Draw SVG route line
+    if (target && target.landmark && target.landmark.x !== undefined) {
+       var pathD = 'M ' + target.landmark.x + ' ' + (target.landmark.y + 4) + 
+                   ' L ' + target.landmark.x + ' ' + target.y + 
+                   ' L ' + (target.x - 10) + ' ' + target.y;
+       var pathEl = svgEl('path', {
+         'class': 'atlas-proof-path visible',
+         'd': pathD
+       });
+       data.pathsG.appendChild(pathEl);
+    }
   }
 
   // ── Clear highlight ───────────────────────────────
   function clearHighlight(container) {
     if (!container || !container._atlasData) return;
     var data = container._atlasData;
+    data.pathsG.innerHTML = '';
     data.signalEls.forEach(function(el) {
       el.classList.remove('dimmed', 'highlighted');
     });
@@ -439,77 +460,97 @@ var NexusAtlas = (function() {
 
   // ── Render mobile summary ─────────────────────────
   function renderMobileSummary(container, territories) {
-    var existing = container.querySelector('.atlas-mobile-summary');
+    var existing = container.querySelector('.atlas-mobile-grid');
     if (existing) existing.remove();
 
     var wrapper = document.createElement('div');
-    wrapper.className = 'atlas-mobile-summary';
+    wrapper.className = 'atlas-mobile-grid';
 
-    // Group all skills by state
-    var groups = { STRONG: [], DEVELOPING: [], WEAK: [], MISSING: [] };
     territories.forEach(function(t) {
+      var territoryDiv = document.createElement('div');
+      territoryDiv.className = 'atlas-mobile-territory';
+
+      var tLabel = document.createElement('div');
+      tLabel.className = 'atlas-mobile-territory-label';
+      tLabel.textContent = t.category.toUpperCase();
+      territoryDiv.appendChild(tLabel);
+
       t.landmarks.forEach(function(lm) {
+        var lmDiv = document.createElement('div');
+        lmDiv.className = 'atlas-mobile-landmark';
+        
+        var lmHeader = document.createElement('div');
+        lmHeader.className = 'atlas-mobile-landmark-header';
+        lmHeader.innerHTML = '<span class="atlas-mobile-landmark-icon"></span>' + escapeHtml(lm.project_name);
+        lmDiv.appendChild(lmHeader);
+
+        var signalsList = document.createElement('div');
+        signalsList.className = 'atlas-mobile-signals';
+
         lm.signals.forEach(function(s) {
           var state = s.state || 'MISSING';
-          if (groups[state]) groups[state].push(s);
+          var item = document.createElement('div');
+          item.className = 'atlas-mobile-item';
+
+          var dot = document.createElement('span');
+          dot.className = 'atlas-mobile-dot';
+          dot.style.background = STATE_COLORS[state] || STATE_COLORS.MISSING;
+
+          var name = document.createElement('span');
+          name.className = 'atlas-mobile-item-name';
+          name.textContent = s.skill_name;
+
+          item.appendChild(dot);
+          item.appendChild(name);
+          signalsList.appendChild(item);
+
+          item.addEventListener('click', function() {
+            if (typeof window.openEvidenceExplorer === 'function') {
+              window.openEvidenceExplorer(s.skill_id, s.skill_name, state);
+            }
+          });
         });
+
+        lmDiv.appendChild(signalsList);
+        territoryDiv.appendChild(lmDiv);
       });
-      t.unexplored.forEach(function(u) {
-        groups.MISSING.push({ skill_id: u.skill_id, skill_name: u.skill_name, state: 'MISSING' });
-      });
-    });
 
-    var labels = {
-      STRONG: 'Proven',
-      DEVELOPING: 'Developing',
-      WEAK: 'Weak',
-      MISSING: 'Unexplored'
-    };
-    var dotClasses = {
-      STRONG: 'signal-item-dot-strong',
-      DEVELOPING: 'signal-item-dot-developing',
-      WEAK: 'signal-item-dot-weak',
-      MISSING: 'signal-item-dot-missing'
-    };
+      if (t.unexplored && t.unexplored.length > 0) {
+        var uHeader = document.createElement('div');
+        uHeader.className = 'atlas-mobile-landmark-header';
+        uHeader.style.color = 'var(--muted)';
+        uHeader.textContent = 'Unexplored Signals';
+        territoryDiv.appendChild(uHeader);
 
-    ['STRONG', 'DEVELOPING', 'WEAK', 'MISSING'].forEach(function(state) {
-      if (groups[state].length === 0) return;
+        var uList = document.createElement('div');
+        uList.className = 'atlas-mobile-signals';
 
-      var group = document.createElement('div');
-      group.className = 'atlas-mobile-group';
+        t.unexplored.forEach(function(u) {
+          var item = document.createElement('div');
+          item.className = 'atlas-mobile-item';
 
-      var title = document.createElement('div');
-      title.className = 'atlas-mobile-group-title';
-      title.textContent = labels[state] + ' (' + groups[state].length + ')';
-      group.appendChild(title);
+          var dot = document.createElement('span');
+          dot.className = 'atlas-mobile-dot atlas-mobile-dot-unexplored';
 
-      groups[state].forEach(function(s) {
-        var item = document.createElement('div');
-        item.className = 'atlas-mobile-item';
+          var name = document.createElement('span');
+          name.className = 'atlas-mobile-item-name';
+          name.style.color = 'var(--muted)';
+          name.textContent = u.skill_name;
 
-        var dot = document.createElement('span');
-        dot.className = 'atlas-mobile-dot ' + (dotClasses[state] || '');
-        dot.style.background = STATE_COLORS[state] || STATE_COLORS.MISSING;
-        if (state === 'MISSING') {
-          dot.style.background = 'none';
-          dot.style.border = '1.5px dashed #7D7A73';
-        }
+          item.appendChild(dot);
+          item.appendChild(name);
+          uList.appendChild(item);
 
-        var name = document.createElement('span');
-        name.textContent = s.skill_name;
-
-        item.appendChild(dot);
-        item.appendChild(name);
-        group.appendChild(item);
-
-        item.addEventListener('click', function() {
-          if (typeof window.openEvidenceExplorer === 'function') {
-            window.openEvidenceExplorer(s.skill_id, s.skill_name, s.state || 'MISSING');
-          }
+          item.addEventListener('click', function() {
+            if (typeof window.openEvidenceExplorer === 'function') {
+              window.openEvidenceExplorer(u.skill_id, u.skill_name, 'MISSING');
+            }
+          });
         });
-      });
+        territoryDiv.appendChild(uList);
+      }
 
-      wrapper.appendChild(group);
+      wrapper.appendChild(territoryDiv);
     });
 
     container.appendChild(wrapper);
