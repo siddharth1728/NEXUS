@@ -1,178 +1,241 @@
-# NEXUS - Phase 1 Foundation
+# NEXUS
 
-NEXUS is an evidence-driven engineering intelligence platform designed for engineering students.
+## Engineering Intelligence
 
-**Phase 1 Goal:** Establish the production-quality FastAPI and PostgreSQL foundation with secure authentication, session rotation, and a clean frontend shell.
+"NEXUS turns the engineering work you build into evidence of what you can prove, what you need to strengthen, and what to build next."
 
-## Architecture & Tech Stack
-- **Backend Framework:** FastAPI
-- **Database:** PostgreSQL via SQLAlchemy + psycopg v3
-- **Migrations:** Alembic
-- **Authentication:** Short-lived JWTs and hashed Refresh Tokens using HTTP-Only Secure Cookies.
-- **Frontend:** Server-side rendered Jinja2 templates (HTML/CSS/Vanilla JS).
+NEXUS connects engineering work, observable evidence, skill signals, project intelligence, learning, AI-assisted reflection, and shareable engineering identity into one system.
 
-## Local Setup
+## THE PHILOSOPHY
+# BUILD → PROVE → UNDERSTAND → DEFEND → PRESENT → SHARE
 
-### Option A: Docker PostgreSQL (Recommended)
-1. Ensure Docker is installed and running.
-2. Run `docker compose up -d` to spin up local `dev` and `test` PostgreSQL instances.
-3. The default configuration in `.env.example` points to these instances.
+**BUILD**
+Students create real engineering work in their own repositories.
 
-### Option B: Existing PostgreSQL / Supabase
-1. Create a `dev` database and a `test` database.
-2. Copy `.env.example` to `.env` and update `DATABASE_URL` and `TEST_DATABASE_URL` accordingly.
-**Never commit credentials to version control.**
+**PROVE**
+NEXUS observes engineering evidence from connected work, analyzing code without making subjective claims.
 
-## Running the Application
+**UNDERSTAND**
+Students explore Project Intelligence and the Engineering Lab to deeply understand their own capabilities and gaps.
 
-1. Create a virtual environment and install dependencies:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: .\venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-2. Set up the environment variables:
-   ```bash
-   cp .env.example .env
-   # Edit .env to match your setup
-   ```
-3. Run Alembic migrations to create the schema:
-   ```bash
-   alembic upgrade head
-   ```
-4. Seed the initial Target Roles and Skills taxonomy (Idempotent):
-   ```bash
-   python -m app.db.seed
-   ```
-5. Start the FastAPI development server:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
+**DEFEND**
+Students use the AI Engineering Copilot for project-specific interview experiences and architectural defense.
 
-## Production Deployment
+**PRESENT**
+Students create a NEXUS ID—an evidence-backed public engineering profile.
 
-### Architecture
-NEXUS runs on a FastAPI application backend, backed by PostgreSQL, with schema migrations managed by Alembic. Production environments also require an external email provider for authentication flows.
+**SHARE**
+Students can share selected engineering evidence through permission-controlled ecosystem features for mentors, educators, and teams.
 
-### Environment Variables
-The following environment variables are **required** for production:
-- `SECRET_KEY` (must be a secure 32+ character string)
-- `DATABASE_URL`
-- `APP_BASE_URL`
-- `ENVIRONMENT` (must be set to `production`)
-- `EMAIL_PROVIDER` (must be `sendgrid` or `smtp` in production)
-- `EMAIL_FROM`
-- `EMAIL_API_KEY` (or equivalent SMTP credentials)
+## THE PROBLEM NEXUS SOLVES
 
-**Security Warning:** Never commit your `.env` file to version control. Production secrets must be injected securely via your deployment platform's environment variable manager.
+Students often struggle to understand:
+- what their projects actually demonstrate
+- whether their claimed skills have observable proof
+- what skills remain under-evidenced
+- what to build next
+- how to improve existing projects
+- how to explain their own technical decisions
+- how to present engineering work credibly
+- how to share engineering evidence safely
 
-### Password Reset Flow
-In production, the password reset flow requires a fully configured email provider. The development `stub` provider is strictly rejected in production.
+NEXUS connects those disconnected pieces into a unified, deterministic framework that replaces self-assessment with verifiable evidence.
 
-### Detailed Readiness Checklist
-For a comprehensive breakdown of the production security boundaries and configuration options, please refer to the [NEXUS Production Readiness Report](C:/Users/siddu/.gemini/antigravity-ide/brain/3834f55a-417d-4535-a8a5-ff611fed72c5/NEXUS_PRODUCTION_READINESS.md).
+## HOW NEXUS WORKS
 
-### Deployment Steps
-1. Apply database migrations:
-   ```bash
-   alembic upgrade head
-   ```
-2. Start the production server:
-   ```bash
-   uvicorn app.main:app --host 0.0.0.0 --port $PORT
-   ```
+THE DETERMINISTIC NEXUS LAYER IS THE SOURCE OF TRUTH.
+AI is an experience layer.
+Public profiles are a presentation layer.
+Sharing is a permission layer.
 
-## Running Tests
-
-Tests use an isolated test database (`TEST_DATABASE_URL`). Do NOT run tests against a production Supabase instance.
-```bash
-python -m pytest
+```mermaid
+graph TD
+    GH[GitHub] --> |Manual Sync| REPO[Repository]
+    REPO --> |Snapshot| SNAP[Repository Snapshot]
+    SNAP --> |Discover| ART[Artifacts]
+    ART --> |Rule Engine| RAW[Raw Observations]
+    RAW --> |Map to Taxonomy| EVI[Evidence]
+    EVI --> |Aggregate & Anti-Inflation| SKILL[Skill State]
+    SKILL --> |Compare to Target Role| GAP[Gaps]
+    GAP --> |Severity Sorting| NBA[Next Best Action]
+    NBA --> EXP[Atlas / Projects / Lab / AI / NEXUS ID / Sharing]
+    
+    style GH fill:#238636,stroke:#fff,color:#fff
+    style EVI fill:#1f6feb,stroke:#fff,color:#fff
+    style SKILL fill:#8957e5,stroke:#fff,color:#fff
+    style GAP fill:#d29922,stroke:#fff,color:#fff
+    style EXP fill:#2ea043,stroke:#fff,color:#fff
 ```
 
-## Security Features (Phase 1)
-- **CSRF Protection:** Implemented via a combination of double-submit cookies/headers on all state-changing endpoints (POST/PUT/DELETE).
-- **HTTP-Only Cookies:** Tokens are strictly transmitted via `HttpOnly`, `SameSite=Lax` cookies. Frontend JavaScript cannot access authentication tokens.
-- **Refresh Token Rotation:** Every refresh action revokes the previous refresh session in the database and issues a new token pair.
-- **Rate Limiting:** A lightweight in-memory rate limiter protects authentication endpoints from brute force.
+## EVIDENCE BEFORE CLAIMS
 
-## Scope Boundaries
-**Phase 1 Scope:** Database foundation, secure authentication, API routers, frontend shell.
-**Future Phases (Not yet implemented):** 
-- Evidence Engine and skill-state calculations
-- Gap Engine and Next Best Action Engine
+NEXUS does not simply trust a student saying: *"I know Docker."*
+Instead, it looks for observable engineering evidence (e.g., Dockerfiles, docker-compose configurations). A lack of evidence is NOT automatically treated as proof of inability—it is simply unexplored territory.
 
-## Phase 2: GitHub Evidence Collection
+NEXUS classifies capabilities into verifiable states:
+- **PROVEN**: Strong, repeated evidence across multiple artifacts.
+- **DEVELOPING**: Emerging evidence, but lacks depth or repetition.
+- **WEAK**: Minimal or isolated evidence.
+- **UNEXPLORED**: No verifiable engineering evidence observed in surveyed repositories yet.
 
-Phase 2 focuses on discovering and collecting evidence from a student's actual GitHub repositories.
+## PRODUCT CAPABILITIES
 
-### Features Included
-* **GitHub Integration**: Links to public repositories associated with a user's GitHub username.
-* **Manual Synchronization**: Analyzes the latest commit of the default branch on demand.
-* **Repository Snapshots**: Permanent historical records of a repository's state at synchronization time.
-* **Artifact Discovery**: Detects useful engineering files (e.g., Python, Docker, CI/CD, SQL). Excludes vendor/generated directories deterministically.
-* **Raw Observations**: Generates objective technical facts (e.g., "FastAPI import detected", "Test file detected") using a deterministic rule engine based on file content.
-* **Source-code Privacy**: Code is pulled temporarily in memory for analysis, but is **never** persisted to the database, logs, or snapshots.
-* **Rate-limit Handling**: Graceful degradation and user-facing messages on GitHub API limit exhaustion.
+### Engineering Atlas
+Interactive 2D Technical Cartography view of your engineering identity. 
 
-### Limitations & Non-Goals
-* **No AI evaluation** or complex parsing is performed. Observations are purely heuristic and text-based.
-* **No background processing** or webhooks; synchronization is entirely manual and synchronous.
-* **No private repositories** or GitHub OAuth are required (unless `GITHUB_TOKEN` is supplied for the backend).
+### Evidence / Proof
+Trace how engineering signals are supported by objective, observable evidence.
 
-## Phase 3: Evidence Engine
+### Signals
+See current capability states (Proven, Developing, Weak) backed by real engineering work.
 
-Phase 3 transforms raw observations into structured evidence and maps them to the skill taxonomy.
+### Unexplored
+Understand role-relevant areas where NEXUS currently lacks sufficient evidence.
 
-### Features Included
-* **Deterministic Rule Engine**: Maps specific observation texts (e.g., "FastAPI import detected") to `EvidenceType` and baseline quality scores.
-* **Skill Mapping**: Resolves evidence to existing `Skill` entities in the taxonomy. Unknown skills are strictly ignored.
-* **Freshness Weighting**: Calculates a time-decay weight (1.0 to 0.1) based on the repository snapshot's capture date.
-* **Rebuildable Engine**: Evidence can be deterministically deleted and regenerated from immutable `RawObservations` as rules evolve.
-* **Strict Ownership Isolation**: Evidence API endpoints enforce that users can only view evidence for their own projects.
+### Next Expedition
+Deterministic next action based on severity-sorted capability gaps against a target role.
 
-### Limitations & Non-Goals
-* **Skill State, Gaps, and Next Best Actions are NOT implemented yet.** Evidence is collected and mapped, but aggregate proficiency scores are not calculated.
-* **No automated taxonomy creation**. If a rule maps to a skill that doesn't exist in the database, it is ignored rather than created.
-* **Zero LLMs used** for evidence generation. The engine relies purely on deterministic python-based dictionary lookups.
+### Proof Quests
+Turn evidence gaps into concrete engineering build missions.
 
-## Phase 4: Skill State Engine
+### Project Intelligence
+Understand what individual projects actually demonstrate, their technical anatomy, and how they can evolve.
 
-Phase 4 introduces a deterministic engine that maps raw engineering evidence to four explicit states: MISSING, WEAK, DEVELOPING, and STRONG.
+### Engineering Lab
+Learn engineering concepts through the context of the work you have already built.
 
-### Algorithm and Anti-Inflation
-The engine uses strict algorithmic aggregation to prevent inflation:
-* **Base Contribution**: `quality_score * freshness_weight`. Older evidence contributes less.
-* **EvidenceType Diversity Cap**: Total contribution from any single evidence type (e.g., API, TESTING) is capped at `1.5`.
-* **Artifact Diversity Cap**: Total contribution from any single artifact (e.g., `app.py`) is capped at `2.0`.
+### AI Engineering Copilot
+Explain, teach, challenge, and conduct project-specific interviews using verified NEXUS context. The AI challenges your understanding but does not evaluate your skill state.
 
-### State Thresholds
-* **MISSING**: Contribution < 0.5 or no meaningful evidence.
-* **WEAK**: Contribution >= 0.5, 1+ meaningful evidence, 1+ unique EvidenceType, 1+ unique Artifact.
-* **DEVELOPING**: Contribution >= 1.5, 2+ meaningful evidence, 1+ unique EvidenceType, 2+ unique Artifacts.
-* **STRONG**: Contribution >= 3.0, 4+ meaningful evidence, 2+ unique EvidenceTypes, 3+ unique Artifacts.
+### NEXUS ID
+An evidence-backed engineering passport and public profile representing your proven capabilities.
 
-### Evidence Explorer & Privacy
-The API and UI provide an Evidence Explorer that answers "Why this state?" by displaying the metadata (type, quality, freshness, safe source reference) used in the classification. 
-* **Privacy Boundary**: It strictly enforces privacy by never exposing actual source code snippets, GitHub tokens, or credentials. Raw observation text is kept as strictly factual metadata.
+### Ecosystem
+Dedicated permissioned experiences for Mentors, Reviewers, Educators, and Teams.
 
-> **Note**: Skill State is an evidence-derived classification and is not a measurement of a student's absolute engineering ability.
+## SIGNATURE EXPERIENCE: FOLLOW THE PROOF
 
-## Phase 5: Gap Engine
+One of NEXUS's defining interactions is the ability to trace any claim back to reality:
 
-Phase 5 introduces a deterministic engine to identify skill deficiencies by comparing a student's actual `UserSkill` states against the required skills of their chosen `TargetRole` (via `TargetRoleSkill`).
+**Skill** (e.g., API Development)
+↓
+**Project** (e.g., E-Commerce Backend)
+↓
+**Evidence** (e.g., FastAPI Router implementation)
+↓
+**Field Note** (Exact context of discovery)
 
-### Features Included
-* **Ordinal State Comparison**: States are mapped to strict ordinal values (`MISSING = 0`, `WEAK = 1`, `DEVELOPING = 2`, `STRONG = 3`). Missing UserSkills are implicitly treated as `MISSING`.
-* **State Distance**: The engine calculates the gap by subtracting the actual state from the required state. If actual >= required, there is no gap.
-* **Deterministic Severity**: The raw distance is multiplied by the `TargetRoleSkill.importance_weight` to calculate a prioritization `severity`.
-* **Deterministic Sorting**: Gaps are strictly sorted by severity DESC, importance_weight DESC, required state DESC, and skill ID ASC.
-* **Derived and Rebuildable**: Gaps are completely derived data. Obsolete gaps automatically disappear as evidence improves a student's Skill State.
+## ENGINEERING ATLAS
 
-### Limitations & Non-Goals
-* **No Next Best Actions**: The Gap Engine strictly identifies "What is missing?". It does NOT fabricate recommendations, learning resources, or say "Build X". That is strictly reserved for Phase 6.
-* **No AI/LLMs**: Everything is deterministic math.
-* **No Readiness Percentages**: The severity score is a sorting priority, NOT a completion percentage or readiness score.
-* **No Vanity Metrics**: GitHub stars, forks, or raw commit counts are entirely excluded from gap analysis.
+NEXUS abandons traditional dashboards for a 2D engineering atlas built with SVG, HTML, CSS, and Vanilla JS.
 
-> **Note**: The Gap Engine identifies evidence-derived skill deficiencies. It does not determine absolute engineering ability and does not generate recommendations.
-# NEXUS
+- **Target Role** → Destination
+- **Engineering Domains** → Territories
+- **Projects** → Landmarks
+- **Skills** → Signals
+- **Evidence** → Proof Paths
+- **Gaps** → Unexplored Territory
+- **Journey** → Route / Expedition Log
+- **Next Best Action** → Next Expedition
+
+## PROJECT INTELLIGENCE
+
+NEXUS project pages do not rely on fabricated quality scores. Instead, they answer:
+- WHAT DID I BUILD?
+- WHAT DID NEXUS FIND?
+- WHAT DOES IT PROVE?
+- WHAT IS DEVELOPING?
+- WHAT IS STILL UNEXPLORED?
+- WHAT COULD GROW NEXT?
+
+## PROOF QUESTS
+
+A gap in NEXUS can become a concrete engineering mission.
+*Example:* 
+Testing Gap → **PROVE TESTING** → Build tests → Push to GitHub → Sync → Generate Evidence → Recalculate Skill State.
+
+*CRITICAL:* "Marked complete" in a UI is NOT equivalent to "verified evidence." Only authoritative engineering evidence pushed to a repository can change a skill state.
+
+## ENGINEERING LAB
+
+Students learn concepts through the work they already built. The loop:
+PROJECT → OBSERVED CONCEPT → UNDERSTAND → TRY → EXPLAIN → RETURN TO PROJECT
+
+## AI ENGINEERING COPILOT
+
+NEXUS strictly separates deterministic truth from AI experiences.
+
+**NEXUS deterministic layer determines:**
+evidence, skills, gaps, quests, and project truth.
+
+**AI layer can only:**
+explain, teach, challenge, interview, and coach.
+
+The AI does NOT determine skill state, evidence validity, gap analysis, or quest verification. This boundary ensures product trust.
+
+## NEXUS ID
+
+An evidence-backed engineering passport. 
+It communicates your target role, proven signals, developing signals, selected projects, verified proof, and selected journey to shape a public engineering identity.
+
+It is **NOT** an ATS score, a vanity metric, a popularity profile, or a fake readiness percentage.
+
+## ECOSYSTEM
+
+NEXUS features ONE TRUTH with DIFFERENT PERMISSIONED VIEWS. Student ownership remains central.
+
+- **Student:** Full control and ownership of data.
+- **Mentor:** Scoped dossier access with the ability to leave private engineering notes.
+- **Reviewer:** Temporary, time-limited project proof sheets.
+- **Educator:** Cohort aggregated observatory (requires ≥ 6 students for privacy).
+- **Team:** Project-level sharing for neutral collaboration signals.
+
+## SECURITY & PRIVACY
+
+NEXUS implements strict security protections:
+- Secure password hashing (bcrypt)
+- HTTP-Only secure cookies with session rotation
+- CSRF protection via double-submit cookies/headers
+- In-memory rate limiting
+- Strict cross-user ownership isolation
+- Password reset token hashing
+- Public/private visibility controls
+- Zero persistence of GitHub source code (analyzed in memory only)
+
+## DATA OWNERSHIP
+
+Users own their accounts and engineering identity. Sharing is explicit and instantly revocable. Private data remains private. AI does not override ownership. Mentors do not alter engineering truth. Educators only see aggregate information. Public profiles expose only selected content.
+
+## TECH STACK
+
+| Layer | Technology |
+|---|---|
+| Backend | FastAPI (Python 3) |
+| ORM | SQLAlchemy |
+| Database | PostgreSQL (psycopg v3) |
+| Migrations | Alembic |
+| Templates | Jinja2 |
+| Frontend | HTML / CSS / Vanilla JS |
+| Visualization | SVG (Engineering Atlas) |
+| Authentication | Passlib (bcrypt), python-jose (JWT) |
+| Deployment | Render |
+
+## ARCHITECTURE
+
+```text
+                NEXUS
+                  │
+        ┌─────────┴─────────┐
+        │                   │
+   Deterministic        Experience
+     Engines              Layer
+        │                   │
+  Evidence           Atlas / Projects
+  Skills             Proof / Lab
+  Gaps               AI / NEXUS ID
+  NBA                 Sharing
+        │
+     PostgreSQL
+        │
+     GitHub
+```
