@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}NEXUS Team Mode — Team Collaboration Map{% endblock %}
+
+{% block content %}
+<div class="atlas-container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 5rem;">
+
+  <!-- Header -->
+  <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+    <div style="font-family: monospace; font-size: 0.8rem; color: var(--accent-blue); letter-spacing: 1px; margin-bottom: 0.5rem;">
+      // NEXUS TEAM WORKSPACE
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">TEAM COLLABORATION MAP</h1>
+        <p style="color: var(--text-muted); margin: 0; font-size: 0.95rem;">
+          Project-level shared engineering activity without reductive commit-percentage rankings.
+        </p>
+      </div>
+      <div>
+        <button onclick="promptCreateTeam()" class="btn" style="background: var(--accent-blue); color: #000; font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; border: none; cursor: pointer;">
+          + Create New Team
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main View -->
+  <div id="team-content">
+    
+    <!-- Team Info Banner -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 style="font-size: 1.6rem; font-weight: 700; margin: 0 0 0.3rem; color: #fff;" id="team-name">Team Workspace</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;" id="team-desc">Collaborative engineering space</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button onclick="promptShareProject()" class="btn" style="background: rgba(88, 166, 255, 0.15); border: 1px solid var(--accent-blue); color: var(--accent-blue); font-weight: 600; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">
+            + Share Codebase with Team
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Collaboration Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+
+      <!-- Shared Projects -->
+      <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; color: #fff;">Shared Team Codebases</h3>
+        <div id="team-projects-list" style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <p style="color: var(--text-muted); font-size: 0.85rem;">No repositories shared yet.</p>
+        </div>
+      </div>
+
+      <!-- Collaboration Signals -->
+      <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; color: #fff;">Collaboration Signals</h3>
+        <div id="team-signals-list" style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <p style="color: var(--text-muted); font-size: 0.85rem;">Evaluating collaboration activity...</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Team Members Ledger -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; color: #fff;">Team Members</h3>
+      <div id="team-members-list" style="display: flex; flex-wrap: wrap; gap: 0.75rem;"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  let currentTeamId = null;
+
+  async function loadTeamData() {
+    // Attempt to load user's teams from sharing overview
+    try {
+      const res = await fetch("/api/ecosystem/sharing");
+      if (res.ok) {
+        const data = await res.json();
+        const teamLedger = data.permissions_ledger.filter(l => l.entity_type === "TEAM");
+        if (teamLedger.length > 0) {
+          const tId = teamLedger[0].id.replace("team_", "");
+          currentTeamId = parseInt(tId);
+          loadTeamCollaboration(currentTeamId);
+        } else {
+          document.getElementById("team-name").textContent = "No Active Team Selected";
+          document.getElementById("team-desc").textContent = "Create a team or join using a team invite code in the Sharing Center.";
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function loadTeamCollaboration(teamId) {
+    try {
+      const res = await fetch(`/api/ecosystem/teams/${teamId}/collaboration`);
+      if (res.ok) {
+        const data = await res.json();
+        renderTeam(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderTeam(data) {
+    document.getElementById("team-name").textContent = data.team_name;
+    document.getElementById("team-desc").textContent = data.description || "Shared collaborative workspace";
+
+    // Projects
+    const projContainer = document.getElementById("team-projects-list");
+    projContainer.innerHTML = "";
+    if (data.shared_projects && data.shared_projects.length > 0) {
+      data.shared_projects.forEach(p => {
+        const item = document.createElement("div");
+        item.style = "padding: 0.6rem 0.8rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; display: flex; justify-content: space-between; align-items: center;";
+        item.innerHTML = `<span style="font-weight: 600; color: #fff;">${p.name}</span><span style="font-size: 0.8rem; color: var(--text-muted);">Shared ${p.shared_at}</span>`;
+        projContainer.appendChild(item);
+      });
+    } else {
+      projContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">No repositories shared with this team yet.</p>`;
+    }
+
+    // Signals
+    const sigContainer = document.getElementById("team-signals-list");
+    sigContainer.innerHTML = "";
+    (data.collaboration_signals || []).forEach(s => {
+      const item = document.createElement("div");
+      item.style = "padding: 0.6rem 0.8rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px;";
+      item.innerHTML = `<div style="font-weight: 600; color: var(--accent-blue); font-size: 0.85rem;">${s.signal}</div><div style="font-size: 0.85rem; color: #c9d1d9;">${s.fact}</div>`;
+      sigContainer.appendChild(item);
+    });
+
+    // Members
+    const memContainer = document.getElementById("team-members-list");
+    memContainer.innerHTML = "";
+    (data.members || []).forEach(m => {
+      const chip = document.createElement("div");
+      chip.style = "padding: 0.5rem 0.8rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;";
+      chip.innerHTML = `<span style="font-weight: 600; color: #fff;">${m.email_prefix}</span><span style="font-size: 0.75rem; color: var(--accent-green); background: rgba(63, 185, 80, 0.1); padding: 0.1rem 0.4rem; border-radius: 2px;">${m.role}</span>`;
+      memContainer.appendChild(chip);
+    });
+  }
+
+  async function promptCreateTeam() {
+    const name = prompt("Enter Team Name (e.g. Nexus Core Team):");
+    if (!name) return;
+    const desc = prompt("Enter Short Description (Optional):");
+
+    try {
+      const res = await fetch("/api/ecosystem/teams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), description: desc || null })
+      });
+      if (res.ok) {
+        const created = await res.json();
+        alert("Team created successfully!");
+        currentTeamId = created.team_id;
+        renderTeam(created);
+      } else {
+        const err = await res.json();
+        alert(`Error: ${err.detail || 'Failed to create team'}`);
+      }
+    } catch (e) {
+      alert("Network error");
+    }
+  }
+
+  async function promptShareProject() {
+    if (!currentTeamId) {
+      alert("Please select or create a team first.");
+      return;
+    }
+    const projId = prompt("Enter Project ID to share with this team:");
+    if (!projId) return;
+
+    try {
+      const res = await fetch(`/api/ecosystem/teams/${currentTeamId}/share-project`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project_id: parseInt(projId) })
+      });
+      if (res.ok) {
+        alert("Codebase shared with team!");
+        loadTeamCollaboration(currentTeamId);
+      } else {
+        const err = await res.json();
+        alert(`Error: ${err.detail || 'Failed to share project'}`);
+      }
+    } catch (e) {
+      alert("Network error");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", loadTeamData);
+</script>
+{% endblock %}

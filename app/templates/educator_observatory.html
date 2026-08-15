@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}NEXUS Educator Mode — Engineering Observatory{% endblock %}
+
+{% block content %}
+<div class="atlas-container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 5rem;">
+
+  <!-- Header -->
+  <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+    <div style="font-family: monospace; font-size: 0.8rem; color: var(--accent-amber); letter-spacing: 1px; margin-bottom: 0.5rem;">
+      // NEXUS EDUCATOR OBSERVATORY
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">ENGINEERING OBSERVATORY</h1>
+        <p style="color: var(--text-muted); margin: 0; font-size: 0.95rem;">
+          Cohort-level aggregated insights on student engineering patterns. Zero individual student ranking or surveillance.
+        </p>
+      </div>
+      <div>
+        <button onclick="promptCreateCohort()" class="btn" style="background: var(--accent-amber); color: #000; font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; border: none; cursor: pointer;">
+          + Create New Cohort
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cohorts Selector Bar -->
+  <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; margin-bottom: 2rem;">
+    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 0.75rem;">
+      SELECT MANAGED COHORT
+    </div>
+    <div id="cohorts-tabs" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <p style="color: var(--text-muted); font-size: 0.85rem;">Loading cohorts...</p>
+    </div>
+  </div>
+
+  <!-- Analytics Container -->
+  <div id="observatory-view" style="display: none;">
+
+    <!-- Top Cohort Info -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; margin: 0 0 0.3rem; color: #fff;" id="obs-cohort-name">Cohort Name</h2>
+          <div style="font-size: 0.9rem; color: var(--text-muted);" id="obs-course-code">Course Code</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.2rem;">STUDENTS ENROLLED</div>
+          <div style="font-size: 1.6rem; font-weight: 700; color: #fff;" id="obs-student-count">0</div>
+        </div>
+      </div>
+      
+      <!-- Privacy Status Pill -->
+      <div id="obs-privacy-banner" style="margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 4px; font-size: 0.85rem;"></div>
+    </div>
+
+    <!-- Decision Summary: Most Common Gap & Curriculum Recommendations -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+
+      <!-- Common Gaps -->
+      <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+        <div style="font-size: 0.75rem; color: var(--accent-rust); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">
+          TOP UNEXPLORED AREA ACROSS COHORT
+        </div>
+        <div style="font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 0.75rem;" id="obs-top-gap">
+          None Detected
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+          This signal is the most frequently identified gap across enrolled student repositories.
+        </p>
+      </div>
+
+      <!-- Actionable Teaching Suggestions -->
+      <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+        <div style="font-size: 0.75rem; color: var(--accent-green); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">
+          WHAT COULD TEACHING EMPHASIZE?
+        </div>
+        <div id="obs-teaching-recs" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+      </div>
+
+    </div>
+
+    <!-- Signals & Project Patterns -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem;">
+
+      <!-- Most Common Signals -->
+      <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; color: #fff;">Dominant Proven Signals</h3>
+        <div id="obs-signals-list" style="display: flex; flex-direction: column; gap: 0.6rem;"></div>
+      </div>
+
+      <!-- Project Patterns -->
+      <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; color: #fff;">Observed Project Architecture Patterns</h3>
+        <div id="obs-patterns-list" style="display: flex; flex-direction: column; gap: 0.6rem;"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Empty State -->
+  <div id="obs-empty-state" style="text-align: center; padding: 4rem 1rem;">
+    <h2 style="color: var(--text-muted); font-size: 1.3rem;">No Cohorts Created Yet</h2>
+    <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 500px; margin: 0.5rem auto 1.5rem;">
+      Create a course cohort to generate a student join code and view anonymous aggregate engineering patterns.
+    </p>
+    <button onclick="promptCreateCohort()" class="btn" style="background: var(--accent-amber); color: #000; font-weight: 600; padding: 0.6rem 1.25rem; border: none; border-radius: 4px; cursor: pointer;">
+      Create First Cohort
+    </button>
+  </div>
+
+</div>
+
+<script>
+  let activeCohortId = null;
+
+  async function loadCohorts() {
+    try {
+      const res = await fetch("/api/ecosystem/educator/cohorts");
+      if (res.ok) {
+        const cohorts = await res.json();
+        renderCohortsTabs(cohorts);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderCohortsTabs(cohorts) {
+    const container = document.getElementById("cohorts-tabs");
+    container.innerHTML = "";
+
+    if (!cohorts || cohorts.length === 0) {
+      container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">No cohorts found. Click "+ Create New Cohort" above.</p>`;
+      document.getElementById("obs-empty-state").style.display = "block";
+      document.getElementById("observatory-view").style.display = "none";
+      return;
+    }
+
+    cohorts.forEach((c, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "btn";
+      btn.style = `background: ${idx === 0 ? 'var(--accent-amber)' : '#0d1117'}; color: ${idx === 0 ? '#000' : '#fff'}; border: 1px solid var(--border-color); font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;`;
+      btn.textContent = `${c.name} [Code: ${c.invite_code}]`;
+      btn.onclick = () => {
+        Array.from(container.children).forEach(b => {
+          b.style.background = "#0d1117";
+          b.style.color = "#fff";
+        });
+        btn.style.background = "var(--accent-amber)";
+        btn.style.color = "#000";
+        loadCohortAnalytics(c.id);
+      };
+      container.appendChild(btn);
+    });
+
+    if (cohorts.length > 0) {
+      loadCohortAnalytics(cohorts[0].id);
+    }
+  }
+
+  async function loadCohortAnalytics(cohortId) {
+    activeCohortId = cohortId;
+    try {
+      const res = await fetch(`/api/ecosystem/educator/cohorts/${cohortId}/analytics`);
+      if (res.ok) {
+        const data = await res.json();
+        renderObservatory(data);
+        document.getElementById("obs-empty-state").style.display = "none";
+        document.getElementById("observatory-view").style.display = "block";
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderObservatory(data) {
+    document.getElementById("obs-cohort-name").textContent = data.name;
+    document.getElementById("obs-course-code").textContent = `Course Code: ${data.course_code}`;
+    document.getElementById("obs-student-count").textContent = data.student_count;
+
+    // Privacy Banner
+    const banner = document.getElementById("obs-privacy-banner");
+    if (data.privacy_status === "UNAVAILABLE_INSUFFICIENT_SIZE") {
+      banner.style = "background: rgba(248, 81, 73, 0.15); border: 1px solid var(--accent-rust); color: var(--accent-rust);";
+      banner.textContent = `🛡️ Privacy Guardrail: ${data.privacy_note}`;
+    } else if (data.privacy_status === "LIMITED_SUMMARY") {
+      banner.style = "background: rgba(210, 153, 34, 0.15); border: 1px solid var(--accent-amber); color: var(--accent-amber);";
+      banner.textContent = `🛡️ Limited Summary: ${data.privacy_note}`;
+    } else {
+      banner.style = "background: rgba(63, 185, 80, 0.15); border: 1px solid var(--accent-green); color: var(--accent-green);";
+      banner.textContent = `🛡️ Full Observatory Active: ${data.privacy_note}`;
+    }
+
+    // Top Gap
+    document.getElementById("obs-top-gap").textContent = data.most_common_gap || "None Identified";
+
+    // Teaching Suggestions
+    const recsContainer = document.getElementById("obs-teaching-recs");
+    recsContainer.innerHTML = "";
+    (data.curriculum_recommendations || []).forEach(r => {
+      const item = document.createElement("div");
+      item.style = "background: #0d1117; border-left: 3px solid var(--accent-green); padding: 0.6rem 0.8rem; font-size: 0.85rem; color: #c9d1d9; border-radius: 2px;";
+      item.textContent = r;
+      recsContainer.appendChild(item);
+    });
+
+    // Signals
+    const sigContainer = document.getElementById("obs-signals-list");
+    sigContainer.innerHTML = "";
+    if (data.most_common_signals && data.most_common_signals.length > 0) {
+      data.most_common_signals.forEach(s => {
+        const item = document.createElement("div");
+        item.style = "display: flex; justify-content: space-between; padding: 0.5rem 0.75rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85rem;";
+        item.innerHTML = `<span style="font-weight: 600; color: #fff;">${s.name}</span><span style="color: var(--accent-blue); font-family: monospace;">${s.percentage || s.frequency}</span>`;
+        sigContainer.appendChild(item);
+      });
+    } else {
+      sigContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">No signal data available for current cohort size.</p>`;
+    }
+
+    // Patterns
+    const patContainer = document.getElementById("obs-patterns-list");
+    patContainer.innerHTML = "";
+    if (data.dominant_project_patterns && data.dominant_project_patterns.length > 0) {
+      data.dominant_project_patterns.forEach(p => {
+        const item = document.createElement("div");
+        item.style = "padding: 0.6rem 0.8rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85rem;";
+        item.innerHTML = `<div style="font-weight: 600; color: #fff;">${p.pattern}</div><div style="font-size: 0.8rem; color: var(--text-muted);">${p.observation}</div>`;
+        patContainer.appendChild(item);
+      });
+    } else {
+      patContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">Pattern detection unlocks at cohort size ≥ 6.</p>`;
+    }
+  }
+
+  async function promptCreateCohort() {
+    const name = prompt("Enter Cohort Name (e.g. Distributed Systems Fall 2026):");
+    if (!name) return;
+    const code = prompt("Enter Course Code (e.g. CS-301):");
+    if (!code) return;
+
+    try {
+      const res = await fetch("/api/ecosystem/educator/cohorts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), course_code: code.trim() })
+      });
+      if (res.ok) {
+        const created = await res.json();
+        alert(`Cohort Created!\n\nJoin Code: ${created.invite_code}\n\nShare this code with your students.`);
+        loadCohorts();
+      } else {
+        const err = await res.json();
+        alert(`Error: ${err.detail || 'Failed to create cohort'}`);
+      }
+    } catch (e) {
+      alert("Network error");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", loadCohorts);
+</script>
+{% endblock %}

@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block title %}NEXUS Mentor Mode — Engineering Review Workstation{% endblock %}
+
+{% block content %}
+<div class="atlas-container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 5rem;">
+
+  <!-- Header -->
+  <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+    <div style="font-family: monospace; font-size: 0.8rem; color: var(--accent-green); letter-spacing: 1px; margin-bottom: 0.5rem;">
+      // NEXUS MENTOR WORKSPACE
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">MENTOR ENGINEERING REVIEW</h1>
+        <p style="color: var(--text-muted); margin: 0; font-size: 0.95rem;">
+          Understand what your students have actually built, review verified proof, and provide structured engineering guidance.
+        </p>
+      </div>
+      <div>
+        <button onclick="promptAcceptToken()" class="btn" style="background: var(--accent-green); color: #000; font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; border: none; cursor: pointer;">
+          + Accept Student Invite
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Selector Row -->
+  <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; margin-bottom: 2rem;">
+    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 0.75rem;">
+      SELECT MENTORED STUDENT
+    </div>
+    <div id="students-tabs" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <p style="color: var(--text-muted); font-size: 0.85rem;">Loading mentored students...</p>
+    </div>
+  </div>
+
+  <!-- Main Dossier Container -->
+  <div id="dossier-view" style="display: none;">
+
+    <!-- Student Top Card -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <div style="font-family: monospace; font-size: 0.8rem; color: var(--accent-blue); margin-bottom: 0.3rem;" id="dos-nexus-id">NX-•••••</div>
+          <h2 style="font-size: 1.6rem; font-weight: 700; margin: 0 0 0.3rem; color: #fff;" id="dos-name">Student Name</h2>
+          <div style="font-size: 0.9rem; color: var(--accent-green); font-weight: 600;" id="dos-role">Target Role</div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;" id="dos-perms-chips"></div>
+      </div>
+    </div>
+
+    <!-- Middle Grid: Verified Signals & Featured Projects -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+      
+      <!-- Verified Signals -->
+      <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; color: #fff;">Verified Engineering Signals</h3>
+        
+        <div style="margin-bottom: 1rem;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem;">PROVEN IN REPOSITORIES</div>
+          <div id="dos-proven-signals" style="display: flex; flex-wrap: wrap; gap: 0.3rem;"></div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem;">DEVELOPING IN PROGRESS</div>
+          <div id="dos-dev-signals" style="display: flex; flex-wrap: wrap; gap: 0.3rem;"></div>
+        </div>
+      </div>
+
+      <!-- Featured Projects -->
+      <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; color: #fff;">Featured Codebases</h3>
+        <div id="dos-projects-list" style="display: flex; flex-direction: column; gap: 0.6rem;"></div>
+      </div>
+
+    </div>
+
+    <!-- Verified Proof Ledger -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; color: #fff;">Observable Proof Ledger</h3>
+      <div id="dos-proof-ledger" style="display: flex; flex-direction: column; gap: 0.6rem;"></div>
+    </div>
+
+    <!-- Active Quests & Discussion Areas -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+
+      <!-- Active Quests -->
+      <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; color: #fff;">Current Proof Quests / Unexplored Areas</h3>
+        <div id="dos-quests-list" style="display: flex; flex-direction: column; gap: 0.6rem;"></div>
+      </div>
+
+      <!-- Add Mentor Note / Quest Recommendation -->
+      <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">Add Private Mentor Note</h3>
+        <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1rem;">
+          Private guidance between you and the student. Mentor notes never alter deterministic evidence or skill states.
+        </p>
+
+        <form onsubmit="submitMentorNote(event)">
+          <textarea id="mentor-note-input" rows="3" required placeholder="Share engineering guidance, suggest architecture refinements, or recommend test coverage..." style="width: 100%; padding: 0.6rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; color: #fff; margin-bottom: 0.75rem; font-size: 0.9rem;"></textarea>
+          <div style="display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn" style="background: var(--accent-green); color: #000; font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; border: none; cursor: pointer;">
+              Post Guidance Note
+            </button>
+          </div>
+        </form>
+
+        <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+          <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.5rem;">PREVIOUS NOTES</div>
+          <div id="dos-notes-history" style="display: flex; flex-direction: column; gap: 0.6rem;"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Empty State -->
+  <div id="empty-state" style="text-align: center; padding: 4rem 1rem;">
+    <h2 style="color: var(--text-muted); font-size: 1.3rem;">No Active Mentored Students Selected</h2>
+    <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 500px; margin: 0.5rem auto 1.5rem;">
+      Ask your student for their secure mentor invitation token to begin reviewing their engineering dossier.
+    </p>
+    <button onclick="promptAcceptToken()" class="btn" style="background: var(--accent-green); color: #000; font-weight: 600; padding: 0.6rem 1.25rem; border: none; border-radius: 4px; cursor: pointer;">
+      Enter Invitation Token
+    </button>
+  </div>
+
+</div>
+
+<script>
+  let activeStudentId = null;
+
+  async function loadMentoredStudents() {
+    try {
+      const res = await fetch("/api/ecosystem/mentor/students");
+      if (res.ok) {
+        const students = await res.json();
+        renderStudentsTabs(students);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderStudentsTabs(students) {
+    const container = document.getElementById("students-tabs");
+    container.innerHTML = "";
+
+    if (!students || students.length === 0) {
+      container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">No active mentored students. Click "+ Accept Student Invite" above.</p>`;
+      document.getElementById("empty-state").style.display = "block";
+      document.getElementById("dossier-view").style.display = "none";
+      return;
+    }
+
+    students.forEach((st, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "btn";
+      btn.style = `background: ${idx === 0 ? 'var(--accent-blue)' : '#0d1117'}; color: ${idx === 0 ? '#000' : '#fff'}; border: 1px solid var(--border-color); font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;`;
+      btn.textContent = `${st.student_name} (${st.target_role || 'Engineer'})`;
+      btn.onclick = () => {
+        Array.from(container.children).forEach(c => {
+          c.style.background = "#0d1117";
+          c.style.color = "#fff";
+        });
+        btn.style.background = "var(--accent-blue)";
+        btn.style.color = "#000";
+        loadStudentDossier(st.student_id);
+      };
+      container.appendChild(btn);
+    });
+
+    if (students.length > 0) {
+      loadStudentDossier(students[0].student_id);
+    }
+  }
+
+  async function loadStudentDossier(studentId) {
+    activeStudentId = studentId;
+    try {
+      const res = await fetch(`/api/ecosystem/mentor/students/${studentId}`);
+      if (res.ok) {
+        const dossier = await res.json();
+        renderDossier(dossier);
+        document.getElementById("empty-state").style.display = "none";
+        document.getElementById("dossier-view").style.display = "block";
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderDossier(d) {
+    document.getElementById("dos-nexus-id").textContent = d.nexus_id;
+    document.getElementById("dos-name").textContent = d.student_name;
+    document.getElementById("dos-role").textContent = d.target_role;
+
+    // Permissions chips
+    const permsContainer = document.getElementById("dos-perms-chips");
+    permsContainer.innerHTML = (d.granted_permissions || []).map(p => `<span style="font-size: 0.75rem; background: rgba(63, 185, 80, 0.15); border: 1px solid var(--accent-green); color: var(--accent-green); padding: 0.15rem 0.5rem; border-radius: 4px; font-family: monospace;">✓ ${p}</span>`).join(" ");
+
+    // Proven signals
+    const provContainer = document.getElementById("dos-proven-signals");
+    provContainer.innerHTML = (d.proven_signals || []).map(s => `<span class="badge" style="background: rgba(63, 185, 80, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">✓ ${s}</span>`).join(" ") || '<span style="color: var(--text-muted); font-size: 0.8rem;">None visible</span>';
+
+    // Developing signals
+    const devContainer = document.getElementById("dos-dev-signals");
+    devContainer.innerHTML = (d.developing_signals || []).map(s => `<span class="badge" style="background: rgba(210, 153, 34, 0.15); color: var(--accent-amber); border: 1px solid var(--accent-amber); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">⚡ ${s}</span>`).join(" ") || '<span style="color: var(--text-muted); font-size: 0.8rem;">None visible</span>';
+
+    // Projects
+    const projContainer = document.getElementById("dos-projects-list");
+    projContainer.innerHTML = "";
+    if (d.featured_projects && d.featured_projects.length > 0) {
+      d.featured_projects.forEach(p => {
+        const item = document.createElement("div");
+        item.style = "padding: 0.6rem 0.8rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; display: flex; justify-content: space-between; align-items: center;";
+        item.innerHTML = `<span style="font-weight: 600; color: #fff;">${p.name}</span> <span style="font-size: 0.75rem; color: var(--text-muted);">${p.is_public ? 'Public' : 'Private'}</span>`;
+        projContainer.appendChild(item);
+      });
+    } else {
+      projContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">No projects shared under current permissions.</p>`;
+    }
+
+    // Proof ledger
+    const proofContainer = document.getElementById("dos-proof-ledger");
+    proofContainer.innerHTML = "";
+    if (d.verified_proof && d.verified_proof.length > 0) {
+      d.verified_proof.forEach(pf => {
+        const item = document.createElement("div");
+        item.style = "padding: 0.6rem 0.8rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px;";
+        item.innerHTML = `<div style="font-weight: 600; color: #fff; font-size: 0.9rem;">${pf.signal}</div><div style="font-size: 0.8rem; color: var(--text-muted);">${pf.observation}</div>`;
+        proofContainer.appendChild(item);
+      });
+    } else {
+      proofContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">Proof ledger not shared or empty.</p>`;
+    }
+
+    // Quests
+    const questsContainer = document.getElementById("dos-quests-list");
+    questsContainer.innerHTML = "";
+    if (d.active_quests && d.active_quests.length > 0) {
+      d.active_quests.forEach(q => {
+        const item = document.createElement("div");
+        item.style = "padding: 0.6rem 0.8rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px;";
+        item.innerHTML = `<div style="font-weight: 600; color: var(--accent-amber); font-size: 0.9rem;">🎯 Focus: ${q.skill_name}</div><div style="font-size: 0.8rem; color: #c9d1d9;">${q.quest_goal}</div>`;
+        questsContainer.appendChild(item);
+      });
+    } else {
+      questsContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">No active quests visible.</p>`;
+    }
+
+    // Notes
+    const notesContainer = document.getElementById("dos-notes-history");
+    notesContainer.innerHTML = "";
+    if (d.mentor_notes && d.mentor_notes.length > 0) {
+      d.mentor_notes.forEach(n => {
+        const item = document.createElement("div");
+        item.style = "padding: 0.6rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85rem;";
+        item.innerHTML = `<div style="color: #c9d1d9; margin-bottom: 0.3rem;">${n.note_text}</div><div style="font-size: 0.75rem; color: var(--text-muted);">${n.created_at}</div>`;
+        notesContainer.appendChild(item);
+      });
+    } else {
+      notesContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.8rem;">No notes recorded yet.</p>`;
+    }
+  }
+
+  async function promptAcceptToken() {
+    const token = prompt("Enter Student Mentor Invitation Token:");
+    if (!token) return;
+    try {
+      const res = await fetch("/api/ecosystem/mentor/accept", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invite_token: token.trim() })
+      });
+      if (res.ok) {
+        alert("Mentor invitation accepted! Loading student workspace...");
+        loadMentoredStudents();
+      } else {
+        const err = await res.json();
+        alert(`Error: ${err.detail || 'Failed to accept token'}`);
+      }
+    } catch (e) {
+      alert("Network error");
+    }
+  }
+
+  async function submitMentorNote(e) {
+    e.preventDefault();
+    if (!activeStudentId) return;
+    const text = document.getElementById("mentor-note-input").value.trim();
+    if (!text) return;
+
+    try {
+      const res = await fetch(`/api/ecosystem/mentor/students/${activeStudentId}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note_text: text })
+      });
+      if (res.ok) {
+        document.getElementById("mentor-note-input").value = "";
+        loadStudentDossier(activeStudentId);
+      }
+    } catch (e) {
+      alert("Error saving mentor note");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", loadMentoredStudents);
+</script>
+{% endblock %}

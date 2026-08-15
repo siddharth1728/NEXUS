@@ -1,0 +1,497 @@
+{% extends "base.html" %}
+
+{% block title %}NEXUS Sharing Control Center — Who Can See Your Data{% endblock %}
+
+{% block content %}
+<div class="atlas-container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 5rem;">
+
+  <!-- Header / Coordinates -->
+  <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+    <div style="font-family: monospace; font-size: 0.8rem; color: var(--accent-blue); letter-spacing: 1px; margin-bottom: 0.5rem;">
+      // NEXUS SHARING CONTROL CENTER
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">SHARING &amp; ACCESS</h1>
+        <p style="color: var(--text-muted); margin: 0; font-size: 0.95rem;">
+          The single control plane for who can access your verified engineering evidence. You own all data; sharing is explicit and instantly revocable.
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <button onclick="openModal('invite-mentor-modal')" class="btn" style="background: var(--accent-blue); color: #000; font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; border: none; cursor: pointer;">
+          + Invite Mentor
+        </button>
+        <button onclick="openModal('create-review-modal')" class="btn" style="background: rgba(88, 166, 255, 0.15); border: 1px solid var(--accent-blue); color: var(--accent-blue); font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
+          + Project Review Link
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 1.25rem;">
+      <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Public Profile</div>
+      <div style="font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0.3rem 0;" id="sum-public-status">
+        Checking...
+      </div>
+      <a href="/id" style="font-size: 0.8rem; color: var(--accent-blue); text-decoration: none;">Manage in NEXUS ID →</a>
+    </div>
+
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 1.25rem;">
+      <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Active Mentors</div>
+      <div style="font-size: 1.3rem; font-weight: 700; color: var(--accent-green); margin: 0.3rem 0;" id="sum-mentors-count">0</div>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">Direct guidance</span>
+    </div>
+
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 1.25rem;">
+      <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Review Links</div>
+      <div style="font-size: 1.3rem; font-weight: 700; color: var(--accent-amber); margin: 0.3rem 0;" id="sum-reviews-count">0</div>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">Temporary project views</span>
+    </div>
+
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 1.25rem;">
+      <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Enrolled Cohorts</div>
+      <div style="font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0.3rem 0;" id="sum-cohorts-count">0</div>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">Anonymous aggregate</span>
+    </div>
+
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 1.25rem;">
+      <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Active Teams</div>
+      <div style="font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0.3rem 0;" id="sum-teams-count">0</div>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">Shared projects</span>
+    </div>
+
+  </div>
+
+  <!-- "View As" Interactive Preview Bar -->
+  <div class="card" style="background: rgba(88, 166, 255, 0.05); border: 1px solid var(--border-color); border-radius: 6px; padding: 1rem 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <span style="font-weight: 700; color: #fff; font-size: 0.95rem;">◈ AUDIENCE "VIEW AS" PREVIEW</span>
+      <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0.2rem 0 0;">
+        Verify exactly what each audience sees before sharing.
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      <a href="#" id="preview-public-link" target="_blank" class="btn" style="background: #0d1117; border: 1px solid var(--border-color); color: #fff; font-size: 0.8rem; padding: 0.4rem 0.8rem; text-decoration: none; border-radius: 4px;">
+        [ PUBLIC VIEW ↗ ]
+      </a>
+      <a href="/mentor" class="btn" style="background: #0d1117; border: 1px solid var(--border-color); color: #fff; font-size: 0.8rem; padding: 0.4rem 0.8rem; text-decoration: none; border-radius: 4px;">
+        [ MENTOR VIEW ↗ ]
+      </a>
+      <a href="/teams" class="btn" style="background: #0d1117; border: 1px solid var(--border-color); color: #fff; font-size: 0.8rem; padding: 0.4rem 0.8rem; text-decoration: none; border-radius: 4px;">
+        [ TEAM VIEW ↗ ]
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Ledger: WHO CAN SEE WHAT -->
+  <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.75rem; margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.2rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">
+      Who Can See My Engineering Data Right Now?
+    </h2>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">
+      Real-time active permissions ledger. Revoking access stops data visibility immediately.
+    </p>
+
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-family: monospace; font-size: 0.8rem;">
+            <th style="padding: 0.75rem 0.5rem;">ENTITY / RECIPIENT</th>
+            <th style="padding: 0.75rem 0.5rem;">TYPE</th>
+            <th style="padding: 0.75rem 0.5rem;">ACCESS SCOPES</th>
+            <th style="padding: 0.75rem 0.5rem;">GRANTED SINCE</th>
+            <th style="padding: 0.75rem 0.5rem;">EXPIRES</th>
+            <th style="padding: 0.75rem 0.5rem; text-align: right;">ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="permissions-ledger-body">
+          <tr>
+            <td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+              Loading permissions ledger...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Bottom Grid: Quick Actions & Audit Stream -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem;">
+
+    <!-- Connect Cohorts & Teams -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.75rem;">
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">
+        Join Cohort or Team
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+        Enter a join code provided by your course instructor or team lead.
+      </p>
+
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+        <input type="text" id="cohort-code-input" placeholder="Enter Course Cohort Code (e.g. A4F8B2)" style="flex: 1; padding: 0.5rem 0.75rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; color: #fff; font-family: monospace;">
+        <button onclick="joinCohort()" class="btn" style="background: var(--accent-blue); color: #000; font-weight: 600; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
+          Join Cohort
+        </button>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="text" id="team-code-input" placeholder="Enter Team Invite Code (e.g. T9X2M1)" style="flex: 1; padding: 0.5rem 0.75rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; color: #fff; font-family: monospace;">
+        <button onclick="joinTeam()" class="btn" style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-color); color: #fff; font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
+          Join Team
+        </button>
+      </div>
+    </div>
+
+    <!-- Security Audit Log Stream -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.75rem;">
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">
+        Recent Sharing Audit Events
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+        Internal log of sharing actions and access activities.
+      </p>
+
+      <div id="audit-events-list" style="display: flex; flex-direction: column; gap: 0.6rem;">
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Loading audit stream...</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Modal 1: Invite Mentor -->
+<div id="invite-mentor-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; max-width: 500px; width: 100%; padding: 1.75rem;">
+    <h3 style="margin: 0 0 0.5rem; color: #fff; font-size: 1.2rem;">Invite a Mentor</h3>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+      Grant direct, scoped read access to your engineering dossier and active Proof Quests.
+    </p>
+
+    <form onsubmit="submitMentorInvite(event)">
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.85rem; color: #c9d1d9; margin-bottom: 0.3rem;">Mentor Email (Optional)</label>
+        <input type="email" id="mentor-email-input" placeholder="mentor@example.com" style="width: 100%; padding: 0.5rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; color: #fff;">
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.85rem; color: #c9d1d9; margin-bottom: 0.5rem;">Granted Permission Scopes</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.85rem; color: #c9d1d9;">
+          <label><input type="checkbox" name="mentor_perm" value="PROFILE" checked> Profile &amp; Bio</label>
+          <label><input type="checkbox" name="mentor_perm" value="PROJECTS" checked> Featured Projects</label>
+          <label><input type="checkbox" name="mentor_perm" value="PROOF" checked> Verified Proof</label>
+          <label><input type="checkbox" name="mentor_perm" value="JOURNEY" checked> Journey Timeline</label>
+          <label><input type="checkbox" name="mentor_perm" value="QUESTS" checked> Proof Quests</label>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-size: 0.85rem; color: #c9d1d9; margin-bottom: 0.3rem;">Access Duration</label>
+        <select id="mentor-duration-select" style="width: 100%; padding: 0.5rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; color: #fff;">
+          <option value="30">30 Days</option>
+          <option value="90">90 Days</option>
+          <option value="7">7 Days (Short Review)</option>
+          <option value="">No Expiration (Until Revoked)</option>
+        </select>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button type="button" onclick="closeModal('invite-mentor-modal')" class="btn" style="background: transparent; border: 1px solid var(--border-color); color: #fff; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
+          Cancel
+        </button>
+        <button type="submit" class="btn" style="background: var(--accent-blue); color: #000; font-weight: 600; padding: 0.5rem 1.25rem; border: none; border-radius: 4px; cursor: pointer;">
+          Generate Invite Token
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal 2: Create Review Link -->
+<div id="create-review-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; max-width: 500px; width: 100%; padding: 1.75rem;">
+    <h3 style="margin: 0 0 0.5rem; color: #fff; font-size: 1.2rem;">Create Project Review Link</h3>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+      Share a temporary read-only view of a single project with an interviewer or peer. No login required for reviewer.
+    </p>
+
+    <form onsubmit="submitReviewLink(event)">
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.85rem; color: #c9d1d9; margin-bottom: 0.3rem;">Select Project</label>
+        <select id="review-project-select" required style="width: 100%; padding: 0.5rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; color: #fff;">
+          <option value="">Loading projects...</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.85rem; color: #c9d1d9; margin-bottom: 0.3rem;">Link Label (e.g. "Stripe Interviewer")</label>
+        <input type="text" id="review-label-input" placeholder="e.g. Technical Screen" style="width: 100%; padding: 0.5rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; color: #fff;">
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-size: 0.85rem; color: #c9d1d9; margin-bottom: 0.3rem;">Link Expiration</label>
+        <select id="review-duration-select" style="width: 100%; padding: 0.5rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; color: #fff;">
+          <option value="7">7 Days</option>
+          <option value="30" selected>30 Days</option>
+          <option value="90">90 Days</option>
+        </select>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button type="button" onclick="closeModal('create-review-modal')" class="btn" style="background: transparent; border: 1px solid var(--border-color); color: #fff; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
+          Cancel
+        </button>
+        <button type="submit" class="btn" style="background: var(--accent-amber); color: #000; font-weight: 600; padding: 0.5rem 1.25rem; border: none; border-radius: 4px; cursor: pointer;">
+          Create Review Link
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openModal(id) {
+    document.getElementById(id).style.display = "flex";
+  }
+  function closeModal(id) {
+    document.getElementById(id).style.display = "none";
+  }
+
+  async function loadSharingCenter() {
+    try {
+      const res = await fetch("/api/ecosystem/sharing");
+      if (res.ok) {
+        const data = await res.json();
+        renderSharingOverview(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderSharingOverview(data) {
+    document.getElementById("sum-public-status").textContent = data.public_profile_enabled ? "ON (Public)" : "OFF (Private)";
+    document.getElementById("sum-public-status").style.color = data.public_profile_enabled ? "var(--accent-green)" : "var(--accent-rust)";
+    document.getElementById("sum-mentors-count").textContent = data.active_mentors_count;
+    document.getElementById("sum-reviews-count").textContent = data.active_review_links_count;
+    document.getElementById("sum-cohorts-count").textContent = data.active_cohorts_count;
+    document.getElementById("sum-teams-count").textContent = data.active_teams_count;
+
+    if (data.public_slug) {
+      document.getElementById("preview-public-link").href = `/u/${data.public_slug}`;
+    }
+
+    // Render Ledger
+    const tbody = document.getElementById("permissions-ledger-body");
+    tbody.innerHTML = "";
+
+    if (!data.permissions_ledger || data.permissions_ledger.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+            No external access active. Your engineering data is completely private.
+          </td>
+        </tr>
+      `;
+    } else {
+      data.permissions_ledger.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.style = "border-bottom: 1px solid var(--border-color);";
+
+        const scopesBadges = item.access_granted.filter(s => s).map(s => `<span style="font-size: 0.75rem; background: rgba(88, 166, 255, 0.1); border: 1px solid rgba(88, 166, 255, 0.3); color: var(--accent-blue); padding: 0.15rem 0.4rem; border-radius: 4px; margin-right: 0.2rem; font-family: monospace;">${s}</span>`).join(" ");
+
+        let actionBtn = "–";
+        if (item.entity_type === "MENTOR") {
+          const relId = item.id.replace("mentor_", "");
+          actionBtn = `<button onclick="revokeMentor(${relId})" style="background: rgba(248, 81, 73, 0.15); border: 1px solid var(--accent-rust); color: var(--accent-rust); padding: 0.25rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Revoke</button>`;
+        } else if (item.entity_type === "REVIEW_LINK") {
+          const rId = item.id.replace("review_", "");
+          actionBtn = `<button onclick="revokeReviewLink(${rId})" style="background: rgba(248, 81, 73, 0.15); border: 1px solid var(--accent-rust); color: var(--accent-rust); padding: 0.25rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Revoke</button>`;
+        } else if (item.entity_type === "PUBLIC_PROFILE") {
+          actionBtn = `<a href="/id" style="color: var(--accent-blue); text-decoration: none; font-size: 0.8rem;">Settings</a>`;
+        }
+
+        tr.innerHTML = `
+          <td style="padding: 0.75rem 0.5rem; font-weight: 600; color: #fff;">${item.name}</td>
+          <td style="padding: 0.75rem 0.5rem; font-family: monospace; font-size: 0.8rem; color: var(--text-muted);">${item.entity_type}</td>
+          <td style="padding: 0.75rem 0.5rem;">${scopesBadges || '<span style="color: var(--text-muted);">Standard</span>'}</td>
+          <td style="padding: 0.75rem 0.5rem; color: var(--text-muted); font-size: 0.85rem;">${item.granted_since}</td>
+          <td style="padding: 0.75rem 0.5rem; color: var(--text-muted); font-size: 0.85rem;">${item.expires_at || 'Indefinite'}</td>
+          <td style="padding: 0.75rem 0.5rem; text-align: right;">${actionBtn}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render Audit Events
+    const auditList = document.getElementById("audit-events-list");
+    auditList.innerHTML = "";
+    if (!data.recent_audit_events || data.recent_audit_events.length === 0) {
+      auditList.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">No recent audit events.</p>`;
+    } else {
+      data.recent_audit_events.forEach(a => {
+        const item = document.createElement("div");
+        item.style = "display: flex; justify-content: space-between; font-size: 0.85rem; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);";
+        item.innerHTML = `
+          <span style="color: #c9d1d9; font-family: monospace;">${a.action} (${a.target_type})</span>
+          <span style="color: var(--text-muted); font-size: 0.8rem;">${a.timestamp}</span>
+        `;
+        auditList.appendChild(item);
+      });
+    }
+  }
+
+  async function revokeMentor(id) {
+    if (!confirm("Immediately revoke this mentor's access?")) return;
+    try {
+      const res = await fetch(`/api/ecosystem/mentor/revoke/${id}`, { method: "POST" });
+      if (res.ok) {
+        alert("Mentor access revoked.");
+        loadSharingCenter();
+      }
+    } catch (e) {
+      alert("Error revoking mentor access");
+    }
+  }
+
+  async function revokeReviewLink(id) {
+    if (!confirm("Immediately revoke this review link?")) return;
+    try {
+      const res = await fetch(`/api/ecosystem/review-links/revoke/${id}`, { method: "POST" });
+      if (res.ok) {
+        alert("Review link revoked.");
+        loadSharingCenter();
+      }
+    } catch (e) {
+      alert("Error revoking review link");
+    }
+  }
+
+  async function submitMentorInvite(e) {
+    e.preventDefault();
+    const email = document.getElementById("mentor-email-input").value;
+    const dur = document.getElementById("mentor-duration-select").value;
+    const checkedBoxes = document.querySelectorAll('input[name="mentor_perm"]:checked');
+    const perms = Array.from(checkedBoxes).map(b => b.value);
+
+    try {
+      const res = await fetch("/api/ecosystem/mentor/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mentor_email: email || null,
+          permissions: perms,
+          expires_in_days: dur ? parseInt(dur) : null
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        closeModal("invite-mentor-modal");
+        alert(`Mentor Invitation Created!\n\nInvite Token: ${data.invite_token}\n\nShare this token with your mentor to accept.`);
+        loadSharingCenter();
+      }
+    } catch (e) {
+      alert("Error creating mentor invite");
+    }
+  }
+
+  async function loadUserProjectsForSelect() {
+    try {
+      const res = await fetch("/api/projects");
+      if (res.ok) {
+        const data = await res.json();
+        const select = document.getElementById("review-project-select");
+        select.innerHTML = "";
+        const projects = data.projects || data;
+        projects.forEach(p => {
+          const opt = document.createElement("option");
+          opt.value = p.id;
+          opt.textContent = p.name;
+          select.appendChild(opt);
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function submitReviewLink(e) {
+    e.preventDefault();
+    const projId = document.getElementById("review-project-select").value;
+    const label = document.getElementById("review-label-input").value;
+    const dur = document.getElementById("review-duration-select").value;
+
+    try {
+      const res = await fetch("/api/ecosystem/review-links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          project_id: parseInt(projId),
+          label: label || null,
+          expires_in_days: parseInt(dur)
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        closeModal("create-review-modal");
+        alert(`Review Link Generated!\n\nURL: ${window.location.origin}${data.review_url}`);
+        loadSharingCenter();
+      }
+    } catch (e) {
+      alert("Error creating review link");
+    }
+  }
+
+  async function joinCohort() {
+    const code = document.getElementById("cohort-code-input").value.trim();
+    if (!code) return;
+    try {
+      const res = await fetch("/api/ecosystem/educator/cohorts/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invite_code: code })
+      });
+      if (res.ok) {
+        alert("Joined cohort successfully!");
+        document.getElementById("cohort-code-input").value = "";
+        loadSharingCenter();
+      } else {
+        const err = await res.json();
+        alert(`Error: ${err.detail || 'Failed to join cohort'}`);
+      }
+    } catch (e) {
+      alert("Network error");
+    }
+  }
+
+  async function joinTeam() {
+    const code = document.getElementById("team-code-input").value.trim();
+    if (!code) return;
+    try {
+      const res = await fetch("/api/ecosystem/teams/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invite_code: code })
+      });
+      if (res.ok) {
+        alert("Joined team successfully!");
+        document.getElementById("team-code-input").value = "";
+        loadSharingCenter();
+      } else {
+        const err = await res.json();
+        alert(`Error: ${err.detail || 'Failed to join team'}`);
+      }
+    } catch (e) {
+      alert("Network error");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadSharingCenter();
+    loadUserProjectsForSelect();
+  });
+</script>
+{% endblock %}

@@ -7,7 +7,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
-from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba, identity, lab, copilot, nexus_id
+from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba, identity, lab, copilot, nexus_id, ecosystem
 
 app = FastAPI(title="NEXUS")
 
@@ -46,6 +46,7 @@ app.include_router(identity.router, prefix="/api")
 app.include_router(lab.router, prefix="/api")
 app.include_router(copilot.router)
 app.include_router(nexus_id.router)
+app.include_router(ecosystem.router)
 
 @app.get("/health", tags=["Health"])
 def health_check():
@@ -151,6 +152,27 @@ def public_profile_page(request: Request, public_slug: str):
 @app.get("/u/{public_slug}/atlas", response_class=HTMLResponse, tags=["Frontend"])
 def public_atlas_page(request: Request, public_slug: str):
     return render_with_csrf(request, "atlas_public.html", {"public_slug": public_slug})
+
+@app.get("/sharing", response_class=HTMLResponse, tags=["Frontend"])
+def sharing_center_page(request: Request):
+    return render_with_csrf(request, "sharing.html")
+
+@app.get("/mentor", response_class=HTMLResponse, tags=["Frontend"])
+def mentor_dashboard_page(request: Request):
+    return render_with_csrf(request, "mentor_dashboard.html")
+
+@app.get("/educator", response_class=HTMLResponse, tags=["Frontend"])
+def educator_observatory_page(request: Request):
+    return render_with_csrf(request, "educator_observatory.html")
+
+@app.get("/teams", response_class=HTMLResponse, tags=["Frontend"])
+def teams_page(request: Request):
+    return render_with_csrf(request, "teams.html")
+
+@app.get("/review/{token}", response_class=HTMLResponse, tags=["Frontend"])
+def project_review_page(request: Request, token: str):
+    return render_with_csrf(request, "reviewer.html", {"token": token})
+
 
 
 
