@@ -7,7 +7,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
-from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba, identity, lab, copilot
+from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba, identity, lab, copilot, nexus_id
 
 app = FastAPI(title="NEXUS")
 
@@ -45,6 +45,7 @@ app.include_router(nba.router, prefix="/api")
 app.include_router(identity.router, prefix="/api")
 app.include_router(lab.router, prefix="/api")
 app.include_router(copilot.router)
+app.include_router(nexus_id.router)
 
 @app.get("/health", tags=["Health"])
 def health_check():
@@ -52,9 +53,12 @@ def health_check():
 
 from app.core.csrf import generate_csrf_token, set_csrf_cookie
 
-def render_with_csrf(request: Request, template_name: str):
+def render_with_csrf(request: Request, template_name: str, extra_context: dict = None):
     token = generate_csrf_token()
-    response = templates.TemplateResponse(request, template_name, {"csrf_token": token})
+    ctx = {"csrf_token": token}
+    if extra_context:
+        ctx.update(extra_context)
+    response = templates.TemplateResponse(request, template_name, ctx)
     set_csrf_cookie(response, token)
     return response
 
@@ -135,5 +139,18 @@ def defend_project_page(request: Request, project_id: int):
 @app.get("/copilot", response_class=HTMLResponse, tags=["Frontend"])
 def copilot_console_page(request: Request):
     return render_with_csrf(request, "copilot.html")
+
+@app.get("/id", response_class=HTMLResponse, tags=["Frontend"])
+def my_nexus_id_page(request: Request):
+    return render_with_csrf(request, "nexus_id_private.html")
+
+@app.get("/u/{public_slug}", response_class=HTMLResponse, tags=["Frontend"])
+def public_profile_page(request: Request, public_slug: str):
+    return render_with_csrf(request, "nexus_id_public.html", {"public_slug": public_slug})
+
+@app.get("/u/{public_slug}/atlas", response_class=HTMLResponse, tags=["Frontend"])
+def public_atlas_page(request: Request, public_slug: str):
+    return render_with_csrf(request, "atlas_public.html", {"public_slug": public_slug})
+
 
 

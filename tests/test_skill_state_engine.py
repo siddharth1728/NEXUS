@@ -6,13 +6,15 @@ from app.models.taxonomy import Skill
 from app.models.project import Project, RepositorySnapshot, Artifact, RawObservation, Evidence, EvidenceType, EvidenceSkill
 from app.services.skill_state_engine import recalculate_user_skills
 
+import random
+
 def create_test_setup(db: Session, user: User, skill_name: str = "TestSkill") -> tuple:
     skill = db.query(Skill).filter(Skill.name == skill_name).first()
     if not skill:
         skill = Skill(name=skill_name, category="Test")
         db.add(skill)
         
-    project = Project(user_id=user.id, github_repo_id=123, name="test_repo")
+    project = Project(user_id=user.id, github_repo_id=random.randint(100000, 99999999), name="test_repo")
     db.add(project)
     db.commit()
     

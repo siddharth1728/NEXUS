@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Enum, Float, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Enum, Float, UniqueConstraint, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -17,6 +17,7 @@ class Project(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     github_repo_id = Column(Integer, nullable=False, index=True)
     name = Column(String, nullable=False)
+    is_public = Column(Boolean, default=False, nullable=False)
     
     user = relationship("User", back_populates="projects")
     snapshots = relationship("RepositorySnapshot", back_populates="project", cascade="all, delete-orphan")

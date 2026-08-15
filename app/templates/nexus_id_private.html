@@ -1,0 +1,556 @@
+{% extends "base.html" %}
+
+{% block title %}MY NEXUS ID — Career Layer & Engineering Passport{% endblock %}
+
+{% block content %}
+<div class="atlas-container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 5rem;">
+
+  <!-- Header / Coordinates -->
+  <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+    <div style="font-family: monospace; font-size: 0.8rem; color: var(--accent-blue); letter-spacing: 1px; margin-bottom: 0.5rem;">
+      // CAREER LAYER &amp; EVIDENCE PASSPORT STATION
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">MY NEXUS ID</h1>
+        <p style="color: var(--text-muted); margin: 0; font-size: 0.95rem;">
+          Control your public engineering passport, test resume claims against evidence, and discover role-aligned strengths.
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <span class="badge" id="system-nexus-id" style="font-family: monospace; font-size: 0.9rem; background: rgba(88, 166, 255, 0.15); border: 1px solid var(--accent-blue); color: var(--accent-blue); padding: 0.3rem 0.8rem; border-radius: 4px;">
+          NX-•••••
+        </span>
+        <a href="#" id="open-public-btn" target="_blank" class="btn" style="background: var(--accent-blue); color: #000; font-weight: 600; text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px;">
+          [ OPEN PUBLIC VIEW ↗ ]
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Grid: Live Preview & Health Checklist -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+    
+    <!-- Live Preview Card: THIS IS HOW OTHERS SEE YOU -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+      <div style="font-family: monospace; font-size: 0.75rem; color: var(--accent-amber); letter-spacing: 1px; margin-bottom: 1rem; text-transform: uppercase;">
+        ◈ THIS IS HOW OTHERS SEE YOU
+      </div>
+      <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 6px; padding: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <span style="font-weight: 700; color: #fff; font-size: 1.1rem;" id="prev-name">Engineer</span>
+          <span id="prev-visibility-pill" style="font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 4px; background: rgba(248, 81, 73, 0.15); color: var(--accent-rust); border: 1px solid var(--accent-rust);">
+            PROFILE OFF
+          </span>
+        </div>
+        <div style="font-size: 0.85rem; color: var(--accent-green); margin-bottom: 0.75rem;" id="prev-role">Target Role</div>
+        
+        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem;">Top Signals</div>
+        <div id="prev-signals" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 1rem;">
+          <span style="color: var(--text-muted); font-size: 0.8rem;">Loading signals...</span>
+        </div>
+
+        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem;">Featured Project</div>
+        <div id="prev-project" style="font-size: 0.85rem; color: #c9d1d9; font-weight: 600;">None selected</div>
+      </div>
+    </div>
+
+    <!-- Public Profile Health Checklist -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+      <div style="font-family: monospace; font-size: 0.75rem; color: var(--accent-blue); letter-spacing: 1px; margin-bottom: 1rem; text-transform: uppercase;">
+        ◈ PUBLIC PROFILE HEALTH CHECKLIST
+      </div>
+      <div id="health-checklist-container" style="display: flex; flex-direction: column; gap: 0.6rem;">
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Checking passport readiness...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Settings & Publication Controls -->
+  <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.75rem; margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.2rem; font-weight: 700; margin: 0 0 1.25rem; color: #fff;">
+      1. Publication &amp; Identity Controls
+    </h2>
+
+    <form id="nexus-settings-form" onsubmit="saveSettings(event)">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+        
+        <!-- Public Profile Toggle -->
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #c9d1d9;">Public Profile Access</label>
+          <select id="set-public-toggle" style="width: 100%; padding: 0.6rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; color: #fff;">
+            <option value="true">PUBLIC (Accessible via Share Link)</option>
+            <option value="false">PRIVATE (Unavailable to Visitors)</option>
+          </select>
+          <small style="color: var(--text-muted); display: block; margin-top: 0.3rem;">When private, your public URL returns a safe 404.</small>
+        </div>
+
+        <!-- Custom Public Slug -->
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #c9d1d9;">Custom Public URL Slug</label>
+          <div style="display: flex; align-items: center; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden;">
+            <span style="padding: 0.6rem 0.8rem; color: var(--text-muted); font-family: monospace; font-size: 0.85rem; border-right: 1px solid var(--border-color);">/u/</span>
+            <input type="text" id="set-slug-input" style="flex: 1; padding: 0.6rem; background: transparent; border: none; color: #fff; font-family: monospace;" placeholder="nx_custom_handle">
+          </div>
+          <small style="color: var(--text-muted); display: block; margin-top: 0.3rem;">3–40 alphanumeric characters, dashes, or underscores.</small>
+        </div>
+
+      </div>
+
+      <!-- Bio -->
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #c9d1d9;">Engineering Headline &amp; Focus</label>
+        <textarea id="set-bio-input" rows="2" style="width: 100%; padding: 0.6rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; color: #fff;" placeholder="e.g., Backend systems engineer focused on distributed databases and high-concurrency APIs."></textarea>
+      </div>
+
+      <!-- Section Toggles -->
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: #c9d1d9;">Public Section Visibility</label>
+        <div style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: #c9d1d9; cursor: pointer;">
+            <input type="checkbox" id="set-show-proof" checked> Show Verified Proof Ledger
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: #c9d1d9; cursor: pointer;">
+            <input type="checkbox" id="set-show-journey" checked> Show Engineering Journey
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: #c9d1d9; cursor: pointer;">
+            <input type="checkbox" id="set-show-unexplored"> Show Unexplored Skills
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: #c9d1d9; cursor: pointer;">
+            <input type="checkbox" id="set-show-email"> Show Contact Email
+          </label>
+        </div>
+      </div>
+
+      <!-- Project Selection -->
+      <div style="margin-bottom: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #c9d1d9;">Publish &amp; Feature Projects</label>
+        <small style="color: var(--text-muted); display: block; margin-bottom: 1rem;">
+          Projects are private by default. Check "Publish" to allow public visibility and "Pin as Featured" to showcase on your passport.
+        </small>
+        <div id="projects-selector-list" style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <p style="color: var(--text-muted);">Loading projects...</p>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+        <button type="submit" class="btn" style="background: var(--accent-green); color: #000; font-weight: 600; padding: 0.6rem 1.5rem; border: none; border-radius: 4px; cursor: pointer;">
+          Save Passport Settings
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Middle Grid: Claim vs Proof & Portfolio Selector -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+
+    <!-- Claim vs Proof Workbench -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.75rem;">
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">
+        2. Claim vs Proof Workbench
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+        Test your resume/interview claims against observable repository evidence.
+      </p>
+
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
+        <input type="text" id="new-claim-input" placeholder="e.g., Docker, FastAPI, PostgreSQL..." style="flex: 1; padding: 0.5rem 0.75rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; color: #fff;">
+        <button onclick="addClaim()" class="btn" style="background: var(--accent-blue); color: #000; font-weight: 600; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
+          Add Claim
+        </button>
+      </div>
+
+      <div id="claims-list-container" style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Loading claims...</p>
+      </div>
+    </div>
+
+    <!-- Portfolio Selector (Best Match for Role) -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.75rem;">
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">
+        3. Best Match for Target Role
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+        Deterministic recommendation based on observable role-relevant evidence.
+      </p>
+
+      <div id="portfolio-selector-container" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 1.25rem;">
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Evaluating role alignment...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Grid: Recruiter View & Export Dossier -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem;">
+
+    <!-- Recruiter View -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.75rem;">
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">
+        4. Recruiter Clarity Preview
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+        Factual preview of what is immediately visible on your passport vs areas still unverified.
+      </p>
+
+      <div id="recruiter-view-container">
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Compiling clarity preview...</p>
+      </div>
+    </div>
+
+    <!-- Export Dossier -->
+    <div class="card" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.75rem;">
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin: 0 0 0.5rem; color: #fff;">
+        5. Export Verified Dossier
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+        Export clean, evidence-traceable summaries for your resume or portfolio.
+      </p>
+
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+        <button onclick="exportSummary('markdown')" class="btn" style="background: rgba(88, 166, 255, 0.15); border: 1px solid var(--accent-blue); color: var(--accent-blue); font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
+          Copy Markdown
+        </button>
+        <button onclick="exportSummary('plain_text')" class="btn" style="background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color); color: #fff; font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
+          Copy Plain Text
+        </button>
+      </div>
+      <textarea id="export-preview" readonly rows="6" style="width: 100%; padding: 0.6rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px; color: #8b949e; font-family: monospace; font-size: 0.8rem;" placeholder="Exported summary will appear here..."></textarea>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  let currentSettings = null;
+
+  async function loadAllStationData() {
+    await Promise.all([
+      loadSettings(),
+      loadClaims(),
+      loadPortfolioSelector(),
+      loadRecruiterView()
+    ]);
+  }
+
+  async function loadSettings() {
+    try {
+      const res = await fetch("/api/profile/nexus-id");
+      if (res.ok) {
+        currentSettings = await res.json();
+        renderSettings(currentSettings);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderSettings(data) {
+    document.getElementById("system-nexus-id").textContent = data.nexus_id;
+    document.getElementById("open-public-btn").href = data.public_url;
+    document.getElementById("set-public-toggle").value = data.public_profile.toString();
+    document.getElementById("set-slug-input").value = data.public_slug;
+    document.getElementById("set-bio-input").value = data.bio || "";
+    document.getElementById("set-show-proof").checked = data.show_proof;
+    document.getElementById("set-show-journey").checked = data.show_journey;
+    document.getElementById("set-show-unexplored").checked = data.show_unexplored;
+    document.getElementById("set-show-email").checked = data.show_email;
+
+    // Live preview pill
+    const pill = document.getElementById("prev-visibility-pill");
+    if (data.public_profile) {
+      pill.textContent = "PROFILE PUBLIC";
+      pill.style.background = "rgba(63, 185, 80, 0.15)";
+      pill.style.color = "var(--accent-green)";
+      pill.style.borderColor = "var(--accent-green)";
+    } else {
+      pill.textContent = "PROFILE PRIVATE";
+      pill.style.background = "rgba(248, 81, 73, 0.15)";
+      pill.style.color = "var(--accent-rust)";
+      pill.style.borderColor = "var(--accent-rust)";
+    }
+
+    // Health checklist
+    const healthContainer = document.getElementById("health-checklist-container");
+    healthContainer.innerHTML = "";
+    data.profile_health.forEach(h => {
+      const row = document.createElement("div");
+      row.style = "display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;";
+      const icon = h.is_completed ? '<span style="color: var(--accent-green); font-weight: 700;">✓</span>' : '<span style="color: var(--accent-amber); font-weight: 700;">△</span>';
+      row.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          ${icon}
+          <span style="color: #c9d1d9;">${h.label}</span>
+        </div>
+        <span style="color: var(--text-muted); font-size: 0.8rem;">${h.status_hint}</span>
+      `;
+      healthContainer.appendChild(row);
+    });
+
+    // Projects selector list
+    const projList = document.getElementById("projects-selector-list");
+    projList.innerHTML = "";
+    if (data.available_projects && data.available_projects.length > 0) {
+      data.available_projects.forEach(p => {
+        const row = document.createElement("div");
+        row.style = "display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.8rem; background: #0d1117; border: 1px solid var(--border-color); border-radius: 4px;";
+        row.innerHTML = `
+          <span style="font-weight: 600; color: #fff;">${p.name}</span>
+          <div style="display: flex; gap: 1rem; align-items: center;">
+            <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; color: #c9d1d9; cursor: pointer;">
+              <input type="checkbox" name="publish_project" value="${p.id}" ${p.is_public ? 'checked' : ''}> Publish
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; color: #c9d1d9; cursor: pointer;">
+              <input type="checkbox" name="featured_project" value="${p.id}" ${p.is_featured ? 'checked' : ''}> Pin as Featured
+            </label>
+          </div>
+        `;
+        projList.appendChild(row);
+      });
+
+      const featuredNames = data.available_projects.filter(p => p.is_featured).map(p => p.name);
+      document.getElementById("prev-project").textContent = featuredNames.join(", ") || "None pinned";
+    } else {
+      projList.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">No projects registered yet.</p>`;
+    }
+  }
+
+  async function saveSettings(e) {
+    e.preventDefault();
+    const publicProfile = document.getElementById("set-public-toggle").value === "true";
+    const slug = document.getElementById("set-slug-input").value;
+    const bio = document.getElementById("set-bio-input").value;
+    const showProof = document.getElementById("set-show-proof").checked;
+    const showJourney = document.getElementById("set-show-journey").checked;
+    const showUnexplored = document.getElementById("set-show-unexplored").checked;
+    const showEmail = document.getElementById("set-show-email").checked;
+
+    const pubProjectBoxes = document.querySelectorAll('input[name="publish_project"]:checked');
+    const publishIds = Array.from(pubProjectBoxes).map(b => parseInt(b.value));
+
+    const featProjectBoxes = document.querySelectorAll('input[name="featured_project"]:checked');
+    const featuredIds = Array.from(featProjectBoxes).map(b => parseInt(b.value));
+
+    try {
+      const res = await fetch("/api/profile/nexus-id", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          public_profile: publicProfile,
+          public_slug: slug,
+          bio: bio,
+          show_proof: showProof,
+          show_journey: showJourney,
+          show_unexplored: showUnexplored,
+          show_email: showEmail,
+          publish_project_ids: publishIds,
+          featured_project_ids: featuredIds
+        })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        renderSettings(updated);
+        alert("Passport settings saved successfully!");
+      } else {
+        const err = await res.json();
+        alert(`Error: ${err.detail || 'Failed to save settings'}`);
+      }
+    } catch (e) {
+      alert("Network error saving settings");
+    }
+  }
+
+  // --- Claims vs Proof ---
+  async function loadClaims() {
+    try {
+      const res = await fetch("/api/career/claims");
+      if (res.ok) {
+        const data = await res.json();
+        renderClaims(data.claims);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderClaims(claims) {
+    const container = document.getElementById("claims-list-container");
+    container.innerHTML = "";
+    if (!claims || claims.length === 0) {
+      container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">No claims registered. Add technical claims to verify against your repository evidence.</p>`;
+      return;
+    }
+
+    claims.forEach(c => {
+      const card = document.createElement("div");
+      card.style = "background: #0d1117; border: 1px solid var(--border-color); border-radius: 6px; padding: 1rem;";
+      
+      let badgeStyle = "background: rgba(248, 81, 73, 0.15); color: var(--accent-rust); border: 1px solid var(--accent-rust);";
+      let badgeText = "NOT YET SUPPORTED";
+      if (c.status === "SUPPORTED") {
+        badgeStyle = "background: rgba(63, 185, 80, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green);";
+        badgeText = "SUPPORTED";
+      } else if (c.status === "PARTIALLY_SUPPORTED") {
+        badgeStyle = "background: rgba(210, 153, 34, 0.15); color: var(--accent-amber); border: 1px solid var(--accent-amber);";
+        badgeText = "PARTIALLY SUPPORTED";
+      }
+
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-weight: 700; color: #fff; font-size: 1rem;">${c.claim_text}</span>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span style="font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 4px; ${badgeStyle}">
+              ${badgeText}
+            </span>
+            <button onclick="deleteClaim(${c.id})" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem;" title="Delete claim">✕</button>
+          </div>
+        </div>
+        <p style="color: #8b949e; font-size: 0.85rem; margin: 0 0 0.5rem;">${c.guidance}</p>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  async function addClaim() {
+    const input = document.getElementById("new-claim-input");
+    const text = input.value.trim();
+    if (!text) return;
+
+    try {
+      const res = await fetch("/api/career/claims", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claim_text: text })
+      });
+      if (res.ok) {
+        input.value = "";
+        loadClaims();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function deleteClaim(id) {
+    try {
+      const res = await fetch(`/api/career/claims/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        loadClaims();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // --- Portfolio Selector ---
+  async function loadPortfolioSelector() {
+    try {
+      const res = await fetch("/api/career/portfolio-selector");
+      if (res.ok) {
+        const data = await res.json();
+        renderPortfolioSelector(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderPortfolioSelector(data) {
+    const container = document.getElementById("portfolio-selector-container");
+    if (!data.recommended_project_name) {
+      container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">Connect a repository to discover your best role-aligned codebase.</p>`;
+      return;
+    }
+
+    let reasonsHtml = (data.reasoning || []).map(r => `<div style="color: #c9d1d9; font-size: 0.85rem; margin-bottom: 0.3rem;">${r}</div>`).join("");
+
+    container.innerHTML = `
+      <div style="font-size: 0.75rem; color: var(--accent-green); text-transform: uppercase; font-weight: 600; margin-bottom: 0.3rem;">
+        RECOMMENDED PROJECT FOR ${data.target_role}
+      </div>
+      <div style="font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 0.75rem;">
+        ${data.recommended_project_name}
+      </div>
+      <div style="background: rgba(0,0,0,0.3); border-left: 3px solid var(--accent-green); padding: 0.75rem; border-radius: 4px; margin-bottom: 0.75rem;">
+        ${reasonsHtml}
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">
+        This project provides the clearest observable evidence alignment for your target role.
+      </p>
+    `;
+  }
+
+  // --- Recruiter View ---
+  async function loadRecruiterView() {
+    try {
+      const res = await fetch("/api/career/recruiter-view");
+      if (res.ok) {
+        const data = await res.json();
+        renderRecruiterView(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderRecruiterView(data) {
+    const container = document.getElementById("recruiter-view-container");
+    const vis = data.immediately_visible || {};
+
+    const provenBadges = (vis.proven_signals || []).map(s => `<span class="badge" style="background: rgba(63, 185, 80, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">${s}</span>`).join(" ") || '<span style="color: var(--text-muted); font-size: 0.8rem;">None yet</span>';
+
+    const unclearList = (data.still_unclear || []).map(u => `<li style="color: #8b949e; font-size: 0.85rem; margin-bottom: 0.2rem;">${u}</li>`).join("");
+
+    container.innerHTML = `
+      <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
+        <div style="font-size: 0.75rem; color: var(--accent-blue); text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem;">
+          WHAT IS IMMEDIATELY VISIBLE
+        </div>
+        <div style="font-size: 0.85rem; color: #c9d1d9; margin-bottom: 0.5rem;">
+          <strong>Target Role:</strong> ${vis.target_role || 'Software Engineer'}
+        </div>
+        <div style="font-size: 0.85rem; color: #c9d1d9; margin-bottom: 0.5rem;">
+          <strong>Top Proven Signals:</strong> ${provenBadges}
+        </div>
+        <div style="font-size: 0.85rem; color: #c9d1d9;">
+          <strong>Public Projects:</strong> ${vis.public_projects_count || 0} active
+        </div>
+      </div>
+
+      <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 1rem;">
+        <div style="font-size: 0.75rem; color: var(--accent-amber); text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem;">
+          AREAS STILL UNVERIFIED IN CODE
+        </div>
+        <ul style="margin: 0; padding-left: 1.25rem;">
+          ${unclearList}
+        </ul>
+      </div>
+    `;
+
+    // Also update preview card signals
+    const prevSignalsEl = document.getElementById("prev-signals");
+    prevSignalsEl.innerHTML = provenBadges;
+    document.getElementById("prev-role").textContent = vis.target_role || "Software Engineer";
+  }
+
+  // --- Export Summary ---
+  async function exportSummary(format) {
+    try {
+      const res = await fetch("/api/career/export");
+      if (res.ok) {
+        const data = await res.json();
+        const text = format === "markdown" ? data.markdown : data.plain_text;
+        document.getElementById("export-preview").value = text;
+        navigator.clipboard.writeText(text);
+        alert(`${format.toUpperCase()} summary copied to clipboard!`);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", loadAllStationData);
+</script>
+{% endblock %}
