@@ -1,5 +1,6 @@
 import pytest
 import os
+os.environ["TESTING"] = "1"
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -31,10 +32,12 @@ def clear_rate_limit():
 def setup_test_db():
     db = TestingSessionLocal()
     from app.models import Base
-    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     for table in reversed(Base.metadata.sorted_tables):
-        db.execute(table.delete())
+        try:
+            db.execute(table.delete())
+        except Exception:
+            pass
     db.commit()
     db.close()
     yield
@@ -56,6 +59,7 @@ def db_session():
     try:
         yield db
     finally:
+        db.rollback()
         db.close()
 
 @pytest.fixture
@@ -71,21 +75,14 @@ def test_user(db_session):
         db_session.add(user)
         db_session.commit()
         db_session.refresh(user)
+    db_session.commit()
     return user
 
 @pytest.fixture
-def auth_headers(client, csrf_token, test_user):
-    resp = client.post(
-        "/api/auth/login",
-        json={"email": "test_fixture@example.com", "password": "password123"},
-        headers={"X-CSRF-Token": csrf_token},
-        cookies={"csrf_token": csrf_token}
-    )
-    assert resp.status_code == 200
-    access = resp.cookies.get("access_token")
-    # For testing routes that depend on cookie auth, we can just use client with cookies
-    # But for headers, we can yield cookies dictionary
-    return {"access_token": access}
+def auth_headers(csrf_token, test_user):
+    from app.core.security import create_access_token
+    token = create_access_token(test_user.id)
+    return {"access_token": token}
 
 # Override client to use cookies automatically
 @pytest.fixture

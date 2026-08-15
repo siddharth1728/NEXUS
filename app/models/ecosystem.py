@@ -11,6 +11,8 @@ class PermissionScope(str, enum.Enum):
     JOURNEY = "JOURNEY"
     ATLAS = "ATLAS"
     QUESTS = "QUESTS"
+    LAB = "LAB"
+    CLAIMS = "CLAIMS"
 
 class RelationshipStatus(str, enum.Enum):
     PENDING = "PENDING"

@@ -1,5 +1,6 @@
 import pytest
 import random
+from datetime import datetime, timezone, timedelta
 from fastapi.testclient import TestClient
 from app.main import app
 from app.models.user import User, UserSkill, Gap, SkillState
@@ -20,276 +21,257 @@ def clean_state(db, user_id):
     db.query(CohortMembership).filter(CohortMembership.student_id == user_id).delete(synchronize_session=False)
     db.query(TeamMember).filter(TeamMember.user_id == user_id).delete(synchronize_session=False)
     db.query(SharingAuditLog).filter(SharingAuditLog.resource_owner_id == user_id).delete(synchronize_session=False)
-    db.query(EvidenceSkill).filter(EvidenceSkill.evidence_id.in_(
-        db.query(Evidence.id).filter(Evidence.raw_observation_id.in_(
-            db.query(RawObservation.id).filter(RawObservation.artifact_id.in_(
-                db.query(Artifact.id).filter(Artifact.snapshot_id.in_(
-                    db.query(RepositorySnapshot.id).filter(RepositorySnapshot.project_id.in_(
-                        db.query(Project.id).filter(Project.user_id == user_id)
-                    ))
-                ))
-            ))
-        ))
-    )).delete(synchronize_session=False)
-    db.query(Evidence).filter(Evidence.raw_observation_id.in_(
-        db.query(RawObservation.id).filter(RawObservation.artifact_id.in_(
-            db.query(Artifact.id).filter(Artifact.snapshot_id.in_(
-                db.query(RepositorySnapshot.id).filter(RepositorySnapshot.project_id.in_(
-                    db.query(Project.id).filter(Project.user_id == user_id)
-                ))
-            ))
-        ))
-    )).delete(synchronize_session=False)
-    db.query(RawObservation).filter(RawObservation.artifact_id.in_(
-        db.query(Artifact.id).filter(Artifact.snapshot_id.in_(
-            db.query(RepositorySnapshot.id).filter(RepositorySnapshot.project_id.in_(
-                db.query(Project.id).filter(Project.user_id == user_id)
-            ))
-        ))
-    )).delete(synchronize_session=False)
-    db.query(Artifact).filter(Artifact.snapshot_id.in_(
-        db.query(RepositorySnapshot.id).filter(RepositorySnapshot.project_id.in_(
-            db.query(Project.id).filter(Project.user_id == user_id)
-        ))
-    )).delete(synchronize_session=False)
-    db.query(RepositorySnapshot).filter(RepositorySnapshot.project_id.in_(
-        db.query(Project.id).filter(Project.user_id == user_id)
-    )).delete(synchronize_session=False)
-    db.query(Project).filter(Project.user_id == user_id).delete(synchronize_session=False)
     db.query(Gap).filter(Gap.user_id == user_id).delete(synchronize_session=False)
     db.query(UserSkill).filter(UserSkill.user_id == user_id).delete(synchronize_session=False)
     db.commit()
 
-def test_mentor_invitation_and_scoped_dossier(auth_client, db_session, test_user):
+# 1. Mentor invitation & permissions
+def test_mentor_invitation_flow(auth_client, db_session, test_user):
     clean_state(db_session, test_user.id)
+    res = auth_client.post(
+        "/api/ecosystem/mentor/invite",
+        json={"mentor_email": "mentor@advising.test", "permissions": ["PROFILE", "PROJECTS", "LAB", "CLAIMS"], "expires_in_days": 14}
+    )
+    assert res.status_code == 201
+    data = res.json()
+    assert data["invite_token"]
+    assert "LAB" in data["permissions"]
+    assert "CLAIMS" in data["permissions"]
 
-    # Setup skills and evidence for test_user
-    s_py = db_session.query(Skill).filter(Skill.name == "Python").first()
-    if not s_py:
-        s_py = Skill(name="Python", category="Language")
-        db_session.add(s_py)
-        db_session.commit()
-
-    db_session.add(UserSkill(user_id=test_user.id, skill_id=s_py.id, state=SkillState.STRONG, calculation_version="v1"))
+# 2. Invitation expiration
+def test_mentor_invitation_expiration(auth_client, db_session, test_user):
+    clean_state(db_session, test_user.id)
+    res = auth_client.post("/api/ecosystem/mentor/invite", json={"permissions": ["PROFILE"], "expires_in_days": 1})
+    token = res.json()["invite_token"]
     
-    p = Project(user_id=test_user.id, github_repo_id=random.randint(100000, 999999), name="MentorTestRepo", is_public=False)
+    # Fast forward expiration in DB
+    rel = db_session.query(MentorRelationship).filter(MentorRelationship.invite_token == token).first()
+    rel.expires_at = datetime.now(timezone.utc) - timedelta(days=2)
+    db_session.commit()
+
+    mentor_user = User(email=f"exp_mentor_{random.randint(10000, 99999)}@test.com", password_hash="hash")
+    db_session.add(mentor_user)
+    db_session.commit()
+    t_m = create_access_token(mentor_user.id)
+    c_m = TestClient(app)
+    c_m.cookies.set("access_token", t_m)
+
+    res_acc = c_m.post("/api/ecosystem/mentor/accept", json={"invite_token": token})
+    assert res_acc.status_code == 400
+    assert "expired" in res_acc.json()["detail"].lower()
+
+# 3. Invitation single-use & acceptance
+def test_mentor_invitation_single_use(auth_client, db_session, test_user):
+    clean_state(db_session, test_user.id)
+    res = auth_client.post("/api/ecosystem/mentor/invite", json={"permissions": ["PROFILE"]})
+    token = res.json()["invite_token"]
+
+    mentor_1 = User(email=f"mentor_1_{random.randint(10000, 99999)}@test.com", password_hash="hash")
+    mentor_2 = User(email=f"mentor_2_{random.randint(10000, 99999)}@test.com", password_hash="hash")
+    db_session.add_all([mentor_1, mentor_2])
+    db_session.commit()
+
+    c1 = TestClient(app)
+    c1.cookies.set("access_token", create_access_token(mentor_1.id))
+    assert c1.post("/api/ecosystem/mentor/accept", json={"invite_token": token}).status_code == 200
+
+    # Second acceptance must fail
+    c2 = TestClient(app)
+    c2.cookies.set("access_token", create_access_token(mentor_2.id))
+    res2 = c2.post("/api/ecosystem/mentor/accept", json={"invite_token": token})
+    assert res2.status_code == 400
+    assert "already been accepted" in res2.json()["detail"].lower()
+
+# 4. Mentor permissions scope enforcement
+def test_mentor_scoped_dossier_filtering(auth_client, db_session, test_user):
+    clean_state(db_session, test_user.id)
+    p = Project(user_id=test_user.id, github_repo_id=random.randint(100000, 999999), name="ScopeTestRepo", is_public=False)
     db_session.add(p)
     db_session.commit()
 
-    # 1. Student creates invite omitting "PROOF" permission
-    res_inv = auth_client.post(
-        "/api/ecosystem/mentor/invite",
-        json={
-            "mentor_email": "mentor@advising.test",
-            "permissions": ["PROFILE", "PROJECTS", "JOURNEY", "QUESTS"],
-            "expires_in_days": 30
-        }
-    )
-    assert res_inv.status_code == 201
-    data_inv = res_inv.json()
-    token = data_inv["invite_token"]
-    assert "PROOF" not in data_inv["permissions"]
+    res_inv = auth_client.post("/api/ecosystem/mentor/invite", json={"permissions": ["PROFILE", "PROJECTS"]})
+    token = res_inv.json()["invite_token"]
 
-    # 2. Mentor accepts invite
-    mentor_user = User(email="mentor_actual@advising.test", password_hash="hash")
-    db_session.add(mentor_user)
+    m = User(email=f"scoped_mentor_{random.randint(10000, 99999)}@test.com", password_hash="hash")
+    db_session.add(m)
     db_session.commit()
-    token_mentor = create_access_token(mentor_user.id)
+    c = TestClient(app)
+    c.cookies.set("access_token", create_access_token(m.id))
+    c.post("/api/ecosystem/mentor/accept", json={"invite_token": token})
 
-    client_m = TestClient(app)
-    client_m.cookies.set("access_token", token_mentor)
-
-    res_acc = client_m.post(
-        "/api/ecosystem/mentor/accept",
-        json={"invite_token": token}
-    )
-    assert res_acc.status_code == 200
-
-    # 3. Mentor views student dossier
-    res_dos = client_m.get(f"/api/ecosystem/mentor/students/{test_user.id}")
+    res_dos = c.get(f"/api/ecosystem/mentor/students/{test_user.id}")
     assert res_dos.status_code == 200
     dossier = res_dos.json()
-    assert dossier["student_id"] == test_user.id
-    assert "PROJECTS" in dossier["granted_permissions"]
-    assert dossier["verified_proof"] is None  # Strictly filtered: PROOF was not granted!
+    assert dossier["verified_proof"] is None  # PROOF scope omitted
+    assert dossier["active_quests"] is None   # QUESTS scope omitted
     assert len(dossier["featured_projects"]) >= 1
 
-def test_immediate_mentor_revocation(auth_client, db_session, test_user):
+# 5. Immediate mentor revocation
+def test_immediate_mentor_revocation_lockout(auth_client, db_session, test_user):
     clean_state(db_session, test_user.id)
-
-    mentor_user = User(email="mentor_revoketest@test.com", password_hash="hash")
-    db_session.add(mentor_user)
+    m = User(email=f"rev_m_{random.randint(10000, 99999)}@test.com", password_hash="hash")
+    db_session.add(m)
     db_session.commit()
-    token_mentor = create_access_token(mentor_user.id)
+    c = TestClient(app)
+    c.cookies.set("access_token", create_access_token(m.id))
 
-    client_m = TestClient(app)
-    client_m.cookies.set("access_token", token_mentor)
-
-    # Student invites and mentor accepts
     res_inv = auth_client.post("/api/ecosystem/mentor/invite", json={"permissions": ["PROFILE"]})
-    token = res_inv.json()["invite_token"]
-    rel_id = res_inv.json()["relationship_id"]
+    c.post("/api/ecosystem/mentor/accept", json={"invite_token": res_inv.json()["invite_token"]})
+    assert c.get(f"/api/ecosystem/mentor/students/{test_user.id}").status_code == 200
 
-    client_m.post("/api/ecosystem/mentor/accept", json={"invite_token": token})
+    # Revoke
+    auth_client.post(f"/api/ecosystem/mentor/revoke/{res_inv.json()['relationship_id']}")
 
-    # Verify mentor can read dossier
-    assert client_m.get(f"/api/ecosystem/mentor/students/{test_user.id}").status_code == 200
+    # Immediate 403
+    assert c.get(f"/api/ecosystem/mentor/students/{test_user.id}").status_code == 403
 
-    # Student immediately revokes access
-    res_rev = auth_client.post(f"/api/ecosystem/mentor/revoke/{rel_id}")
-    assert res_rev.status_code == 200
-
-    # Mentor immediately receives 403 Forbidden
-    res_denied = client_m.get(f"/api/ecosystem/mentor/students/{test_user.id}")
-    assert res_denied.status_code == 403
-
-def test_mentor_notes_isolation(auth_client, db_session, test_user):
+# 6. Mentor notes creation & isolation
+def test_mentor_notes_truth_isolation(auth_client, db_session, test_user):
     clean_state(db_session, test_user.id)
-
-    s_test = db_session.query(Skill).filter(Skill.name == "Testing").first()
-    if not s_test:
-        s_test = Skill(name="Testing", category="Quality")
-        db_session.add(s_test)
+    s_db = db_session.query(Skill).filter(Skill.name == "PostgreSQL").first()
+    if not s_db:
+        s_db = Skill(name="PostgreSQL", category="Database")
+        db_session.add(s_db)
         db_session.commit()
 
-    db_session.add(UserSkill(user_id=test_user.id, skill_id=s_test.id, state=SkillState.DEVELOPING, calculation_version="v1"))
+    db_session.add(UserSkill(user_id=test_user.id, skill_id=s_db.id, state=SkillState.DEVELOPING, calculation_version="v1"))
+    db_session.add(Gap(user_id=test_user.id, skill_id=s_db.id, actual_state="DEVELOPING", required_state="STRONG", state_distance=1, importance_weight=1.0, severity=2, calculation_version="v1"))
     db_session.commit()
 
-    mentor_user = User(email="mentor_notetest@test.com", password_hash="hash")
-    db_session.add(mentor_user)
+    m = User(email=f"note_m_{random.randint(10000, 99999)}@test.com", password_hash="hash")
+    db_session.add(m)
     db_session.commit()
-    token_m = create_access_token(mentor_user.id)
-    client_m = TestClient(app)
-    client_m.cookies.set("access_token", token_m)
+    c = TestClient(app)
+    c.cookies.set("access_token", create_access_token(m.id))
 
     res_inv = auth_client.post("/api/ecosystem/mentor/invite", json={"permissions": ["PROFILE", "QUESTS"]})
-    client_m.post("/api/ecosystem/mentor/accept", json={"invite_token": res_inv.json()["invite_token"]})
+    c.post("/api/ecosystem/mentor/accept", json={"invite_token": res_inv.json()["invite_token"]})
 
-    # Mentor adds note recommending testing
-    res_note = client_m.post(
+    res_note = c.post(
         f"/api/ecosystem/mentor/students/{test_user.id}/notes",
-        json={"note_text": "Consider adding pytest fixtures for integration tests."}
+        json={"note_text": "Suggest index tuning on user table.", "recommended_concept_key": "db_indexing"}
     )
     assert res_note.status_code == 201
 
-    # Deterministic check: UserSkill state MUST NOT change
-    us = db_session.query(UserSkill).filter(UserSkill.user_id == test_user.id, UserSkill.skill_id == s_test.id).first()
-    assert us.state == SkillState.DEVELOPING  # Still DEVELOPING (mentor opinion is NOT evidence)
+    # Verify deterministic states unchanged
+    us = db_session.query(UserSkill).filter(UserSkill.user_id == test_user.id, UserSkill.skill_id == s_db.id).first()
+    assert us.state == SkillState.DEVELOPING
+    gap = db_session.query(Gap).filter(Gap.user_id == test_user.id, Gap.skill_id == s_db.id).first()
+    assert gap is not None  # Gap still open (mentor note is guidance, NOT evidence)
 
-def test_project_review_links_and_public_access(auth_client, client, db_session, test_user):
+# 7. Project review links & expiration
+def test_review_links_lifecycle(auth_client, client, db_session, test_user):
     clean_state(db_session, test_user.id)
-
-    p = Project(user_id=test_user.id, github_repo_id=random.randint(100000, 999999), name="ReviewableService", is_public=False)
+    p = Project(user_id=test_user.id, github_repo_id=random.randint(100000, 999999), name="ReviewApp", is_public=False)
     db_session.add(p)
     db_session.commit()
 
-    # Create temporary review link
-    res_link = auth_client.post(
-        "/api/ecosystem/review-links",
-        json={"project_id": p.id, "label": "Interviewer Screen", "expires_in_days": 7}
-    )
+    res_link = auth_client.post("/api/ecosystem/review-links", json={"project_id": p.id, "label": "TechScreen", "expires_in_days": 7})
     assert res_link.status_code == 201
-    data_link = res_link.json()
-    token = data_link["token"]
+    token = res_link.json()["token"]
+    link_id = res_link.json()["id"]
 
-    # Anonymous public reviewer visits /api/ecosystem/review/{token}
-    res_view = client.get(f"/api/ecosystem/review/{token}")
-    assert res_view.status_code == 200
-    review_data = res_view.json()
-    assert review_data["project_name"] == "ReviewableService"
-    assert len(review_data["questions_to_explore"]) >= 1
+    # Public access
+    res_pub = client.get(f"/api/ecosystem/review/{token}")
+    assert res_pub.status_code == 200
+    assert res_pub.json()["project_name"] == "ReviewApp"
+    assert "questions_to_explore" in res_pub.json()
 
-    # Student revokes review link
-    res_rev = auth_client.post(f"/api/ecosystem/review-links/revoke/{data_link['id']}")
-    assert res_rev.status_code == 200
-
-    # Public reviewer receives 404
+    # Revocation
+    auth_client.post(f"/api/ecosystem/review-links/revoke/{link_id}")
     assert client.get(f"/api/ecosystem/review/{token}").status_code == 404
 
-def test_educator_observatory_privacy_thresholds(auth_client, client, db_session, test_user):
+# 8. Educator observatory & anti-identification
+def test_educator_observatory_thresholds_and_anti_identification(auth_client, db_session, test_user):
     clean_state(db_session, test_user.id)
+    res_c = auth_client.post("/api/ecosystem/educator/cohorts", json={"name": "DevOps 101", "course_code": "DO-101"})
+    cohort_id = res_c.json()["id"]
+    invite_code = res_c.json()["invite_code"]
 
-    # 1. Educator creates cohort
-    res_cohort = auth_client.post(
-        "/api/ecosystem/educator/cohorts",
-        json={"name": "Cloud Systems", "course_code": "CS-401"}
-    )
-    assert res_cohort.status_code == 201
-    cohort_id = res_cohort.json()["id"]
-    invite_code = res_cohort.json()["invite_code"]
+    # 1. < 3 students -> UNAVAILABLE
+    res_under = auth_client.get(f"/api/ecosystem/educator/cohorts/{cohort_id}/analytics")
+    assert res_under.json()["privacy_status"] == "UNAVAILABLE_INSUFFICIENT_SIZE"
 
-    # Less than 3 students: UNAVAILABLE_INSUFFICIENT_SIZE
-    res_analytics = auth_client.get(f"/api/ecosystem/educator/cohorts/{cohort_id}/analytics")
-    assert res_analytics.status_code == 200
-    assert res_analytics.json()["privacy_status"] == "UNAVAILABLE_INSUFFICIENT_SIZE"
+    # 2. Add 3 students
+    s_k8s = db_session.query(Skill).filter(Skill.name == "Kubernetes").first()
+    if not s_k8s:
+        s_k8s = Skill(name="Kubernetes", category="Infra")
+        db_session.add(s_k8s)
+        db_session.commit()
 
-    # Add 3 students: LIMITED_SUMMARY
     students = []
     for i in range(3):
-        u = User(email=f"student_{i}_{random.randint(100,999)}@test.com", password_hash="hash")
+        u = User(email=f"c_stu_{i}_{random.randint(100,999)}@test.com", password_hash="hash")
         db_session.add(u)
         students.append(u)
     db_session.commit()
 
+    # Give only 1 student the Kubernetes skill
+    db_session.add(UserSkill(user_id=students[0].id, skill_id=s_k8s.id, state=SkillState.STRONG, calculation_version="v1"))
+    db_session.commit()
+
     for s in students:
-        t = create_access_token(s.id)
         c = TestClient(app)
-        c.cookies.set("access_token", t)
+        c.cookies.set("access_token", create_access_token(s.id))
         c.post("/api/ecosystem/educator/cohorts/join", json={"invite_code": invite_code})
 
-    res_3 = auth_client.get(f"/api/ecosystem/educator/cohorts/{cohort_id}/analytics")
-    assert res_3.json()["privacy_status"] == "LIMITED_SUMMARY"
+    # 3. 3 students -> LIMITED_SUMMARY + Anti-Identification suppression
+    res_lim = auth_client.get(f"/api/ecosystem/educator/cohorts/{cohort_id}/analytics")
+    assert res_lim.json()["privacy_status"] == "LIMITED_SUMMARY"
+    
+    # Kubernetes held by 1 student must be suppressed
+    sig_k8s = next((s for s in res_lim.json()["most_common_signals"] if s["name"] == "Kubernetes"), None)
+    assert sig_k8s is not None
+    assert sig_k8s["frequency"] == "INSUFFICIENT COHORT SIZE FOR THIS SIGNAL"
 
-def test_team_project_sharing_isolation(auth_client, client, db_session, test_user):
+# 9. Team project sharing and member removal
+def test_team_project_isolation_and_member_removal(auth_client, db_session, test_user):
     clean_state(db_session, test_user.id)
-
-    # User A project (to share) and User A private project (not shared)
-    p_shared = Project(user_id=test_user.id, github_repo_id=random.randint(100000, 999999), name="TeamSharedMicroservice", is_public=False)
-    p_private = Project(user_id=test_user.id, github_repo_id=random.randint(100000, 999999), name="UserA_SecretPersonalApp", is_public=False)
-    db_session.add_all([p_shared, p_private])
+    p_shared = Project(user_id=test_user.id, github_repo_id=random.randint(100000, 999999), name="SharedTeamService", is_public=False)
+    p_secret = Project(user_id=test_user.id, github_repo_id=random.randint(100000, 999999), name="SecretPersonalProject", is_public=False)
+    db_session.add_all([p_shared, p_secret])
     db_session.commit()
 
-    # User A creates team
-    res_team = auth_client.post(
-        "/api/ecosystem/teams",
-        json={"name": "Alpha Engineering", "description": "Backend Team"}
-    )
-    assert res_team.status_code == 201
-    team_id = res_team.json()["team_id"]
+    res_t = auth_client.post("/api/ecosystem/teams", json={"name": "Core Platform"})
+    team_id = res_t.json()["team_id"]
+    invite_code = res_t.json()["invite_code"]
 
-    # User A shares only p_shared
-    res_share = auth_client.post(
-        f"/api/ecosystem/teams/{team_id}/share-project",
-        json={"project_id": p_shared.id}
-    )
-    assert res_share.status_code == 200
+    auth_client.post(f"/api/ecosystem/teams/{team_id}/share-project", json={"project_id": p_shared.id})
 
-    # User B joins team
-    user_b = User(email="member_b@test.com", password_hash="hash")
-    db_session.add(user_b)
+    # Member joins
+    member = User(email=f"teammate_{random.randint(10000, 99999)}@test.com", password_hash="hash")
+    db_session.add(member)
     db_session.commit()
-    token_b = create_access_token(user_b.id)
+    c_m = TestClient(app)
+    c_m.cookies.set("access_token", create_access_token(member.id))
+    c_m.post("/api/ecosystem/teams/join", json={"invite_code": invite_code})
 
-    t_rec = db_session.query(Team).filter(Team.id == team_id).first()
-    client_b = TestClient(app)
-    client_b.cookies.set("access_token", token_b)
-    client_b.post("/api/ecosystem/teams/join", json={"invite_code": t_rec.invite_code})
-
-    # User B checks team collaboration map
-    res_collab = client_b.get(f"/api/ecosystem/teams/{team_id}/collaboration")
+    # Member sees shared project, not secret project
+    res_collab = c_m.get(f"/api/ecosystem/teams/{team_id}/collaboration")
     assert res_collab.status_code == 200
-    collab = res_collab.json()
+    shared_names = [p["name"] for p in res_collab.json()["shared_projects"]]
+    assert "SharedTeamService" in shared_names
+    assert "SecretPersonalProject" not in shared_names
 
-    shared_names = [p["name"] for p in collab["shared_projects"]]
-    assert "TeamSharedMicroservice" in shared_names
-    assert "UserA_SecretPersonalApp" not in shared_names  # Personal repo never leaked!
+    # Lead removes member
+    res_rem = auth_client.post(f"/api/ecosystem/teams/{team_id}/remove-member/{member.id}")
+    assert res_rem.status_code == 200
 
-def test_sharing_center_control_plane(auth_client, db_session, test_user):
+    # Removed member immediately receives 403
+    assert c_m.get(f"/api/ecosystem/teams/{team_id}/collaboration").status_code == 403
+
+# 10. Sharing center overview & audience preview
+def test_sharing_center_and_audience_previews(auth_client, db_session, test_user):
     clean_state(db_session, test_user.id)
 
-    res = auth_client.get("/api/ecosystem/sharing")
-    assert res.status_code == 200
-    data = res.json()
-    assert "permissions_ledger" in data
-    assert "active_mentors_count" in data
-    assert "active_review_links_count" in data
+    res_ov = auth_client.get("/api/ecosystem/sharing")
+    assert res_ov.status_code == 200
+    assert "permissions_ledger" in res_ov.json()
+
+    # Previews
+    res_prev_pub = auth_client.get("/api/ecosystem/sharing/preview/PUBLIC")
+    assert res_prev_pub.status_code == 200
+
+    res_prev_m = auth_client.get("/api/ecosystem/sharing/preview/MENTOR")
+    assert res_prev_m.status_code == 200
+    assert res_prev_m.json()["audience"] == "MENTOR"

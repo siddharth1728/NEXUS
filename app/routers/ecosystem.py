@@ -19,7 +19,8 @@ from app.services.ecosystem_service import (
     list_mentored_students, get_mentored_student_dossier, add_mentor_note,
     create_project_review_link, get_project_review_by_token, revoke_review_link,
     create_cohort, list_educator_cohorts, join_cohort_as_student, get_cohort_observatory_analytics,
-    create_team, join_team, share_project_to_team, get_team_collaboration_view
+    create_team, join_team, share_project_to_team, get_team_collaboration_view,
+    get_audience_preview, remove_team_member
 )
 
 router = APIRouter(prefix="/api/ecosystem", tags=["NEXUS Ecosystem"])
@@ -205,3 +206,23 @@ def get_team_collaboration(
 ):
     """Returns collaboration signals for shared team projects."""
     return get_team_collaboration_view(db, current_user.id, team_id)
+
+@router.get("/sharing/preview/{target_type}")
+def get_sharing_audience_preview(
+    target_type: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Returns a faithful simulated payload of what a target audience can observe."""
+    return get_audience_preview(db, current_user.id, target_type)
+
+@router.post("/teams/{team_id}/remove-member/{target_user_id}")
+def remove_member_from_team(
+    team_id: int,
+    target_user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Removes a member from a team."""
+    remove_team_member(db, current_user.id, team_id, target_user_id)
+    return {"message": "Member removed from team"}

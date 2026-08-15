@@ -24,6 +24,13 @@ from app.schemas.ecosystem import (
 )
 from app.services.nexus_id_service import get_or_create_nexus_identity
 
+def _make_aware(dt: Optional[datetime]) -> Optional[datetime]:
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
 # ── Audit Logger ──────────────────────────────────────────
 
 def record_audit_log(
@@ -233,7 +240,7 @@ def accept_mentor_invitation(db: Session, mentor_user_id: int, token: str) -> Me
     if rel.status == RelationshipStatus.ACCEPTED:
         raise HTTPException(status_code=400, detail="This mentor invitation has already been accepted")
 
-    if rel.expires_at and rel.expires_at < datetime.now(timezone.utc):
+    if rel.expires_at and _make_aware(rel.expires_at) < datetime.now(timezone.utc):
         rel.status = RelationshipStatus.EXPIRED
         db.commit()
         raise HTTPException(status_code=400, detail="This mentor invitation has expired")
@@ -592,18 +599,26 @@ def get_cohort_observatory_analytics(db: Session, educator_id: int, cohort_id: i
     if gap_counts:
         most_common_gap = max(gap_counts.items(), key=lambda x: x[1])[0]
 
-    # Guardrail 2: 3 to 5 students (Limited Summary)
+    # Guardrail 2: 3 to 5 students (Limited Summary with Anti-Identification Suppression)
     if student_count < 6:
         recommendation = f"Consider introducing practical exercises for {most_common_gap}." if most_common_gap else "Continue monitoring initial cohort progress."
+        
+        filtered_signals = []
+        for k, v in sorted(skill_proven_counts.items(), key=lambda x: x[1], reverse=True):
+            if v <= 1:
+                filtered_signals.append({"name": k, "frequency": "INSUFFICIENT COHORT SIZE FOR THIS SIGNAL"})
+            else:
+                filtered_signals.append({"name": k, "frequency": f"{v} students"})
+
         return EducatorObservatoryResponse(
             cohort_id=cohort.id,
             name=cohort.name,
             course_code=cohort.course_code,
             student_count=student_count,
             privacy_status="LIMITED_SUMMARY",
-            privacy_note="Cohort has 3–5 students. Displaying high-level aggregated totals only.",
+            privacy_note="Cohort has 3–5 students. Individual signals held by single students are suppressed to protect privacy.",
             most_common_gap=most_common_gap,
-            most_common_signals=[{"name": k, "frequency": f"{v} students"} for k, v in sorted(skill_proven_counts.items(), key=lambda x: x[1], reverse=True)[:3]],
+            most_common_signals=filtered_signals[:3],
             dominant_project_patterns=[],
             curriculum_recommendations=[recommendation]
         )
@@ -628,6 +643,14 @@ def get_cohort_observatory_analytics(db: Session, educator_id: int, cohort_id: i
         curriculum_recs.append(f"Teaching Focus: Strengthen practical lab exercises on '{most_common_gap}'.")
     curriculum_recs.append(f"Project Review: Encourage students to add test suites to their existing API/DB codebases.")
 
+    # Filter out single-student signals to prevent re-identification even in larger cohorts
+    suppressed_signals = []
+    for k, v in sorted(skill_proven_counts.items(), key=lambda x: x[1], reverse=True):
+        if v > 1:
+            suppressed_signals.append({"name": k, "percentage": f"{int((v / student_count) * 100)}%"})
+        else:
+            suppressed_signals.append({"name": k, "percentage": "INSUFFICIENT COHORT SIZE FOR THIS SIGNAL"})
+
     return EducatorObservatoryResponse(
         cohort_id=cohort.id,
         name=cohort.name,
@@ -636,7 +659,7 @@ def get_cohort_observatory_analytics(db: Session, educator_id: int, cohort_id: i
         privacy_status="FULL_OBSERVATORY",
         privacy_note="Privacy-safe aggregation active across cohort.",
         most_common_gap=most_common_gap,
-        most_common_signals=[{"name": k, "percentage": f"{int((v / student_count) * 100)}%"} for k, v in sorted(skill_proven_counts.items(), key=lambda x: x[1], reverse=True)[:5]],
+        most_common_signals=suppressed_signals[:5],
         dominant_project_patterns=patterns,
         curriculum_recommendations=curriculum_recs
     )
@@ -692,7 +715,7 @@ def get_project_review_by_token(db: Session, token: str) -> ReviewProjectViewRes
     if not link or not link.is_active:
         raise HTTPException(status_code=404, detail="Review link unavailable or revoked")
 
-    if link.expires_at and link.expires_at < datetime.now(timezone.utc):
+    if link.expires_at and _make_aware(link.expires_at) < datetime.now(timezone.utc):
         raise HTTPException(status_code=404, detail="Review link has expired")
 
     project = link.project
@@ -867,8 +890,90 @@ def get_team_collaboration_view(db: Session, user_id: int, team_id: int) -> Team
         team_name=team.name,
         description=team.description,
         creator_id=team.creator_id,
+        invite_code=team.invite_code,
         members_count=len(members),
         members=members_list,
         shared_projects=projects_list,
         collaboration_signals=collaboration_signals
     )
+
+def remove_team_member(db: Session, requesting_user_id: int, team_id: int, target_user_id: int) -> bool:
+    """Removes a member from a team. The requesting user must be TEAM LEAD or leaving themselves."""
+    team = db.query(Team).filter(Team.id == team_id).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+
+    requester_membership = db.query(TeamMember).filter(TeamMember.team_id == team_id, TeamMember.user_id == requesting_user_id).first()
+    if not requester_membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this team")
+
+    is_lead = requester_membership.role == "LEAD" or team.creator_id == requesting_user_id
+    is_self = requesting_user_id == target_user_id
+
+    if not (is_lead or is_self):
+        raise HTTPException(status_code=403, detail="Only team leads can remove other members")
+
+    target_membership = db.query(TeamMember).filter(TeamMember.team_id == team_id, TeamMember.user_id == target_user_id).first()
+    if not target_membership:
+        raise HTTPException(status_code=404, detail="Target user is not a member of this team")
+
+    db.delete(target_membership)
+    db.commit()
+
+    record_audit_log(db, requesting_user_id, requesting_user_id, "REMOVE_TEAM_MEMBER", "TEAM", str(team_id))
+    return True
+
+def get_audience_preview(db: Session, student_id: int, view_type: str) -> Dict[str, Any]:
+    """Generates an accurate simulated payload of what each audience can observe."""
+    profile = get_or_create_nexus_identity(db, student_id)
+    view_type = view_type.upper()
+
+    if view_type == "PUBLIC":
+        if not profile.public_profile:
+            return {"status": "DISABLED", "message": "Public Profile is currently OFF. Public visitors see nothing."}
+        from app.services.nexus_id_service import get_public_profile_by_slug
+        passport = get_public_profile_by_slug(db, profile.public_slug)
+        return {"status": "ACTIVE", "audience": "PUBLIC", "view_data": passport.model_dump() if hasattr(passport, "model_dump") else passport.dict()}
+
+    elif view_type == "MENTOR":
+        # Simulate standard mentor dossier with default scopes
+        user_skills = db.query(UserSkill).join(Skill).filter(UserSkill.user_id == student_id).all()
+        proven = [us.skill.name for us in user_skills if us.state == SkillState.STRONG]
+        developing = [us.skill.name for us in user_skills if us.state == SkillState.DEVELOPING]
+        projects = db.query(Project).filter(Project.user_id == student_id).all()
+        return {
+            "status": "SIMULATED",
+            "audience": "MENTOR",
+            "student_nexus_id": profile.nexus_id,
+            "target_role": profile.target_role.name if profile.target_role else "Software Engineer",
+            "visible_proven_signals": proven,
+            "visible_developing_signals": developing,
+            "visible_projects": [{"name": p.name, "is_public": p.is_public} for p in projects],
+            "private_data_hidden": ["Private AI Chats", "Unshared Secret Tokens", "Other Mentor Notes"]
+        }
+
+    elif view_type == "REVIEWER":
+        first_proj = db.query(Project).filter(Project.user_id == student_id).first()
+        return {
+            "status": "SIMULATED",
+            "audience": "REVIEWER",
+            "sample_project": first_proj.name if first_proj else "Sample Project",
+            "mode": "TEMPORARY_READ_ONLY",
+            "questions_to_explore_preview": [
+                "How did you design the modular structure of this service?",
+                "What architectural trade-offs were made?"
+            ]
+        }
+
+    elif view_type == "TEAM":
+        shared_projects = db.query(TeamProject).join(Project).filter(Project.user_id == student_id).all()
+        return {
+            "status": "SIMULATED",
+            "audience": "TEAM",
+            "shared_projects_visible_to_team": [sp.project.name for sp in shared_projects],
+            "private_projects_hidden": "All other non-shared repositories are strictly inaccessible to teammates."
+        }
+
+    else:
+        raise HTTPException(status_code=400, detail="Invalid view_type. Choose PUBLIC, MENTOR, REVIEWER, or TEAM.")
+

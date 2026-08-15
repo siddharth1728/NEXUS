@@ -20,6 +20,8 @@ except Exception:
 
 @app.on_event("startup")
 def on_startup():
+    if os.environ.get("TESTING") == "1" or os.environ.get("ENVIRONMENT") == "test":
+        return
     try:
         from app.database.database import Base, engine
         import app.models  # register all models

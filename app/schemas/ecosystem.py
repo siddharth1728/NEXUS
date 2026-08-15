@@ -1,8 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 
-# --- Scopes ---
-VALID_PERMISSIONS = ["PROFILE", "PROJECTS", "PROOF", "JOURNEY", "ATLAS", "QUESTS"]
+VALID_PERMISSIONS = ["PROFILE", "PROJECTS", "PROOF", "JOURNEY", "ATLAS", "QUESTS", "LAB", "CLAIMS"]
 
 # --- Mentor Schemas ---
 
@@ -130,6 +129,7 @@ class TeamCollaborationResponse(BaseModel):
     team_name: str
     description: Optional[str] = None
     creator_id: int
+    invite_code: str
     members_count: int
     members: List[Dict[str, Any]] = []
     shared_projects: List[Dict[str, Any]] = []

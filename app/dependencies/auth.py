@@ -5,7 +5,7 @@ from app.core.config import settings
 from app.database.database import get_db
 from app.models.user import User
 
-async def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
+def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
     token = request.cookies.get("access_token")
     if not token:
         auth_header = request.headers.get("Authorization")
