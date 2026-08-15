@@ -174,7 +174,7 @@ def test_cross_user_isolation_copilot(client, db_session, test_user):
     db_session.commit()
 
     from app.core.security import create_access_token
-    token_b = create_access_token({"sub": str(user_b.id)})
+    token_b = create_access_token(user_b.id)
 
     # User B attempts to start an interview on User A's project
     res = client.post(

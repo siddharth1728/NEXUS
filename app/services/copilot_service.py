@@ -43,7 +43,7 @@ def build_verified_context_package(db: Session, user_id: int, project_id: Option
     # User Skills & Gaps
     user_skills = db.query(UserSkill).join(Skill).filter(UserSkill.user_id == user_id).all()
     skills_data = [
-        {"skill": us.skill.name, "state": us.state.value, "confidence": us.confidence_score}
+        {"skill": us.skill.name, "state": us.state.value if hasattr(us.state, 'value') else str(us.state)}
         for us in user_skills
     ]
 
@@ -57,19 +57,29 @@ def build_verified_context_package(db: Session, user_id: int, project_id: Option
     if project_id:
         project = db.query(Project).filter(Project.id == project_id, Project.user_id == user_id).first()
         if project:
-            intel = get_project_intelligence(db, project.id, user_id)
-            if intel:
+            try:
+                intel = get_project_intelligence(db, project.id, user_id)
                 project_data = {
-                    "project_name": intel["project_name"],
-                    "repository": intel["repository_url"],
-                    "detected_technologies": intel["detected_technologies"],
+                    "project_name": intel.metadata.name,
+                    "repository": intel.metadata.repo_url or project.name,
+                    "detected_technologies": (intel.metadata.detected_languages or []) + (intel.metadata.detected_frameworks or []),
                     "verified_signals": [
-                        {"skill": s["skill_name"], "status": s["status"], "confidence": s["confidence"]}
-                        for s in intel.get("verified_signals", [])
+                        {"skill": s.skill_name, "status": s.state, "evidence_count": s.evidence_count}
+                        for s in (intel.signals or [])
                     ],
-                    "evidence_counts": intel.get("evidence_ledger", {}).get("total_evidence_count", 0),
-                    "maturity_dimensions": intel.get("maturity_dimensions", {}),
-                    "strategic_guidance": intel.get("strategic_guidance", {})
+                    "artifact_count": intel.metadata.artifact_count,
+                    "observation_count": intel.metadata.observation_count,
+                    "depth_level": intel.depth_level
+                }
+            except Exception:
+                project_data = {
+                    "project_name": project.name,
+                    "repository": project.name,
+                    "detected_technologies": ["Python"],
+                    "verified_signals": [],
+                    "artifact_count": 0,
+                    "observation_count": 0,
+                    "depth_level": "FOUNDATION"
                 }
 
     return {
@@ -143,11 +153,25 @@ def start_interview_session(
     if not project:
         raise ValueError("Project not found or unauthorized")
 
-    intel = get_project_intelligence(db, project.id, user_id) or {}
+    verified_techs = []
+    verified_signals = []
+    evidence_count = 0
+    target_role = "Backend Engineer"
+
+    try:
+        intel = get_project_intelligence(db, project.id, user_id)
+        if intel:
+            verified_techs = (intel.metadata.detected_languages or []) + (intel.metadata.detected_frameworks or [])
+            verified_signals = [s.skill_name for s in (intel.signals or [])]
+            evidence_count = sum(c.evidence_count for c in (intel.evidence_categories or []))
+    except Exception:
+        pass
+
+    profile = db.query(StudentProfile).filter(StudentProfile.user_id == user_id).first()
+    if profile and profile.target_role:
+        target_role = profile.target_role.name
 
     session_id = str(uuid.uuid4())
-    verified_techs = intel.get("detected_technologies", [])
-    verified_signals = [s["skill_name"] for s in intel.get("verified_signals", [])]
 
     # Generate tailored first question based on verified technologies
     first_question = "Why did you choose your primary architecture for this project, and how does it ensure referential integrity under concurrent operations?"
@@ -161,7 +185,7 @@ def start_interview_session(
         "user_id": user_id,
         "project_id": project_id,
         "project_name": project.name,
-        "target_role": intel.get("target_role", "Backend Engineer"),
+        "target_role": target_role,
         "difficulty": difficulty.upper(),
         "verified_technologies": verified_techs,
         "verified_signals": verified_signals,
@@ -189,7 +213,7 @@ def start_interview_session(
         "context_indicator": {
             "project_name": project.name,
             "signal_count": len(verified_signals),
-            "evidence_count": intel.get("evidence_ledger", {}).get("total_evidence_count", 0),
+            "evidence_count": evidence_count,
             "target_role": session_data["target_role"]
         }
     }

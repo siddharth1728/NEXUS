@@ -15,9 +15,19 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)) -> U
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        user_id: str = payload.get("sub")
+        user_id = payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
+        if isinstance(user_id, dict):
+            user_id = user_id.get("sub")
+        elif isinstance(user_id, str) and user_id.startswith("{"):
+            try:
+                import ast
+                d = ast.literal_eval(user_id)
+                if isinstance(d, dict):
+                    user_id = d.get("sub")
+            except Exception:
+                pass
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
     
