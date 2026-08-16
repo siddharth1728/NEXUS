@@ -381,6 +381,8 @@ def verify_quest_outcome(user_id: int, action_key: str, db: Session) -> QuestVer
     matching_evidence = [e for e in user_evidence if e.type in action.expected_evidence_types]
     found_observations = [e.raw_observation_text for e in matching_evidence if e.raw_observation_text]
 
+    from app.services import telemetry_service
+    
     verified = state_value(current_state) >= state_value(action.target_state)
 
     missing = []
@@ -390,6 +392,12 @@ def verify_quest_outcome(user_id: int, action_key: str, db: Session) -> QuestVer
                 missing.append(f"Verifiable {t.value} artifacts matching taxonomy rules.")
         if not missing:
             missing.append("Additional evidence diversity or quality score required to cross state threshold.")
+    else:
+        # Emit VERIFIED event only when the verification check succeeds
+        telemetry_service.record_event(
+            db, "QUEST_VERIFIED", user_id=user_id, 
+            context={"action_key": action_key, "skill_name": action.skill_name}
+        )
 
     explanation = (
         f"Verification complete: New evidence confirmed. {action.skill_name} state advanced to {current_state}."

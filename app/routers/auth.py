@@ -35,10 +35,14 @@ def get_csrf(response: Response):
     token = generate_csrf_token()
     set_csrf_cookie(response, token, secure=settings.ENVIRONMENT == "production")
     return {"message": "CSRF token set"}
+from app.services import auth_service, telemetry_service
 
 @router.post("/register", response_model=UserResponse, dependencies=[Depends(rate_limit), Depends(verify_csrf_token)])
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    return auth_service.register_user(db, user_data)
+    user = auth_service.register_user(db, user_data)
+    # Release-critical telemetry: Write synchronously before returning
+    telemetry_service.record_event(db, "ACCOUNT_CREATED", user_id=user.id)
+    return user
 
 @router.post("/login", response_model=TokenResponse, dependencies=[Depends(rate_limit), Depends(verify_csrf_token)])
 def login(user_data: UserLogin, response: Response, db: Session = Depends(get_db)):

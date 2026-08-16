@@ -358,6 +358,10 @@
       if (typeof NexusAtlas !== 'undefined') {
         NexusAtlas.render(viewport, identityData);
       }
+      
+      if (typeof recordProductEvent === 'function') {
+        recordProductEvent('ATLAS_VIEWED');
+      }
 
       // Load Next Expedition Recommendation
       loadNextExpedition();

@@ -33,6 +33,8 @@ def get_project_intelligence_endpoint(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    from app.services import telemetry_service
+    telemetry_service.record_event(db, "PROJECT_INTELLIGENCE_VIEWED", user_id=current_user.id, context={"project_id": project_id})
     return get_project_intelligence(db, project_id, current_user.id)
 
 @router.post("/{project_id}/sync", response_model=RepositorySnapshotResponse, dependencies=[Depends(verify_csrf_token)])

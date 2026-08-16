@@ -22,6 +22,7 @@ from app.services.ecosystem_service import (
     create_team, join_team, share_project_to_team, get_team_collaboration_view,
     get_audience_preview, remove_team_member
 )
+from app.services import telemetry_service
 
 router = APIRouter(prefix="/api/ecosystem", tags=["NEXUS Ecosystem"])
 
@@ -44,9 +45,11 @@ def invite_mentor(
     current_user: User = Depends(get_current_user)
 ):
     """Creates a secure, single-use mentor invitation token with explicit permission scopes."""
-    return create_mentor_invitation(
+    result = create_mentor_invitation(
         db, current_user.id, payload.mentor_email, payload.permissions, payload.expires_in_days
     )
+    telemetry_service.record_event(db, "MENTOR_INVITED", user_id=current_user.id)
+    return result
 
 @router.post("/mentor/accept")
 def accept_mentor(
@@ -56,6 +59,7 @@ def accept_mentor(
 ):
     """Accepts a mentor invitation and establishes a verified relationship."""
     rel = accept_mentor_invitation(db, current_user.id, payload.invite_token)
+    telemetry_service.record_event(db, "MENTOR_ACCEPTED", user_id=current_user.id)
     return {"message": "Mentor invitation accepted", "relationship_id": rel.id}
 
 @router.post("/mentor/revoke/{relationship_id}")
@@ -106,9 +110,11 @@ def create_review_link(
     current_user: User = Depends(get_current_user)
 ):
     """Generates a temporary, read-only project review link."""
-    return create_project_review_link(
+    result = create_project_review_link(
         db, current_user.id, payload.project_id, payload.label, payload.expires_in_days
     )
+    telemetry_service.record_event(db, "REVIEW_LINK_CREATED", user_id=current_user.id)
+    return result
 
 @router.get("/review/{token}", response_model=ReviewProjectViewResponse)
 def get_project_review(

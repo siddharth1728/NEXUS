@@ -40,7 +40,7 @@ async function apiFetch(url, opts) {
   return res.json();
 }
 
-/* ── 3. HTML Escaping ──────────────────────────────────────────────── */
+/* ── 3. HTML Escaping & Telemetry ────────────────────────────────────── */
 function escapeHtml(value) {
   return String(value == null ? '' : value)
     .replace(/&/g, '&amp;')
@@ -48,6 +48,22 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function recordProductEvent(eventType, contextData) {
+  try {
+    fetch('/api/telemetry/event', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': getCsrfToken()
+      },
+      body: JSON.stringify({
+        event_type: eventType,
+        context_data: contextData || {}
+      })
+    }).catch(function(){}); // fail silently
+  } catch(e) {}
 }
 
 /* ── 4. Relative Time Formatter ────────────────────────────────────── */

@@ -7,7 +7,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
-from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba, identity, lab, copilot, nexus_id, ecosystem
+from app.routers import auth, profile, github, projects, snapshots, evidence, skills, gaps, nba, identity, lab, copilot, nexus_id, ecosystem, telemetry
 
 app = FastAPI(title="NEXUS")
 
@@ -46,6 +46,7 @@ app.include_router(lab.router, prefix="/api")
 app.include_router(copilot.router)
 app.include_router(nexus_id.router)
 app.include_router(ecosystem.router)
+app.include_router(telemetry.router)
 
 @app.get("/health", tags=["Health"])
 def health_check():

@@ -32,4 +32,9 @@ def get_concept_detail(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    from app.services import telemetry_service
+    telemetry_service.record_event(
+        db, "LAB_ACTIVITY_COMPLETED", user_id=current_user.id, 
+        context={"concept_key": concept_key, "project_id": project_id}
+    )
     return lab_service.get_concept_detail(concept_key, current_user.id, db, project_id=project_id)

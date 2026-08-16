@@ -10,6 +10,7 @@ from app.models.ecosystem import (
     MentorRelationship, MentorNote, ReviewLink,
     Cohort, CohortMembership, Team, TeamMember, TeamProject, SharingAuditLog
 )
+from app.models.telemetry import ProductEvent, ProductFeedback
 
 # Ensure all models are imported here so Alembic can discover them
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     "TargetRoleSkill", "Project", "RepositorySnapshot", "Artifact", "RawObservation", "Evidence",
     "EvidenceSkill", "ActionHistory", "Recommendation", "UserClaim",
     "PermissionScope", "RelationshipStatus", "MentorRelationship", "MentorNote", "ReviewLink",
-    "Cohort", "CohortMembership", "Team", "TeamMember", "TeamProject", "SharingAuditLog"
+    "Cohort", "CohortMembership", "Team", "TeamMember", "TeamProject", "SharingAuditLog",
+    "ProductEvent", "ProductFeedback"
 ]

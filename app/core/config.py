@@ -36,6 +36,15 @@ class Settings(BaseSettings):
     AI_MODEL: str = "gpt-4o-mini"
     AI_MAX_TOKENS: int = 1200
     AI_TEMPERATURE: float = 0.2
+    # ── Feature Flags (Phase 14) ──────────────────────────────────────────
+    ENABLE_AI_COPILOT: bool = True
+    ENABLE_PROOF_QUESTS: bool = True
+    ENABLE_ENGINEERING_LAB: bool = True
+    ENABLE_NEXUS_ID: bool = True
+    ENABLE_BETA_MODE: bool = False
+    
+    # Optional explicitly permitted Beta Users / internal testing cohort
+    ALLOWED_BETA_EMAILS: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",

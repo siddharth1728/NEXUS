@@ -18,6 +18,7 @@ from app.services.nba_engine import (
     get_quest_detail, verify_quest_outcome
 )
 from app.config.action_catalog import get_action_catalog
+from app.services import telemetry_service
 
 router = APIRouter()
 
@@ -84,6 +85,11 @@ def complete_action(payload: ActionPayload, current_user: User = Depends(get_cur
     db.add(history)
     db.commit()
     
+    telemetry_service.record_event(
+        db, "QUEST_MARKED_COMPLETE", user_id=current_user.id, 
+        context={"action_key": payload.action_key, "project_id": payload.project_id}
+    )
+    
     recalculate_next_best_action(current_user.id, db)
     return {
         "status": "success",
@@ -124,6 +130,11 @@ def begin_action(payload: ActionPayload, current_user: User = Depends(get_curren
     )
     db.add(history)
     db.commit()
+    
+    telemetry_service.record_event(
+        db, "QUEST_STARTED", user_id=current_user.id, 
+        context={"action_key": payload.action_key, "project_id": payload.project_id}
+    )
     
     return {
         "status": "success",

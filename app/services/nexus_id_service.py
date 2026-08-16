@@ -18,6 +18,7 @@ from app.schemas.nexus_id import (
     ClaimEvaluationItem, ClaimListResponse, PortfolioSelectorResponse,
     RecruiterViewResponse, CareerSnapshotResponse
 )
+from app.services import telemetry_service
 
 def generate_stable_nexus_id(user_id: int) -> str:
     """Generates an immutable, non-sequential system identity ID like NX-78291."""
@@ -28,6 +29,9 @@ def generate_stable_nexus_id(user_id: int) -> str:
 def get_or_create_nexus_identity(db: Session, user_id: int) -> StudentProfile:
     """Retrieves or initializes a student profile with safe immutable nexus_id and public_slug."""
     profile = db.query(StudentProfile).filter(StudentProfile.user_id == user_id).first()
+    profile_existed = bool(profile)
+    created_id = False
+    
     if not profile:
         profile = StudentProfile(user_id=user_id)
         db.add(profile)
@@ -37,6 +41,7 @@ def get_or_create_nexus_identity(db: Session, user_id: int) -> StudentProfile:
     if not profile.nexus_id:
         profile.nexus_id = generate_stable_nexus_id(user_id)
         modified = True
+        created_id = True
 
     if not profile.public_slug:
         random_suffix = secrets.token_hex(3)
@@ -46,6 +51,10 @@ def get_or_create_nexus_identity(db: Session, user_id: int) -> StudentProfile:
     if modified:
         db.commit()
         db.refresh(profile)
+        
+        # Determine if we just created the nexus_id
+        if not profile_existed or created_id:
+            telemetry_service.record_event(db, "NEXUS_ID_CREATED", user_id=user_id)
 
     return profile
 
@@ -406,6 +415,8 @@ def update_nexus_id_settings(db: Session, user_id: int, payload: NexusIdSettings
         profile.public_slug = slug_clean
 
     if payload.public_profile is not None:
+        if not profile.public_profile and payload.public_profile:
+            telemetry_service.record_event(db, "PUBLIC_PROFILE_ENABLED", user_id=user_id)
         profile.public_profile = payload.public_profile
 
     if payload.bio is not None:

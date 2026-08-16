@@ -20,8 +20,14 @@ def get_profile(db: Session, user_id: int) -> StudentProfile:
         db.refresh(profile)
     return profile
 
+from app.services import telemetry_service
+
 def update_profile(db: Session, user_id: int, profile_data: ProfileUpdate) -> StudentProfile:
     profile = get_profile(db, user_id)
+    
+    # Track previous state for telemetry
+    was_onboarded = bool(profile.github_username and profile.target_role_id)
+    had_github = bool(profile.github_username)
 
     if profile_data.target_role is not None:
         if profile_data.target_role.strip() == "":
@@ -40,6 +46,17 @@ def update_profile(db: Session, user_id: int, profile_data: ProfileUpdate) -> St
         profile.name = profile_data.name
 
     db.commit()
+    
+    # Telemetry Logic
+    has_github = bool(profile.github_username)
+    is_onboarded = bool(profile.github_username and profile.target_role_id)
+    
+    if not had_github and has_github:
+        telemetry_service.record_event(db, "GITHUB_CONNECTED", user_id=user_id)
+        
+    if not was_onboarded and is_onboarded:
+        telemetry_service.record_event(db, "ONBOARDING_COMPLETED", user_id=user_id)
+        
     return get_profile(db, user_id)
 
 from app.schemas.profile import ProfileUpdate, ProfileResponse, SettingsUpdate

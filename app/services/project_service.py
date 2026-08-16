@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import logging
 from app.models.project import Project, RepositorySnapshot, Artifact, RawObservation, SnapshotStatus
 from app.schemas.project import ProjectCreate
-from app.services import github_service, artifact_service, observation_service
+from app.services import github_service, artifact_service, observation_service, telemetry_service
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,8 @@ async def sync_project(db: Session, project_id: int, user_id: int, github_userna
         snapshot.status = SnapshotStatus.ANALYZING
         snapshot.analysis_started_at = datetime.now(timezone.utc)
         db.commit()
+        
+        telemetry_service.record_event(db, "SYNC_STARTED", user_id=user_id, context={"project_id": project.id})
         
         meta = await github_service.get_repository_metadata(github_username, project.name)
         default_branch = meta["default_branch"]
@@ -124,15 +126,28 @@ async def sync_project(db: Session, project_id: int, user_id: int, github_userna
         snapshot.status = SnapshotStatus.COMPLETED
         db.commit()
         
+        # Telemetry
+        telemetry_service.record_event(db, "SYNC_COMPLETED", user_id=user_id, context={"project_id": project.id})
+        
+        # Check if this is the first successful sync
+        successful_syncs_count = db.query(RepositorySnapshot).join(Project).filter(
+            Project.user_id == user_id,
+            RepositorySnapshot.status == SnapshotStatus.COMPLETED
+        ).count()
+        if successful_syncs_count == 1:
+            telemetry_service.record_event(db, "FIRST_SYNC_COMPLETED", user_id=user_id, context={"project_id": project.id})
+        
     except github_service.GitHubRateLimitException as e:
         snapshot.status = SnapshotStatus.FAILED
         snapshot.error_message = str(e)
         db.commit()
+        telemetry_service.record_event(db, "SYNC_FAILED", user_id=user_id, context={"reason": "rate_limit", "project_id": project.id})
     except Exception as e:
         logger.error(f"Sync failed for project {project.id}: {e}")
         snapshot.status = SnapshotStatus.FAILED
         snapshot.error_message = "An error occurred during synchronization."
         db.commit()
+        telemetry_service.record_event(db, "SYNC_FAILED", user_id=user_id, context={"reason": "unknown_error", "project_id": project.id})
         
     db.refresh(snapshot)
     return snapshot
