@@ -5,7 +5,6 @@ ExecutionRecord parameters, logs, or API responses.
 """
 
 import os
-from typing import Dict, Optional
 
 
 class SecretStore:
@@ -16,9 +15,9 @@ class SecretStore:
     """
 
     def __init__(self) -> None:
-        self._mock_store: Dict[str, str] = {}
+        self._mock_store: dict[str, str] = {}
 
-    def get_secret(self, key: str) -> Optional[str]:
+    def get_secret(self, key: str) -> str | None:
         """Retrieve a secret by key. Never log the returned value."""
         if key in self._mock_store:
             return self._mock_store[key]

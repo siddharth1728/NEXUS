@@ -1,14 +1,15 @@
 """GitHub Connector — all GitHub API communication lives here."""
 
-import httpx
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
+import httpx
+
+from app.core.errors import ForbiddenError, NotFoundError, UnauthorizedError, ValidationError
 from app.core.execution.connectors.base import BaseConnector
-from app.models.enums import Capability
-from app.schemas.connection import Connection, ConnectorHealth, ConnectionStatus
 from app.core.secrets import secret_store
-from app.core.errors import UnauthorizedError, ForbiddenError, NotFoundError, ValidationError
+from app.models.enums import Capability
+from app.schemas.connection import Connection, ConnectionStatus, ConnectorHealth
 
 
 class GitHubError(Exception):
@@ -23,7 +24,7 @@ class GitHubConnector(BaseConnector):
         return "github"
 
     @property
-    def supported_capabilities(self) -> List[Capability]:
+    def supported_capabilities(self) -> list[Capability]:
         return [
             Capability.GITHUB_REPOSITORY_READ,
             Capability.GITHUB_ISSUE_READ,
@@ -31,7 +32,7 @@ class GitHubConnector(BaseConnector):
             Capability.GITHUB_ISSUE_COMMENT_CREATE,
         ]
 
-    def _get_headers(self, connection: Connection) -> Dict[str, str]:
+    def _get_headers(self, connection: Connection) -> dict[str, str]:
         token = secret_store.get_secret(self.get_credential_key(connection))
         if not token:
             raise UnauthorizedError("GitHub token not configured for connection.")
@@ -63,8 +64,8 @@ class GitHubConnector(BaseConnector):
         method: str,
         url: str,
         connection: Connection,
-        json_data: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        json_data: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Centralized HTTP client execution with bounds."""
         headers = self._get_headers(connection)
         timeout = httpx.Timeout(10.0, connect=5.0)
@@ -75,7 +76,7 @@ class GitHubConnector(BaseConnector):
                 self._normalize_error(response)
                 if response.status_code == 204:
                     return {}
-                result: Dict[str, Any] = response.json()
+                result: dict[str, Any] = response.json()
                 return result
         except httpx.RequestError as e:
             raise GitHubError(f"GitHub connection failure: {e}") from e
@@ -89,31 +90,31 @@ class GitHubConnector(BaseConnector):
                     status=ConnectionStatus.AUTHENTICATION_REQUIRED,
                     provider=self.provider,
                     message="Missing credentials",
-                    last_checked=datetime.now(timezone.utc),
+                    last_checked=datetime.now(UTC),
                 )
 
             await self._make_request("GET", "https://api.github.com/user", connection)
             return ConnectorHealth(
                 status=ConnectionStatus.AVAILABLE,
                 provider=self.provider,
-                last_checked=datetime.now(timezone.utc),
+                last_checked=datetime.now(UTC),
             )
         except UnauthorizedError:
             return ConnectorHealth(
                 status=ConnectionStatus.AUTHENTICATION_REQUIRED,
                 provider=self.provider,
                 message="Invalid or expired credentials",
-                last_checked=datetime.now(timezone.utc),
+                last_checked=datetime.now(UTC),
             )
         except Exception as e:
             return ConnectorHealth(
                 status=ConnectionStatus.UNAVAILABLE,
                 provider=self.provider,
                 message=str(e),
-                last_checked=datetime.now(timezone.utc),
+                last_checked=datetime.now(UTC),
             )
 
-    async def read_repository(self, connection: Connection, owner: str, repo: str) -> Dict[str, Any]:
+    async def read_repository(self, connection: Connection, owner: str, repo: str) -> dict[str, Any]:
         """Read a repository's normalized info."""
         url = f"https://api.github.com/repos/{owner}/{repo}"
         data = await self._make_request("GET", url, connection)
@@ -127,7 +128,7 @@ class GitHubConnector(BaseConnector):
             "default_branch": data.get("default_branch", "main"),
         }
 
-    async def read_issue(self, connection: Connection, owner: str, repo: str, issue_number: int) -> Dict[str, Any]:
+    async def read_issue(self, connection: Connection, owner: str, repo: str, issue_number: int) -> dict[str, Any]:
         """Read an issue's normalized info."""
         url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
         data = await self._make_request("GET", url, connection)
@@ -149,7 +150,7 @@ class GitHubConnector(BaseConnector):
 
     async def create_issue(
         self, connection: Connection, owner: str, repo: str, title: str, body: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create a new issue."""
         url = f"https://api.github.com/repos/{owner}/{repo}/issues"
         payload = {"title": title, "body": body}
@@ -166,7 +167,7 @@ class GitHubConnector(BaseConnector):
 
     async def create_issue_comment(
         self, connection: Connection, owner: str, repo: str, issue_number: int, body: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create a new comment on an issue."""
         url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
         payload = {"body": body}

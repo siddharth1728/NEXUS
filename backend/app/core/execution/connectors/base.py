@@ -1,7 +1,6 @@
 """Base Connector abstraction for all NEXUS external integrations."""
 
 from abc import ABC, abstractmethod
-from typing import List
 
 from app.models.enums import Capability
 from app.schemas.connection import Connection, ConnectorHealth
@@ -21,7 +20,7 @@ class BaseConnector(ABC):
 
     @property
     @abstractmethod
-    def supported_capabilities(self) -> List[Capability]:
+    def supported_capabilities(self) -> list[Capability]:
         """List of capabilities supported by this connector."""
 
     @abstractmethod

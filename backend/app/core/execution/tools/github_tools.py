@@ -1,15 +1,14 @@
 """GitHub Tools — capability-specific wrappers over GitHubConnector."""
 
-from datetime import datetime, timezone
-from typing import Any, Dict
+from datetime import UTC, datetime
+from typing import Any
 
 from pydantic import BaseModel, Field
 
-from app.core.execution.tool import BaseTool, ExecutionContext
 from app.core.execution.connectors.github import GitHubConnector
+from app.core.execution.tool import BaseTool, ExecutionContext
 from app.models.enums import Capability
 from app.schemas.connection import Connection, ConnectionStatus
-
 
 # ─── Strict Input Schemas ────────────────────────────────────────────────────
 
@@ -49,7 +48,7 @@ class BaseGitHubTool(BaseTool):
         In production, this would query the ConnectionService.
         For Phase 02C, the secret store is keyed as GITHUB_{tenant_id}_TOKEN.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return Connection(
             id="runtime-connection",
             tenant_id=context.tenant_id,
@@ -60,10 +59,10 @@ class BaseGitHubTool(BaseTool):
             updated_at=now,
         )
 
-    async def _execute_impl(self, connection: Connection, parameters: BaseModel) -> Dict[str, Any]:
+    async def _execute_impl(self, connection: Connection, parameters: BaseModel) -> dict[str, Any]:
         raise NotImplementedError
 
-    async def _dry_run_impl(self, parameters: BaseModel) -> Dict[str, Any]:
+    async def _dry_run_impl(self, parameters: BaseModel) -> dict[str, Any]:
         """Show what would happen without calling GitHub."""
         return {
             "status": "dry_run",
@@ -77,7 +76,7 @@ class BaseGitHubTool(BaseTool):
             "message": "Dry run succeeded. No external request made.",
         }
 
-    async def execute(self, parameters: BaseModel, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, parameters: BaseModel, context: ExecutionContext) -> dict[str, Any]:
         connection = self._build_connection(context)
         if context.dry_run:
             return await self._dry_run_impl(parameters)
@@ -100,7 +99,7 @@ class GitHubRepositoryReadTool(BaseGitHubTool):
     def get_input_schema(self) -> type[BaseModel]:
         return GitHubRepositoryInput
 
-    async def _execute_impl(self, connection: Connection, parameters: BaseModel) -> Dict[str, Any]:
+    async def _execute_impl(self, connection: Connection, parameters: BaseModel) -> dict[str, Any]:
         if not isinstance(parameters, GitHubRepositoryInput):
             raise TypeError("Invalid parameters type.")
         return await self.connector.read_repository(connection, parameters.owner, parameters.repository)
@@ -120,7 +119,7 @@ class GitHubIssueReadTool(BaseGitHubTool):
     def get_input_schema(self) -> type[BaseModel]:
         return GitHubIssueReadInput
 
-    async def _execute_impl(self, connection: Connection, parameters: BaseModel) -> Dict[str, Any]:
+    async def _execute_impl(self, connection: Connection, parameters: BaseModel) -> dict[str, Any]:
         if not isinstance(parameters, GitHubIssueReadInput):
             raise TypeError("Invalid parameters type.")
         return await self.connector.read_issue(
@@ -142,7 +141,7 @@ class GitHubIssueCreateTool(BaseGitHubTool):
     def get_input_schema(self) -> type[BaseModel]:
         return GitHubIssueCreateInput
 
-    async def _execute_impl(self, connection: Connection, parameters: BaseModel) -> Dict[str, Any]:
+    async def _execute_impl(self, connection: Connection, parameters: BaseModel) -> dict[str, Any]:
         if not isinstance(parameters, GitHubIssueCreateInput):
             raise TypeError("Invalid parameters type.")
         return await self.connector.create_issue(
@@ -164,7 +163,7 @@ class GitHubCommentCreateTool(BaseGitHubTool):
     def get_input_schema(self) -> type[BaseModel]:
         return GitHubCommentCreateInput
 
-    async def _execute_impl(self, connection: Connection, parameters: BaseModel) -> Dict[str, Any]:
+    async def _execute_impl(self, connection: Connection, parameters: BaseModel) -> dict[str, Any]:
         if not isinstance(parameters, GitHubCommentCreateInput):
             raise TypeError("Invalid parameters type.")
         return await self.connector.create_issue_comment(
