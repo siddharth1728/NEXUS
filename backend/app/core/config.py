@@ -8,7 +8,7 @@ from enum import StrEnum
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -137,6 +137,15 @@ class Settings(BaseSettings):
     @property
     def is_testing(self) -> bool:
         return self.env == AppEnvironment.TESTING
+
+    @model_validator(mode="after")
+    def validate_production_db(self) -> "Settings":
+        if self.is_production and self.db.url.startswith("sqlite"):
+            raise ValueError(
+                "SQLite is strictly prohibited in PRODUCTION environments. "
+                "You must provide a valid PostgreSQL connection URI with pgvector support."
+            )
+        return self
 
     model_config = SettingsConfigDict(
         env_file=(".env", ".env.local"),

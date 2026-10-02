@@ -51,21 +51,21 @@ class ActionEdgeRepository(BaseRepository[ActionEdge]):
         return result.scalar_one_or_none()
 
     async def get_dependencies_for_action(
-        self, action_id: uuid.UUID, relation_type: str
+        self, action_id: uuid.UUID, relation_type: str, offset: int = 0, limit: int = 50
     ) -> list[ActionEdge]:
         """Get edges where action_id is the source (i.e. it depends on the targets)."""
         stmt = select(ActionEdge).where(
             ActionEdge.source_id == action_id, ActionEdge.relation_type == relation_type
-        )
+        ).offset(offset).limit(limit)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
     async def get_dependents_for_action(
-        self, action_id: uuid.UUID, relation_type: str
+        self, action_id: uuid.UUID, relation_type: str, offset: int = 0, limit: int = 50
     ) -> list[ActionEdge]:
         """Get edges where action_id is the target (i.e. sources that depend on this action)."""
         stmt = select(ActionEdge).where(
             ActionEdge.target_id == action_id, ActionEdge.relation_type == relation_type
-        )
+        ).offset(offset).limit(limit)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())

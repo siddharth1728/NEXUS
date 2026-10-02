@@ -2,6 +2,7 @@
 
 import uuid
 
+import fastapi
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -100,9 +101,16 @@ async def transition_extraction_job(
 @router.get("/{document_id}/chunks", response_model=list[DocumentChunkResponse])
 async def get_document_chunks(
     document_id: uuid.UUID,
+    response: fastapi.Response,
+    offset: int = 0,
+    limit: int = 1000,
     tenant_id: uuid.UUID = Depends(get_current_tenant_id),
     service: DocumentService = Depends(get_document_service),
 ) -> list[DocumentChunkResponse]:
     """Get parsed chunks for a document."""
-    chunks = await service.get_document_chunks(document_id, tenant_id)
+    chunks, total = await service.get_document_chunks(document_id, tenant_id, offset, limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Total-Pages"] = str((total + limit - 1) // limit if limit > 0 else 1)
+    response.headers["X-Current-Page"] = str((offset // limit) + 1 if limit > 0 else 1)
+    response.headers["X-Per-Page"] = str(limit)
     return [DocumentChunkResponse.model_validate(chunk) for chunk in chunks]

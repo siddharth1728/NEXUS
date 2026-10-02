@@ -3,9 +3,13 @@
 import uuid
 from collections import defaultdict
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from app.core.errors import GraphCycleError
 from app.models.action import ActionEdge
+
+if TYPE_CHECKING:
+    from app.models.action import Action
 from app.models.enums import EdgeRelationType
 
 

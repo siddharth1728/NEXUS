@@ -180,8 +180,10 @@ class DocumentService:
 
     async def get_document_chunks(
         self, document_id: uuid.UUID, tenant_id: uuid.UUID, offset: int = 0, limit: int = 1000
-    ) -> list[DocumentChunk]:
+    ) -> tuple[list[DocumentChunk], int]:
         """Get parsed chunks for a document, ensuring tenant isolation."""
         # Enforce tenant check
         await self.get_document(document_id, tenant_id)
-        return await self.chunk_repo.list_for_document(document_id, offset, limit)
+        chunks = await self.chunk_repo.list_for_document(document_id, offset, limit)
+        total = await self.chunk_repo.count({"document_id": document_id})
+        return chunks, total

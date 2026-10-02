@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from app.models.enums import ExtractionJobStatus
+from app.models.vector_type import HybridVector
 
 if TYPE_CHECKING:
     from app.models.action import Action
@@ -96,6 +97,10 @@ class DocumentChunk(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # General metadata (e.g. parent heading text, parser version)
     chunk_metadata: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+
+    # Embedding and related metadata (e.g. provider, model, version)
+    embedding: Mapped[list[float] | None] = mapped_column(HybridVector(dim=768), nullable=True)
+    embedding_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
     # Relationships
     document: Mapped["Document"] = relationship("Document", back_populates="chunks")

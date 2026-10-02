@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.core.config import AppEnvironment, Settings, get_settings
+from app.core.config import AppEnvironment, DatabaseSettings, Settings, get_settings
 
 
 def test_default_settings():
@@ -16,9 +16,8 @@ def test_default_settings():
     assert settings.db.pool_size == 10
     assert settings.ai.default_provider == "gemini"
 
-
 def test_environment_flags():
-    prod_settings = Settings(APP_ENV="production")
+    prod_settings = Settings(APP_ENV="production", db=DatabaseSettings(url="postgresql+asyncpg://nexus:test@localhost:5432/nexus_db"))
     assert prod_settings.is_production is True
     assert prod_settings.is_testing is False
 

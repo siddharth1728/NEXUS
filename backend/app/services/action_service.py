@@ -59,9 +59,11 @@ class ActionService:
 
     async def list_actions(
         self, tenant_id: uuid.UUID, offset: int = 0, limit: int = 50
-    ) -> list[Action]:
+    ) -> tuple[list[Action], int]:
         """List actions for a tenant."""
-        return await self.action_repo.list_for_tenant(tenant_id, offset, limit)
+        items = await self.action_repo.list_for_tenant(tenant_id, offset, limit)
+        total = await self.action_repo.count({"tenant_id": tenant_id})
+        return items, total
 
     async def update_action(
         self, action_id: uuid.UUID, tenant_id: uuid.UUID, data: ActionUpdate
@@ -141,17 +143,23 @@ class ActionService:
             raise ConflictError("Dependency edge already exists or constraint failed.") from e
 
     async def get_dependencies(
-        self, action_id: uuid.UUID, tenant_id: uuid.UUID
-    ) -> list[ActionEdge]:
+        self, action_id: uuid.UUID, tenant_id: uuid.UUID, offset: int = 0, limit: int = 50
+    ) -> tuple[list[ActionEdge], int]:
         """Get edges where this action is the source (i.e. depends on target)."""
         await self.get_action(action_id, tenant_id)  # Validate existence & tenant
-        return await self.edge_repo.get_dependencies_for_action(
-            action_id, EdgeRelationType.DEPENDS_ON
+        items = await self.edge_repo.get_dependencies_for_action(
+            action_id, EdgeRelationType.DEPENDS_ON, offset, limit
         )
+        total = await self.edge_repo.count({"source_id": action_id, "relation_type": EdgeRelationType.DEPENDS_ON})
+        return items, total
 
-    async def get_dependents(self, action_id: uuid.UUID, tenant_id: uuid.UUID) -> list[ActionEdge]:
+    async def get_dependents(
+        self, action_id: uuid.UUID, tenant_id: uuid.UUID, offset: int = 0, limit: int = 50
+    ) -> tuple[list[ActionEdge], int]:
         """Get edges where this action is the target (i.e. sources that depend on this action)."""
         await self.get_action(action_id, tenant_id)  # Validate existence & tenant
-        return await self.edge_repo.get_dependents_for_action(
-            action_id, EdgeRelationType.DEPENDS_ON
+        items = await self.edge_repo.get_dependents_for_action(
+            action_id, EdgeRelationType.DEPENDS_ON, offset, limit
         )
+        total = await self.edge_repo.count({"target_id": action_id, "relation_type": EdgeRelationType.DEPENDS_ON})
+        return items, total

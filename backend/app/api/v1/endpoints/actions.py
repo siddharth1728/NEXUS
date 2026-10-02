@@ -2,6 +2,7 @@
 
 import uuid
 
+import fastapi
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,13 +38,18 @@ async def create_action(
 
 @router.get("", response_model=list[ActionResponse])
 async def list_actions(
+    response: fastapi.Response,
     offset: int = 0,
     limit: int = 50,
     tenant_id: uuid.UUID = Depends(get_current_tenant_id),
     service: ActionService = Depends(get_action_service),
 ) -> list[ActionResponse]:
     """List actions for the current tenant."""
-    actions = await service.list_actions(tenant_id, offset=offset, limit=limit)
+    actions, total = await service.list_actions(tenant_id, offset=offset, limit=limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Total-Pages"] = str((total + limit - 1) // limit if limit > 0 else 1)
+    response.headers["X-Current-Page"] = str((offset // limit) + 1 if limit > 0 else 1)
+    response.headers["X-Per-Page"] = str(limit)
     return [ActionResponse.model_validate(a) for a in actions]
 
 
@@ -110,20 +116,34 @@ async def create_dependency(
 @router.get("/{action_id}/dependencies", response_model=list[ActionEdgeResponse])
 async def get_dependencies(
     action_id: uuid.UUID,
+    response: fastapi.Response,
+    offset: int = 0,
+    limit: int = 50,
     tenant_id: uuid.UUID = Depends(get_current_tenant_id),
     service: ActionService = Depends(get_action_service),
 ) -> list[ActionEdgeResponse]:
     """Get edges where this action is the source."""
-    edges = await service.get_dependencies(action_id, tenant_id)
+    edges, total = await service.get_dependencies(action_id, tenant_id, offset, limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Total-Pages"] = str((total + limit - 1) // limit if limit > 0 else 1)
+    response.headers["X-Current-Page"] = str((offset // limit) + 1 if limit > 0 else 1)
+    response.headers["X-Per-Page"] = str(limit)
     return [ActionEdgeResponse.model_validate(e) for e in edges]
 
 
 @router.get("/{action_id}/dependents", response_model=list[ActionEdgeResponse])
 async def get_dependents(
     action_id: uuid.UUID,
+    response: fastapi.Response,
+    offset: int = 0,
+    limit: int = 50,
     tenant_id: uuid.UUID = Depends(get_current_tenant_id),
     service: ActionService = Depends(get_action_service),
 ) -> list[ActionEdgeResponse]:
     """Get edges where this action is the target."""
-    edges = await service.get_dependents(action_id, tenant_id)
+    edges, total = await service.get_dependents(action_id, tenant_id, offset, limit)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Total-Pages"] = str((total + limit - 1) // limit if limit > 0 else 1)
+    response.headers["X-Current-Page"] = str((offset // limit) + 1 if limit > 0 else 1)
+    response.headers["X-Per-Page"] = str(limit)
     return [ActionEdgeResponse.model_validate(e) for e in edges]
