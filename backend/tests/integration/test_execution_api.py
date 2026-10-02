@@ -1,11 +1,12 @@
 """Integration tests for Execution API."""
 
 import uuid
+from collections.abc import AsyncGenerator
 
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from collections.abc import AsyncGenerator
+
 from app.api.deps import get_db_session
 from app.models.action import Action
 from app.models.enums import ExecutionState

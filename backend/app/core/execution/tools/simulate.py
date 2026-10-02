@@ -5,7 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from app.core.execution.tool import BaseTool
+from app.core.execution.tool import BaseTool, ExecutionContext
 from app.models.enums import Capability
 
 
@@ -33,7 +33,7 @@ class SimulatedTool(BaseTool):
     def get_input_schema(self) -> type[BaseModel]:
         return SimulatedToolInput
 
-    async def execute(self, parameters: BaseModel) -> dict[str, Any]:
+    async def execute(self, parameters: BaseModel, context: ExecutionContext | None = None) -> dict[str, Any]:  # type: ignore[override]
         """Execute the simulated action deterministically."""
         if not isinstance(parameters, SimulatedToolInput):
             raise TypeError("Invalid parameters type.")
@@ -47,5 +47,5 @@ class SimulatedTool(BaseTool):
         return {
             "status": "success",
             "action": parameters.action_type,
-            "mock_data": parameters.mock_payload
+            "mock_data": parameters.mock_payload,
         }

@@ -191,8 +191,15 @@ class ExecutionService:
         input_schema = tool.get_input_schema()
         params = input_schema.model_validate(record.parameters)
 
+        from app.core.execution.tool import ExecutionContext
+        context = ExecutionContext(
+            tenant_id=tenant_id,
+            execution_id=execution_id,
+            user_id=str(record.requester_id) if record.requester_id else None
+        )
+
         try:
-            result_payload = await tool.execute(params)
+            result_payload = await tool.execute(params, context)
             record.state = ExecutionState.SUCCEEDED
             record.result_payload = result_payload
         except Exception as e:

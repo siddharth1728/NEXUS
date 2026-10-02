@@ -14,10 +14,10 @@ class PolicyEngine:
         """Evaluate an execution request against domain policies."""
 
         # Simulated Capability mapping for phase 02B:
-        if request.capability in (Capability.DOCUMENT_READ, Capability.CALENDAR_READ, Capability.GITHUB_READ):
+        if request.capability in (Capability.DOCUMENT_READ, Capability.CALENDAR_READ, Capability.GITHUB_REPOSITORY_READ, Capability.GITHUB_ISSUE_READ):
             return PolicyDecision.ALLOW
 
-        if request.capability in (Capability.EMAIL_SEND, Capability.GITHUB_CREATE_ISSUE, Capability.ACTION_CREATE, Capability.ACTION_UPDATE):
+        if request.capability in (Capability.EMAIL_SEND, Capability.GITHUB_ISSUE_CREATE, Capability.GITHUB_ISSUE_COMMENT_CREATE, Capability.ACTION_CREATE, Capability.ACTION_UPDATE):
             return PolicyDecision.REQUIRE_APPROVAL
 
         if request.capability == Capability.SYSTEM_SIMULATE:

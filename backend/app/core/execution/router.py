@@ -19,7 +19,7 @@ class AgentRouter:
 
         target_capability = None
         if "github" in intent_lower and "issue" in intent_lower:
-            target_capability = Capability.GITHUB_CREATE_ISSUE
+            target_capability = Capability.GITHUB_ISSUE_CREATE
         elif "email" in intent_lower:
             target_capability = Capability.EMAIL_SEND
         elif "calendar" in intent_lower and "create" in intent_lower:

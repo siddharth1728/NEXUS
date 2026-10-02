@@ -118,7 +118,7 @@ async def test_create_request_failures(
 
     # Capability mismatch in agent
     req.tool_id = "simulate_v1"
-    req.capability = Capability.GITHUB_CREATE_ISSUE  # Agent doesn't have this
+    req.capability = Capability.GITHUB_ISSUE_CREATE  # Agent doesn't have this
     with pytest.raises(ValueError, match="lacks capability"):
         await execution_service.create_request(str(TEST_TENANT_ID), None, req)
 
