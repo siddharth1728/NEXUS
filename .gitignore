@@ -1,18 +1,71 @@
+# Environment Variables
 .env
-.env.*
-!.env.example
+.env.local
+.env.*.local
+*.env
 
-.venv/
-venv/
-
+# Python
 __pycache__/
-*.pyc
-
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.venv
+venv/
+ENV/
+env.bak/
+venv.bak/
 .pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
 
-*.db
-*.sqlite
-*.sqlite3
-
+# Node / Frontend
 node_modules/
-package-lock.json
+.pnp
+.pnp.js
+coverage/
+.next/
+out/
+build/
+.turbo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Storage / Uploads / Artifacts
+data/
+uploads/
+storage/
+temp/
+scratch/
+*.log
