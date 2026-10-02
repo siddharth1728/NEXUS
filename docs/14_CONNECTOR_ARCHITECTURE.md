@@ -299,3 +299,74 @@ A verifier can later confirm: issue exists, title matches, body matches expected
 | Approval bypass | `ExecutionService.execute()` checks `state == AUTHORIZED` before proceeding |
 | Duplicate mutation | Idempotency check rejects duplicate `(action_id, tool_id)` in non-terminal states |
 | Replay attack | `ExecutionRecord.id` is UUID; stale record IDs return 404 |
+
+---
+
+## Google Calendar Connector (Read-Only Prover)
+
+The Google Calendar connector is the **second registered connector**, proving that the Connector SDK is provider-agnostic. It is intentionally **read-only** — no mutations, no approval required.
+
+### Supported Capabilities
+
+| Capability | Type | Policy |
+|-----------|------|--------|
+| `CALENDAR_READ` | Read | `ALLOW` |
+
+### Credential Key Format
+
+```
+GOOGLE_CALENDAR_{tenant_id}_TOKEN
+```
+
+### Tool: `GoogleCalendarListEventsTool` (`google_calendar_list_events_v1`)
+
+**Input schema:** `GoogleCalendarListEventsInput`
+
+| Field | Type | Required | Default |
+|-------|------|----------|---------|
+| `calendar_id` | str | No | `"primary"` |
+| `max_results` | int | No | `10` |
+| `time_min` | str \| None | No | `None` |
+
+**Policy:** `ALLOW` — No approval required for read-only calendar access.
+
+**Returns:** Normalized list of events (id, summary, description, start, end, htmlLink).
+
+### Error Normalization
+
+| Google HTTP Status | NEXUS Error |
+|-------------------|-------------|
+| 401 | `UnauthorizedError` |
+| 403 | `AppError(GOOGLE_API_ERROR)` |
+| 404 | `AppError(NOT_FOUND)` |
+| `RequestError` | `AppError(CONNECTION_ERROR)` |
+
+### Health Check
+
+The health check calls `GET /calendar/v3/users/me/calendarList?maxResults=1` — a minimal, read-only request that validates token validity without reading user data.
+
+---
+
+## Connector API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/connectors/` | GET | List all registered connector provider names |
+| `/api/v1/connectors/{provider}/connect` | POST | Create/update connection metadata for a provider |
+| `/api/v1/connectors/{provider}/health` | GET | Check health of a specific provider connection |
+
+All endpoints require JWT authentication and are tenant-scoped.
+
+---
+
+## Adding a New Connector
+
+1. Create `app/core/execution/connectors/{provider}.py` extending `BaseConnector`
+2. Implement `provider`, `supported_capabilities`, `check_health()`
+3. Add capability enums to `app/models/enums.py`
+4. Create tools in `app/core/execution/tools/{provider}_tools.py` extending `BaseTool`
+5. Add policy rules in `app/core/execution/policy.py`
+6. Register connector and tools in `app/api/v1/endpoints/execution.py`
+7. Add unit tests + integration tests
+8. Update this document
+

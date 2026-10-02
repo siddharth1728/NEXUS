@@ -8,6 +8,7 @@ from app.models.execution import ExecutionRecord
 from app.models.fact import Fact
 from app.models.tenant import Tenant
 from app.models.user import User
+from app.models.verification import Evidence, EvidenceRequirement
 
 __all__ = [
     "Base",
@@ -26,4 +27,6 @@ __all__ = [
     "ActionEdge",
     "Fact",
     "ExecutionRecord",
+    "Evidence",
+    "EvidenceRequirement",
 ]

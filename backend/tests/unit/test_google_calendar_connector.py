@@ -73,6 +73,7 @@ async def test_health_check_missing_token(mock_get_secret: Any, connector: Googl
 
     health = await connector.check_health(mock_connection)
     assert health.status == ConnectionStatus.AUTHENTICATION_REQUIRED
+    assert health.message is not None
     assert "Missing Google Calendar API token" in health.message
 
 
@@ -87,6 +88,7 @@ async def test_health_check_invalid_token(mock_get_secret: Any, connector: Googl
     with patch("httpx.AsyncClient.request", return_value=mock_response):
         health = await connector.check_health(mock_connection)
         assert health.status == ConnectionStatus.AUTHENTICATION_REQUIRED
+        assert health.message is not None
         assert "invalid or expired" in health.message
 
 
@@ -98,6 +100,7 @@ async def test_health_check_connection_error(mock_get_secret: Any, connector: Go
     with patch("httpx.AsyncClient.request", side_effect=httpx.RequestError("Failed to connect")):
         health = await connector.check_health(mock_connection)
         assert health.status == ConnectionStatus.UNAVAILABLE
+        assert health.message is not None
         assert "Connection to Google API failed" in health.message
 
 

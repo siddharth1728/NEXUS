@@ -12,6 +12,8 @@ class ActionStatus(enum.StrEnum):
     IN_PROGRESS = "IN_PROGRESS"  # Currently being worked on
     PENDING_VERIFICATION = "PENDING_VERIFICATION"  # Evidence submitted, under test
     COMPLETED = "COMPLETED"  # Formally verified and finished
+    VERIFIED = "VERIFIED"  # Verification succeeded
+    NOT_VERIFIED = "NOT_VERIFIED"  # Verification failed
     REJECTED = "REJECTED"  # Dismissed during review
     FAILED = "FAILED"  # Attempted but failed execution
     CANCELLED = "CANCELLED"  # Deprecated or cancelled

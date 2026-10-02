@@ -22,7 +22,25 @@ VALID_ACTION_TRANSITIONS = {
         ActionStatus.PENDING_VERIFICATION,
         ActionStatus.FAILED,
     },
-    ActionStatus.PENDING_VERIFICATION: {ActionStatus.COMPLETED, ActionStatus.IN_PROGRESS},
+    ActionStatus.PENDING_VERIFICATION: {
+        ActionStatus.VERIFIED,
+        ActionStatus.NOT_VERIFIED,
+        ActionStatus.REQUIRES_REVIEW,
+        ActionStatus.COMPLETED,
+    },
+    ActionStatus.REQUIRES_REVIEW: {
+        ActionStatus.VERIFIED,
+        ActionStatus.NOT_VERIFIED,
+        ActionStatus.REJECTED,
+    },
+    ActionStatus.NOT_VERIFIED: {
+        ActionStatus.IN_PROGRESS,
+        ActionStatus.FAILED,
+        ActionStatus.CANCELLED,
+    },
+    ActionStatus.VERIFIED: {
+        ActionStatus.COMPLETED,
+    },
 }
 
 

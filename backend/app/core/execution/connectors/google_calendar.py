@@ -20,7 +20,7 @@ class GoogleCalendarConnector(BaseConnector):
     def supported_capabilities(self) -> list[Capability]:
         return [Capability.CALENDAR_READ]
 
-    async def _make_request(self, method: str, url: str, connection: Connection, params: dict[str, Any] = None) -> Any:
+    async def _make_request(self, method: str, url: str, connection: Connection, params: dict[str, Any] | None = None) -> Any:
         token = secret_store.get_secret(self.get_credential_key(connection))
         if not token:
             raise UnauthorizedError(message="Missing Google Calendar API token")
@@ -73,7 +73,7 @@ class GoogleCalendarConnector(BaseConnector):
                 last_checked=connection.updated_at
             )
 
-    async def list_events(self, connection: Connection, calendar_id: str = "primary", max_results: int = 10, time_min: str = None) -> dict[str, Any]:
+    async def list_events(self, connection: Connection, calendar_id: str = "primary", max_results: int = 10, time_min: str | None = None) -> dict[str, Any]:
         """Fetch events from a specific calendar."""
         url = f"https://www.googleapis.com/calendar/v3/calendars/{calendar_id}/events"
         params = {"maxResults": max_results, "singleEvents": "true", "orderBy": "startTime"}

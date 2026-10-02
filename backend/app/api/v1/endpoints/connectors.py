@@ -17,7 +17,7 @@ router = APIRouter()
 @router.get("/", response_model=list[str])
 async def list_connectors() -> list[str]:
     """List all available connector providers."""
-    return connector_registry.list_all()
+    return [c.provider for c in connector_registry.list_all()]
 
 @router.post("/{provider}/connect", response_model=ConnectionSchema)
 async def connect_provider(
@@ -27,7 +27,8 @@ async def connect_provider(
     session: AsyncSession = Depends(get_db_session),
 ) -> ConnectionSchema:
     """Create or update a connection metadata for a provider."""
-    if provider not in connector_registry.list_all():
+    registered_providers = [c.provider for c in connector_registry.list_all()]
+    if provider not in registered_providers:
         raise HTTPException(status_code=404, detail="Provider not found in registry")
 
     connection_service = ConnectionService(session)
@@ -48,7 +49,8 @@ async def check_connector_health(
     session: AsyncSession = Depends(get_db_session),
 ) -> ConnectorHealth:
     """Check the health of a specific provider connection."""
-    if provider not in connector_registry.list_all():
+    registered_providers = [c.provider for c in connector_registry.list_all()]
+    if provider not in registered_providers:
         raise HTTPException(status_code=404, detail="Provider not found in registry")
 
     connection_service = ConnectionService(session)
@@ -57,6 +59,8 @@ async def check_connector_health(
         raise HTTPException(status_code=400, detail="Connection required")
 
     connector = connector_registry.get(provider)
+    if not connector:
+        raise HTTPException(status_code=404, detail="Connector not registered")
     context = ExecutionContext(tenant_id=str(tenant_id), user_id=None)
 
     try:
