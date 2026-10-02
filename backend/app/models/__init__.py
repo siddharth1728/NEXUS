@@ -7,6 +7,7 @@ from app.models.enums import ActionStatus, ConfidenceLevel, EdgeRelationType, Ex
 from app.models.fact import Fact
 from app.models.tenant import Tenant
 from app.models.user import User
+from app.models.execution import ExecutionRecord
 
 __all__ = [
     "Base",
@@ -24,4 +25,5 @@ __all__ = [
     "Action",
     "ActionEdge",
     "Fact",
+    "ExecutionRecord",
 ]

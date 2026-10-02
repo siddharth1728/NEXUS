@@ -50,3 +50,46 @@ class ExtractionJobStatus(enum.StrEnum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
     RETRYING = "RETRYING"
+
+
+class ExecutionState(enum.StrEnum):
+    """Deterministic lifecycle of an ExecutionRequest."""
+
+    PENDING = "PENDING"
+    AUTHORIZED = "AUTHORIZED"
+    AWAITING_APPROVAL = "AWAITING_APPROVAL"
+    RUNNING = "RUNNING"
+    SUCCEEDED = "SUCCEEDED"
+    FAILED = "FAILED"
+    DENIED = "DENIED"  # Failed authorization
+    REJECTED = "REJECTED"  # Failed approval
+
+
+class PolicyDecision(enum.StrEnum):
+    """Result of a policy evaluation."""
+
+    ALLOW = "ALLOW"
+    DENY = "DENY"
+    REQUIRE_APPROVAL = "REQUIRE_APPROVAL"
+
+
+class Capability(enum.StrEnum):
+    """Explicit capabilities required by tools/executors."""
+
+    DOCUMENT_READ = "DOCUMENT_READ"
+    ACTION_CREATE = "ACTION_CREATE"
+    ACTION_UPDATE = "ACTION_UPDATE"
+    CALENDAR_READ = "CALENDAR_READ"
+    CALENDAR_CREATE = "CALENDAR_CREATE"
+    EMAIL_DRAFT = "EMAIL_DRAFT"
+    EMAIL_SEND = "EMAIL_SEND"
+    GITHUB_READ = "GITHUB_READ"
+    GITHUB_CREATE_ISSUE = "GITHUB_CREATE_ISSUE"
+    SYSTEM_SIMULATE = "SYSTEM_SIMULATE"  # For the simulated executor
+
+
+class ApprovalDecision(enum.StrEnum):
+    """Human or system decision on a pending execution."""
+    
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
