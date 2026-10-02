@@ -9,7 +9,7 @@ from app.models.enums import Capability
 
 class Agent(BaseModel):
     """Normalized NEXUS Agent definition."""
-    
+
     id: str = Field(description="Unique identifier for the agent (e.g., 'planner', 'approval_assistant').")
     name: str = Field(description="Human-readable name.")
     description: str = Field(description="Role and responsibility description.")

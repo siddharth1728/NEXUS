@@ -10,7 +10,7 @@ from app.main import create_app
 
 
 @pytest.mark.asyncio
-async def test_404_not_found_envelope(async_client: AsyncClient):
+async def test_404_not_found_envelope(async_client: AsyncClient) -> None:
     response = await async_client.get("/non-existent-endpoint-404")
     assert response.status_code == 404
     data = response.json()
@@ -20,28 +20,28 @@ async def test_404_not_found_envelope(async_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_custom_app_error_handlers(test_settings: Settings):
+async def test_custom_app_error_handlers(test_settings: Settings) -> None:
     # Create test router raising various domain errors
     router = APIRouter()
 
     @router.get("/test-not-found")
-    async def raise_not_found():
+    async def raise_not_found():  # type: ignore
         raise NotFoundError("Task", "task-abc")
 
     @router.get("/test-cycle")
-    async def raise_cycle():
+    async def raise_cycle():  # type: ignore
         raise GraphCycleError(["A", "B", "A"])
 
     @router.get("/test-conflict")
-    async def raise_conflict():
+    async def raise_conflict():  # type: ignore
         raise ConflictError("Task state modified concurrently")
 
     @router.get("/test-validation")
-    async def raise_validation():
+    async def raise_validation():  # type: ignore
         raise ValidationError("Field invalid", details={"param": "due_date"})
 
     @router.get("/test-unhandled")
-    async def raise_unhandled():
+    async def raise_unhandled():  # type: ignore
         raise RuntimeError("Unexpected server bug")
 
     app = create_app(test_settings)

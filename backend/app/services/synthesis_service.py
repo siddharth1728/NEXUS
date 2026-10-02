@@ -4,13 +4,14 @@ import json
 import logging
 import uuid
 from datetime import datetime
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import ValidationError
 
 from app.core.ai.gateway import AIGateway
 from app.core.ai.models import AIRequest
 from app.models.enums import ConfidenceLevel
+from app.schemas.action import ActionCreate, ActionResponse
 from app.schemas.synthesis import (
     CandidateAction,
     CandidateActionValidationResult,
@@ -18,7 +19,6 @@ from app.schemas.synthesis import (
     SynthesisResult,
 )
 from app.services.action_service import ActionService
-from app.schemas.action import ActionCreate, ActionResponse
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +30,13 @@ class SynthesisService:
         self.prompt_path = "prompts/02-ai/ACTION_SYNTHESIS_PROMPT.md"
 
     def _load_prompt(self) -> str:
-        with open(self.prompt_path, "r", encoding="utf-8") as f:
+        with open(self.prompt_path, encoding="utf-8") as f:
             return f.read()
 
     async def synthesize(self, context: SynthesisContext, max_retries: int = 1) -> SynthesisResult:
         """Synthesize candidate actions from the provided context."""
         system_instruction = self._load_prompt()
-        
+
         # Prepare JSON string inputs for prompt
         prompt = f"""
 Please synthesize actions using the following context.
@@ -86,13 +86,13 @@ Dependencies: {json.dumps(context.dependencies)}
                          c["source_refs"] = [] # fallback
                     if "rationale" not in c:
                          c["rationale"] = "Inferred by LLM"
-                         
+
                     try:
                         candidates.append(CandidateAction(**c))
                     except ValidationError as e:
                         logger.warning(f"Validation error on candidate: {e}")
                         pass
-                
+
                 return SynthesisResult(
                     candidates=candidates,
                     metadata={
@@ -133,11 +133,11 @@ Dependencies: {json.dumps(context.dependencies)}
         if candidate.confidence == ConfidenceLevel.CONFLICT:
             reasons.append("Conflict detected in sources.")
             is_valid = False
-            
+
         status: Literal["APPROVED", "REJECTED", "REQUIRES_REVIEW"] = "APPROVED" if is_valid else "REQUIRES_REVIEW"
         if not is_valid and len(reasons) > 0 and "Missing source" in reasons[0]:
             # Just an example of rejecting entirely bad candidates
-            pass 
+            pass
 
         return CandidateActionValidationResult(
             is_valid=is_valid,
@@ -165,7 +165,7 @@ Dependencies: {json.dumps(context.dependencies)}
         priority = candidate.priority_signal or "P2"
         if priority not in ["P0", "P1", "P2", "P3"]:
              priority = "P2"
-             
+
         action_create = ActionCreate(
             title=candidate.title,
             description=candidate.description + f"\n\nRationale: {candidate.rationale}",

@@ -11,7 +11,7 @@ from app.core.logging import (
 )
 
 
-def test_mask_sensitive_data():
+def test_mask_sensitive_data() -> None:
     raw = {
         "user": "alice",
         "password": "supersecretpassword",
@@ -33,7 +33,7 @@ def test_mask_sensitive_data():
     assert masked["list_data"][1]["normal"] == "val"
 
 
-def test_structured_log_formatter_text():
+def test_structured_log_formatter_text() -> None:
     formatter = StructuredLogFormatter(use_json=False)
     record = logging.LogRecord(
         name="test_logger",
@@ -54,7 +54,7 @@ def test_structured_log_formatter_text():
         correlation_id_ctx.reset(token)
 
 
-def test_structured_log_formatter_json():
+def test_structured_log_formatter_json() -> None:
     formatter = StructuredLogFormatter(use_json=True)
     record = logging.LogRecord(
         name="test_json_logger",
@@ -78,7 +78,7 @@ def test_structured_log_formatter_json():
         correlation_id_ctx.reset(token)
 
 
-def test_setup_logging():
+def test_setup_logging() -> None:
     setup_logging(log_level="DEBUG", use_json=False)
     logger = logging.getLogger()
     assert logger.level == logging.DEBUG

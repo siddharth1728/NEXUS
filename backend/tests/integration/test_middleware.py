@@ -5,7 +5,7 @@ from httpx import AsyncClient
 
 
 @pytest.mark.asyncio
-async def test_correlation_id_generated_and_returned(async_client: AsyncClient):
+async def test_correlation_id_generated_and_returned(async_client: AsyncClient) -> None:
     response = await async_client.get("/health")
     assert response.status_code == 200
     assert "X-Request-ID" in response.headers
@@ -14,7 +14,7 @@ async def test_correlation_id_generated_and_returned(async_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_correlation_id_preserved_when_passed(async_client: AsyncClient):
+async def test_correlation_id_preserved_when_passed(async_client: AsyncClient) -> None:
     custom_id = "custom-trace-id-abc-123"
     response = await async_client.get("/health", headers={"X-Request-ID": custom_id})
     assert response.status_code == 200

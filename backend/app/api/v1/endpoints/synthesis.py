@@ -6,15 +6,15 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db_session, get_current_tenant_id
+from app.api.deps import get_current_tenant_id, get_db_session
 from app.core.ai.gateway import AIGateway
+from app.schemas.action import ActionResponse
 from app.schemas.synthesis import (
     CandidateAction,
     CandidateActionValidationResult,
     SynthesisContext,
     SynthesisResult,
 )
-from app.schemas.action import ActionResponse
 from app.services.action_service import ActionService
 from app.services.synthesis_service import SynthesisService
 

@@ -164,18 +164,18 @@ async def test_rag_citation_validation_and_hallucination(in_memory_db_session: A
 @pytest.mark.asyncio
 async def test_vector_retriever(in_memory_db_session: AsyncSession, setup_rag_data: dict[str, Any]) -> None:
     t1 = setup_rag_data["tenant1"]
-    
+
     from app.core.ai.embeddings.mock import MockEmbeddingProvider
     provider = MockEmbeddingProvider()
     from app.repositories.retrieval import VectorRetriever
     retriever = VectorRetriever(in_memory_db_session, provider)
-    
+
     query = RetrievalQuery(
         tenant_id=t1.id,
         query="important finding",
         top_k=2
     )
-    
+
     results = await retriever.retrieve(query)
     # The VectorRetriever relies on SQLite degrading (is_postgres = False).
     # Since it's sqlite in test, it will return an empty list because vector search isn't supported in sqlite.
@@ -186,21 +186,21 @@ async def test_vector_retriever(in_memory_db_session: AsyncSession, setup_rag_da
 @pytest.mark.asyncio
 async def test_hybrid_retriever(in_memory_db_session: AsyncSession, setup_rag_data: dict[str, Any]) -> None:
     t1 = setup_rag_data["tenant1"]
-    
+
     from app.core.ai.embeddings.mock import MockEmbeddingProvider
     provider = MockEmbeddingProvider()
     from app.repositories.retrieval import HybridRetriever
     retriever = HybridRetriever(in_memory_db_session, provider)
-    
+
     query = RetrievalQuery(
         tenant_id=t1.id,
         query="Registration closes",
         top_k=2,
         alpha=0.5
     )
-    
+
     results = await retriever.retrieve(query)
-    
+
     # Hybrid retriever merges Keyword + Vector results. Vector gives [], Keyword gives matches.
     assert len(results) > 0
     assert results[0].retrieval_method == "HYBRID"

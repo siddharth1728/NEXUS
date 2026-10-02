@@ -90,6 +90,6 @@ class Capability(enum.StrEnum):
 
 class ApprovalDecision(enum.StrEnum):
     """Human or system decision on a pending execution."""
-    
+
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"

@@ -9,22 +9,22 @@ class PolicyEngine:
     
     The policy engine must NOT call an LLM to decide authorization.
     """
-    
+
     def evaluate(self, request: ExecutionRequestCreate) -> PolicyDecision:
         """Evaluate an execution request against domain policies."""
-        
+
         # Simulated Capability mapping for phase 02B:
         if request.capability in (Capability.DOCUMENT_READ, Capability.CALENDAR_READ, Capability.GITHUB_READ):
             return PolicyDecision.ALLOW
-            
+
         if request.capability in (Capability.EMAIL_SEND, Capability.GITHUB_CREATE_ISSUE, Capability.ACTION_CREATE, Capability.ACTION_UPDATE):
             return PolicyDecision.REQUIRE_APPROVAL
-            
+
         if request.capability == Capability.SYSTEM_SIMULATE:
             # By default mock tools can just be allowed or require approval based on parameters
             if request.parameters.get("requires_approval", False):
                 return PolicyDecision.REQUIRE_APPROVAL
             return PolicyDecision.ALLOW
-            
+
         # Deny unknown or unconfigured capabilities by default
         return PolicyDecision.DENY

@@ -5,11 +5,11 @@ import uuid
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.models.enums import ApprovalDecision, Capability, ExecutionState
+from collections.abc import AsyncGenerator
+from app.api.deps import get_db_session
 from app.models.action import Action
+from app.models.enums import ExecutionState
 from app.models.tenant import Tenant
-from app.models.execution import ExecutionRecord
 
 TEST_TENANT_ID = uuid.UUID("00000000-0000-4000-8000-000000000001")
 
@@ -36,19 +36,15 @@ async def test_action(in_memory_db_session: AsyncSession, active_tenant: Tenant)
     await in_memory_db_session.commit()
     return action
 
-
-from app.api.deps import get_db_session
-from collections.abc import AsyncGenerator
-
 @pytest.fixture
 async def override_get_db(in_memory_db_session: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
-    async def _override():
+    async def _override():  # type: ignore
         yield in_memory_db_session
-    return _override
+    return _override  # type: ignore
 
 @pytest.fixture(autouse=True)
-def setup_overrides(test_app, in_memory_db_session: AsyncSession):
-    async def _override():
+def setup_overrides(test_app, in_memory_db_session: AsyncSession):  # type: ignore
+    async def _override():  # type: ignore
         yield in_memory_db_session
     test_app.dependency_overrides[get_db_session] = _override
     yield
@@ -69,7 +65,7 @@ async def test_dry_run_execution(
             "requires_approval": True
         }
     }
-    
+
     response = await async_client.post(
         "/api/v1/execution/dry-run",
         json=request_data,
@@ -82,7 +78,7 @@ async def test_dry_run_execution(
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_simulated_execution(
+async def test_end_to_end_simulated_execution(  # type: ignore
     async_client: AsyncClient, test_action: Action, test_app
 ) -> None:
     # 1. Action exists.
@@ -99,19 +95,19 @@ async def test_end_to_end_simulated_execution(
             "requires_approval": True
         }
     }
-    
+
     resp_create = await async_client.post(
         "/api/v1/execution/",
         json=request_data,
         headers={"X-Tenant-ID": str(TEST_TENANT_ID)},
     )
-    
+
     assert resp_create.status_code == 201
     data = resp_create.json()
     assert data["state"] == ExecutionState.AWAITING_APPROVAL
-    
+
     execution_id = data["id"]
-    
+
     # Verify idempotency (Duplicate request)
     resp_dup = await async_client.post(
         "/api/v1/execution/",
@@ -119,7 +115,7 @@ async def test_end_to_end_simulated_execution(
         headers={"X-Tenant-ID": str(TEST_TENANT_ID)},
     )
     assert resp_dup.status_code == 400
-    
+
     # 6. Mock approval granted.
     resp_approve = await async_client.post(
         f"/api/v1/execution/{execution_id}/approve",
@@ -128,7 +124,7 @@ async def test_end_to_end_simulated_execution(
     )
     assert resp_approve.status_code == 200
     assert resp_approve.json()["state"] == ExecutionState.AUTHORIZED
-    
+
     # 7. Mock executor runs.
     resp_exec = await async_client.post(
         f"/api/v1/execution/{execution_id}/execute",
@@ -136,7 +132,7 @@ async def test_end_to_end_simulated_execution(
     )
     assert resp_exec.status_code == 200
     assert resp_exec.json()["state"] == ExecutionState.SUCCEEDED
-    
+
     # 8. Result persisted.
     resp_get = await async_client.get(
         f"/api/v1/execution/{execution_id}",
@@ -147,16 +143,16 @@ async def test_end_to_end_simulated_execution(
 
 
 @pytest.mark.asyncio
-async def test_tenant_isolation(
+async def test_tenant_isolation(  # type: ignore
     async_client: AsyncClient, test_action: Action, in_memory_db_session: AsyncSession, test_app
 ) -> None:
     # Attempt to access cross tenant
     other_tenant_id = uuid.uuid4()
-    
+
     # Temporarily override get_current_tenant_id to return other_tenant_id
     from app.api.deps import get_current_tenant_id
     test_app.dependency_overrides[get_current_tenant_id] = lambda: other_tenant_id
-    
+
     # Create request using actual tenant
     request_data = {
         "action_id": str(test_action.id),
@@ -167,7 +163,7 @@ async def test_tenant_isolation(
             "action_type": "test_tenant",
         }
     }
-    
+
     # Trying to create request for action_id belonging to TEST_TENANT_ID but as other_tenant_id
     resp = await async_client.post(
         "/api/v1/execution/",
@@ -175,7 +171,7 @@ async def test_tenant_isolation(
         headers={"X-Tenant-ID": str(other_tenant_id)},
     )
     test_app.dependency_overrides.pop(get_current_tenant_id, None)
-    
+
     assert resp.status_code == 400  # Action not found in tenant
 
 
@@ -191,7 +187,7 @@ async def test_unauthorized_capability(
         "tool_id": "simulate_v1", # (Tool also doesn't provide this, but agent capability check fails first)
         "parameters": {}
     }
-    
+
     resp = await async_client.post(
         "/api/v1/execution/",
         json=request_data,
@@ -215,7 +211,7 @@ async def test_malformed_parameters(
             "should_fail": True
         }
     }
-    
+
     resp = await async_client.post(
         "/api/v1/execution/",
         json=request_data,

@@ -40,14 +40,14 @@ def test_settings() -> Settings:
 
 
 @pytest.fixture
-def test_app(test_settings: Settings):
+def test_app(test_settings: Settings) -> None:
     """Create a FastAPI application configured for testing."""
     app = create_app(test_settings)
-    return app
+    return app  # type: ignore
 
 
 @pytest_asyncio.fixture
-async def async_client(test_app) -> AsyncGenerator[AsyncClient, None]:
+async def async_client(test_app) -> AsyncGenerator[AsyncClient, None]:  # type: ignore
     """Provide asynchronous HTTP client for testing API endpoints."""
     transport = ASGITransport(app=test_app, raise_app_exceptions=False)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:

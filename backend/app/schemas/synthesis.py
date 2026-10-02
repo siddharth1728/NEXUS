@@ -1,7 +1,6 @@
 """Action Synthesis Schemas for Phase 02A."""
 
 import uuid
-from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -33,7 +32,7 @@ class SynthesisContext(BaseModel):
 
 class CandidateAction(BaseModel):
     """An AI proposal for an Action, prior to domain validation and persistence."""
-    
+
     title: str = Field(..., description="Short, actionable title.")
     description: str = Field(..., description="Detailed description of what must be done.")
     classification: Literal["EXPLICIT", "INFERRED"] = Field(
@@ -43,12 +42,12 @@ class CandidateAction(BaseModel):
     deadline: str | None = Field(None, description="Extracted deadline expression or resolved ISO date.")
     priority_signal: Literal["HIGH", "MEDIUM", "LOW"] | None = Field(None, description="Signal for priority based on urgency/importance.")
     actor_candidate: str | None = Field(None, description="Extracted hint about who should perform the action.")
-    
+
     source_refs: list[ProvenanceReference] = Field(default_factory=list, description="Source references providing evidence.")
     supporting_quotes: list[str] = Field(default_factory=list, description="Verbatim quotes from sources.")
     dependency_refs: list[str] = Field(default_factory=list, description="String references to other candidate titles this depends on.")
     rationale: str = Field(..., description="Machine-readable rationale explaining why this action is required.")
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 

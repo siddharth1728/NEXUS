@@ -34,7 +34,7 @@ class SampleEntity(DomainEntity):
 
 
 @pytest.mark.asyncio
-async def test_domain_entity_and_value_object():
+async def test_domain_entity_and_value_object() -> None:
     uid = uuid.uuid4()
     e1 = SampleEntity(id=uid, name="Alpha")
     e2 = SampleEntity(id=uid, name="Alpha Copy")
@@ -55,7 +55,7 @@ async def test_domain_entity_and_value_object():
 
 
 @pytest.mark.asyncio
-async def test_base_repository_crud(in_memory_db_session: AsyncSession):
+async def test_base_repository_crud(in_memory_db_session: AsyncSession) -> None:
     repo = BaseRepository(SampleModel, in_memory_db_session)
 
     # 1. Create

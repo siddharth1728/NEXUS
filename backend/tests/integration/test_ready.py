@@ -7,7 +7,7 @@ from httpx import AsyncClient
 
 
 @pytest.mark.asyncio
-async def test_ready_healthy(async_client: AsyncClient):
+async def test_ready_healthy(async_client: AsyncClient) -> None:
     with patch(
         "app.api.v1.endpoints.health.check_database_connection", new_callable=AsyncMock
     ) as mock_db:
@@ -22,7 +22,7 @@ async def test_ready_healthy(async_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_ready_unhealthy(async_client: AsyncClient):
+async def test_ready_unhealthy(async_client: AsyncClient) -> None:
     with patch(
         "app.api.v1.endpoints.health.check_database_connection", new_callable=AsyncMock
     ) as mock_db:
@@ -36,7 +36,7 @@ async def test_ready_unhealthy(async_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_api_v1_ready(async_client: AsyncClient):
+async def test_api_v1_ready(async_client: AsyncClient) -> None:
     with patch(
         "app.api.v1.endpoints.health.check_database_connection", new_callable=AsyncMock
     ) as mock_db:

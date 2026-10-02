@@ -13,7 +13,7 @@ from app.core.errors import (
 )
 
 
-def test_base_app_error():
+def test_base_app_error() -> None:
     err = AppError(
         "Something went wrong", error_code="CUSTOM_ERR", status_code=400, details={"k": "v"}
     )
@@ -26,7 +26,7 @@ def test_base_app_error():
     }
 
 
-def test_not_found_error():
+def test_not_found_error() -> None:
     err = NotFoundError(resource_type="Task", resource_id="123")
     assert err.status_code == 404
     assert err.error_code == "RESOURCE_NOT_FOUND"
@@ -34,26 +34,26 @@ def test_not_found_error():
     assert err.details == {"resource_type": "Task", "resource_id": "123"}
 
 
-def test_validation_error():
+def test_validation_error() -> None:
     err = ValidationError("Bad input", details={"field": "missing"})
     assert err.status_code == 422
     assert err.error_code == "VALIDATION_FAILED"
 
 
-def test_conflict_error():
+def test_conflict_error() -> None:
     err = ConflictError("Task already completed")
     assert err.status_code == 409
     assert err.error_code == "STATE_CONFLICT"
 
 
-def test_graph_cycle_error():
+def test_graph_cycle_error() -> None:
     err = GraphCycleError(cycle_path=["task-1", "task-2", "task-1"])
     assert err.status_code == 400
     assert err.error_code == "DEPENDENCY_CYCLE_DETECTED"
     assert err.details == {"cycle_path": ["task-1", "task-2", "task-1"]}
 
 
-def test_auth_errors():
+def test_auth_errors() -> None:
     unauth = UnauthorizedError()
     assert unauth.status_code == 401
     assert unauth.error_code == "UNAUTHORIZED"
@@ -63,14 +63,14 @@ def test_auth_errors():
     assert forbidden.error_code == "FORBIDDEN"
 
 
-def test_dependency_unavailable_error():
+def test_dependency_unavailable_error() -> None:
     err = DependencyUnavailableError(service_name="PostgreSQL", message="Connection refused")
     assert err.status_code == 503
     assert err.error_code == "DEPENDENCY_UNAVAILABLE"
-    assert err.details["service_name"] == "PostgreSQL"
+    assert err.details["service_name"] == "PostgreSQL"  # type: ignore
 
 
-def test_internal_error():
+def test_internal_error() -> None:
     err = InternalError()
     assert err.status_code == 500
     assert err.error_code == "INTERNAL_ERROR"

@@ -10,14 +10,14 @@ from app.schemas.common import (
 from app.schemas.health import ComponentHealth, HealthResponse, HealthStatus, ReadinessResponse
 
 
-def test_api_response_envelope():
+def test_api_response_envelope() -> None:
     resp = APIResponse(data={"key": "value"}, request_id="req-123")
     assert resp.data == {"key": "value"}
     assert resp.request_id == "req-123"
     assert resp.timestamp is not None
 
 
-def test_error_envelope():
+def test_error_envelope() -> None:
     env = ErrorEnvelope(
         error=ErrorDetail(
             code="INVALID_PARAM",
@@ -30,7 +30,7 @@ def test_error_envelope():
     assert env.error.request_id == "req-456"
 
 
-def test_pagination_params_and_response():
+def test_pagination_params_and_response() -> None:
     params = PaginationParams(page=2, page_size=10)
     assert params.offset == 10
     assert params.limit == 10
@@ -44,7 +44,7 @@ def test_pagination_params_and_response():
     assert paginated.items == items
 
 
-def test_health_schemas():
+def test_health_schemas() -> None:
     health = HealthResponse(
         status=HealthStatus.HEALTHY,
         app_name="NEXUS",

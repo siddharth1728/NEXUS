@@ -11,8 +11,8 @@ from app.core.execution.agent_registry import AgentRegistry
 from app.core.execution.policy import PolicyEngine
 from app.core.execution.tool_registry import ToolRegistry
 from app.core.execution.tools.simulate import SimulatedTool
-from app.schemas.agent import Agent
 from app.models.enums import Capability
+from app.schemas.agent import Agent
 from app.schemas.execution import (
     DryRunResult,
     ExecutionApproval,
@@ -20,7 +20,6 @@ from app.schemas.execution import (
     ExecutionResponse,
 )
 from app.services.execution_service import ExecutionService
-
 
 router = APIRouter()
 
@@ -44,13 +43,13 @@ def get_execution_service(
         description="Safe agent for testing.",
         capabilities=[Capability.SYSTEM_SIMULATE]
     ))
-    
+
     tool_registry = ToolRegistry()
     # Register tools
     tool_registry.register(SimulatedTool())
-    
+
     policy_engine = PolicyEngine()
-    
+
     return ExecutionService(
         session=session,
         agent_registry=agent_registry,

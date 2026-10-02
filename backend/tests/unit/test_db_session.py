@@ -16,7 +16,7 @@ from app.services.base import BaseService
 
 
 @pytest.mark.asyncio
-async def test_db_session_lifecycle():
+async def test_db_session_lifecycle() -> None:
     await close_database_connections()
 
     # Use SQLite in-memory setting
@@ -51,7 +51,7 @@ async def test_db_session_lifecycle():
 
 
 @pytest.mark.asyncio
-async def test_get_db_session_dep():
+async def test_get_db_session_dep() -> None:
     await close_database_connections()
     custom_db_settings = DatabaseSettings(
         url="sqlite+aiosqlite:///:memory:",
@@ -65,6 +65,6 @@ async def test_get_db_session_dep():
     await close_database_connections()
 
 
-def test_base_service():
+def test_base_service() -> None:
     srv = BaseService()
     assert srv is not None
