@@ -10,7 +10,6 @@ from app.core.execution.tool import BaseTool, ExecutionContext
 from app.models.enums import Capability
 from app.schemas.connection import Connection, ConnectionStatus
 
-
 # ─── Strict Input Schemas ────────────────────────────────────────────────────
 
 class GoogleCalendarListEventsInput(BaseModel):
@@ -80,8 +79,8 @@ class GoogleCalendarListEventsTool(BaseGoogleCalendarTool):
         if not isinstance(parameters, GoogleCalendarListEventsInput):
             raise TypeError("Invalid parameters type.")
         return await self.connector.list_events(
-            connection, 
-            calendar_id=parameters.calendar_id, 
-            max_results=parameters.max_results, 
+            connection,
+            calendar_id=parameters.calendar_id,
+            max_results=parameters.max_results,
             time_min=parameters.time_min
         )

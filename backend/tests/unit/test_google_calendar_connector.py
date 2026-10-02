@@ -3,22 +3,21 @@
 import uuid
 from datetime import UTC, datetime
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
-
-from pydantic import BaseModel
+from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
+from pydantic import BaseModel
 
+from app.core.errors import AppError
 from app.core.execution.connectors.google_calendar import GoogleCalendarConnector
+from app.core.execution.tool import ExecutionContext
 from app.core.execution.tools.google_calendar_tools import (
     GoogleCalendarListEventsInput,
     GoogleCalendarListEventsTool,
 )
-from app.core.execution.tool import ExecutionContext
 from app.models.enums import Capability
 from app.schemas.connection import Connection, ConnectionStatus
-from app.core.errors import AppError, UnauthorizedError
 
 
 @pytest.fixture

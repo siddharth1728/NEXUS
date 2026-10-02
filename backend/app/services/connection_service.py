@@ -1,13 +1,14 @@
 """Connection Service."""
 
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.connection import Connection
-from app.schemas.connection import Connection as ConnectionSchema, ConnectionStatus
+from app.schemas.connection import Connection as ConnectionSchema
+from app.schemas.connection import ConnectionStatus
 
 
 class ConnectionService:
@@ -16,7 +17,7 @@ class ConnectionService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_connection(self, tenant_id: str, provider: str) -> Optional[ConnectionSchema]:
+    async def get_connection(self, tenant_id: str, provider: str) -> ConnectionSchema | None:
         """Retrieve a connection by tenant and provider."""
         stmt = select(Connection).where(
             Connection.tenant_id == tenant_id,
@@ -28,7 +29,7 @@ class ConnectionService:
             return None
         return ConnectionSchema.model_validate(connection)
 
-    async def list_connections(self, tenant_id: str) -> List[ConnectionSchema]:
+    async def list_connections(self, tenant_id: str) -> list[ConnectionSchema]:
         """List all connections for a tenant."""
         stmt = select(Connection).where(Connection.tenant_id == tenant_id)
         result = await self.session.execute(stmt)
@@ -36,7 +37,7 @@ class ConnectionService:
         return [ConnectionSchema.model_validate(c) for c in connections]
 
     async def create_or_update_connection(
-        self, tenant_id: str, provider: str, status: ConnectionStatus, metadata: Dict[str, Any], user_id: Optional[str] = None
+        self, tenant_id: str, provider: str, status: ConnectionStatus, metadata: dict[str, Any], user_id: str | None = None
     ) -> ConnectionSchema:
         """Create or update a connection record.
         

@@ -45,19 +45,19 @@ def get_execution_service(
     ))
 
     from app.core.execution.connectors.github import GitHubConnector
-    from app.core.execution.tools.github_tools import (
-        GitHubRepositoryReadTool,
-        GitHubIssueReadTool,
-        GitHubIssueCreateTool,
-        GitHubCommentCreateTool,
-    )
-    from app.core.execution.connectors.registry import connector_registry
     from app.core.execution.connectors.google_calendar import GoogleCalendarConnector
+    from app.core.execution.connectors.registry import connector_registry
+    from app.core.execution.tools.github_tools import (
+        GitHubCommentCreateTool,
+        GitHubIssueCreateTool,
+        GitHubIssueReadTool,
+        GitHubRepositoryReadTool,
+    )
     from app.core.execution.tools.google_calendar_tools import GoogleCalendarListEventsTool
 
     github_connector = GitHubConnector()
     connector_registry.register(github_connector)
-    
+
     calendar_connector = GoogleCalendarConnector()
     connector_registry.register(calendar_connector)
 

@@ -1,19 +1,21 @@
-from typing import List, Any
-from fastapi import APIRouter, Depends, HTTPException, status
+import uuid
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import uuid
-from app.api.deps import get_db_session, get_current_tenant_id
-from app.core.execution.connectors.registry import connector_registry
-from app.schemas.connection import Connection as ConnectionSchema, ConnectionCreate, ConnectorHealth, ConnectionStatus
-from app.services.connection_service import ConnectionService
-from app.core.execution.tool import ExecutionContext
+from app.api.deps import get_current_tenant_id, get_db_session
 from app.core.errors import UnauthorizedError
+from app.core.execution.connectors.registry import connector_registry
+from app.core.execution.tool import ExecutionContext
+from app.schemas.connection import Connection as ConnectionSchema
+from app.schemas.connection import ConnectionStatus, ConnectorHealth
+from app.services.connection_service import ConnectionService
 
 router = APIRouter()
 
-@router.get("/", response_model=List[str])
-async def list_connectors() -> List[str]:
+@router.get("/", response_model=list[str])
+async def list_connectors() -> list[str]:
     """List all available connector providers."""
     return connector_registry.list_all()
 
@@ -27,7 +29,7 @@ async def connect_provider(
     """Create or update a connection metadata for a provider."""
     if provider not in connector_registry.list_all():
         raise HTTPException(status_code=404, detail="Provider not found in registry")
-        
+
     connection_service = ConnectionService(session)
     # The actual credentials should be stored via SecretStore, NOT in metadata
     connection = await connection_service.create_or_update_connection(
@@ -48,15 +50,15 @@ async def check_connector_health(
     """Check the health of a specific provider connection."""
     if provider not in connector_registry.list_all():
         raise HTTPException(status_code=404, detail="Provider not found in registry")
-        
+
     connection_service = ConnectionService(session)
     connection = await connection_service.get_connection(tenant_id=str(tenant_id), provider=provider)
     if not connection:
         raise HTTPException(status_code=400, detail="Connection required")
-        
+
     connector = connector_registry.get(provider)
     context = ExecutionContext(tenant_id=str(tenant_id), user_id=None)
-    
+
     try:
         health_status = await connector.check_health(connection)
         return health_status

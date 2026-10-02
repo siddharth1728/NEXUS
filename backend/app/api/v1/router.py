@@ -2,7 +2,15 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import actions, documents, execution, extraction, health, synthesis, connectors
+from app.api.v1.endpoints import (
+    actions,
+    connectors,
+    documents,
+    execution,
+    extraction,
+    health,
+    synthesis,
+)
 
 api_v1_router = APIRouter()
 
