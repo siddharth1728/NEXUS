@@ -31,8 +31,8 @@ class DummyTool(BaseTool):
     def get_input_schema(self) -> type[BaseModel]:
         return DummyInput
 
-    async def execute(self, parameters: BaseModel) -> dict[str, Any]:
-        return {"foo": parameters.foo}  # type: ignore
+    async def execute(self, parameters: BaseModel, context: Any = None) -> dict[str, Any]:  # type: ignore[override]
+        return {"foo": parameters.foo}  # type: ignore[attr-defined]
 
 
 def test_agent_registry() -> None:
