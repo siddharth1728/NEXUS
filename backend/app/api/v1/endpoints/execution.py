@@ -44,9 +44,31 @@ def get_execution_service(
         capabilities=[Capability.SYSTEM_SIMULATE]
     ))
 
+    from app.core.execution.connectors.github import GitHubConnector
+    from app.core.execution.tools.github_tools import (
+        GitHubRepositoryReadTool,
+        GitHubIssueReadTool,
+        GitHubIssueCreateTool,
+        GitHubCommentCreateTool,
+    )
+    from app.core.execution.connectors.registry import connector_registry
+    from app.core.execution.connectors.google_calendar import GoogleCalendarConnector
+    from app.core.execution.tools.google_calendar_tools import GoogleCalendarListEventsTool
+
+    github_connector = GitHubConnector()
+    connector_registry.register(github_connector)
+    
+    calendar_connector = GoogleCalendarConnector()
+    connector_registry.register(calendar_connector)
+
     tool_registry = ToolRegistry()
     # Register tools
     tool_registry.register(SimulatedTool())
+    tool_registry.register(GitHubRepositoryReadTool(github_connector))
+    tool_registry.register(GitHubIssueReadTool(github_connector))
+    tool_registry.register(GitHubIssueCreateTool(github_connector))
+    tool_registry.register(GitHubCommentCreateTool(github_connector))
+    tool_registry.register(GoogleCalendarListEventsTool(calendar_connector))
 
     policy_engine = PolicyEngine()
 
