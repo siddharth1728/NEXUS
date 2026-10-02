@@ -21,14 +21,14 @@ class ConnectionBase(BaseModel):
     tenant_id: str
     user_id: str | None = None
     status: ConnectionStatus = ConnectionStatus.AUTHENTICATION_REQUIRED
-    metadata: dict[str, Any] = {}
+    connection_metadata: dict[str, Any] = {}
 
 class ConnectionCreate(ConnectionBase):
     pass
 
 class ConnectionUpdate(BaseModel):
     status: ConnectionStatus | None = None
-    metadata: dict[str, Any] | None = None
+    connection_metadata: dict[str, Any] | None = None
 
 class ConnectionInDBBase(ConnectionBase):
     id: str

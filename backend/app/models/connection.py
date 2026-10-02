@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, DateTime, String
+from sqlalchemy import JSON, DateTime, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -11,6 +11,9 @@ from app.models.base import Base
 
 class Connection(Base):
     __tablename__ = "connections"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "provider", name="uix_tenant_provider"),
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id: Mapped[str] = mapped_column(String, index=True, nullable=False)

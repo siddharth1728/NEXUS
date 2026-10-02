@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import actions, documents, execution, extraction, health, synthesis
+from app.api.v1.endpoints import actions, documents, execution, extraction, health, synthesis, connectors
 
 api_v1_router = APIRouter()
 
@@ -15,3 +15,4 @@ api_v1_router.include_router(documents.router, prefix="/documents", tags=["Docum
 api_v1_router.include_router(extraction.router, prefix="/extraction", tags=["Extraction"])
 api_v1_router.include_router(synthesis.router, prefix="/synthesis", tags=["Synthesis"])
 api_v1_router.include_router(execution.router, prefix="/execution", tags=["Execution"])
+api_v1_router.include_router(connectors.router, prefix="/connectors", tags=["Connectors"])
