@@ -98,6 +98,24 @@ class VerificationService:
                 reason=f"Verification failed with error: {str(e)}",
             )
 
+    async def verify_action(self, action_id: uuid.UUID, tenant_id: uuid.UUID) -> bool:
+        """Verify all evidence requirements for a given action."""
+        stmt = select(EvidenceRequirement).where(
+            EvidenceRequirement.action_id == action_id,
+            EvidenceRequirement.tenant_id == tenant_id,
+        )
+        result = await self.session.execute(stmt)
+        requirements = result.scalars().all()
+
+        if not requirements:
+            # If no explicit external evidence requirements are registered, consider verified by default
+            return True
+
+        for req in requirements:
+            res = await self.verify_requirement(str(tenant_id), str(req.id))
+            if not res.is_verified:
+                return False
+
     def _evaluate_assertions(self, expected: dict[str, Any], actual: dict[str, Any]) -> bool:
         """Deep check if 'actual' dictionary contains all 'expected' key-values."""
         for key, expected_value in expected.items():
@@ -113,3 +131,5 @@ class VerificationService:
                 return False
 
         return True
+
+

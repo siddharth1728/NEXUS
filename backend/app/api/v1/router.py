@@ -10,6 +10,7 @@ from app.api.v1.endpoints import (
     extraction,
     health,
     synthesis,
+    autonomous,
 )
 
 api_v1_router = APIRouter()
@@ -24,3 +25,4 @@ api_v1_router.include_router(extraction.router, prefix="/extraction", tags=["Ext
 api_v1_router.include_router(synthesis.router, prefix="/synthesis", tags=["Synthesis"])
 api_v1_router.include_router(execution.router, prefix="/execution", tags=["Execution"])
 api_v1_router.include_router(connectors.router, prefix="/connectors", tags=["Connectors"])
+api_v1_router.include_router(autonomous.router, prefix="/autonomous", tags=["Autonomous"])

@@ -48,23 +48,62 @@ Explore the comprehensive engineering documentation:
 - [Evaluation & Observability](file:///c:/NEXUS/docs/10_EVALUATION_AND_OBSERVABILITY.md)
 - [Development Phases & Roadmap](file:///c:/NEXUS/docs/11_DEVELOPMENT_PHASES_AND_ROADMAP.md)
 - [Definition of Done](file:///c:/NEXUS/docs/12_DEFINITION_OF_DONE.md)
+- [AI Provider Gateway](file:///c:/NEXUS/docs/13_AI_PROVIDER_GATEWAY.md)
+- [Connector Architecture](file:///c:/NEXUS/docs/14_CONNECTOR_ARCHITECTURE.md)
+- [Verification & Workflow Intelligence](file:///c:/NEXUS/docs/15_VERIFICATION_AND_WORKFLOW.md)
+- [Frontend Architecture](file:///c:/NEXUS/docs/16_FRONTEND_ARCHITECTURE.md)
+- [Autonomous Execution & Release Specification](file:///c:/NEXUS/docs/17_AUTONOMOUS_EXECUTION_AND_RELEASE.md)
 - [Prompt Engineering Architecture](file:///c:/NEXUS/prompts/README.md)
 
 ---
 
-## 🗺️ Implementation Roadmap Summary
+## ⚡ Quickstart Guide
 
-| Phase | Focus | Status |
-| :--- | :--- | :--- |
-| **Phase 00** | System Initialization, Specifications & Engineering Constitution | **Completed** |
-| **Phase 01** | Core Domain Models, LLM Provider Abstraction & Document Ingestion Baseline | Planned |
-| **Phase 02** | Staged AI Extraction Pipeline & Action Graph Construction | Planned |
-| **Phase 03** | Personalization, Relevance Scoring & Dependency Resolution Engine | Planned |
-| **Phase 04** | Execution Verification & Evidence Collection Engine | Planned |
-| **Phase 05** | Next.js Action Graph UI, Human-in-the-Loop Workbench & Observability | Planned |
+### 1. Prerequisites
+- Python 3.11+
+- Node.js 20+ & npm
+- PostgreSQL + pgvector (or local SQLite in-memory fallback for testing)
+
+### 2. Backend Setup
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+
+# Run test suite with coverage
+pytest tests/ --cov=app --cov-report=term-missing
+
+# Start the API server
+uvicorn app.main:app --port 8000 --reload
+```
+
+### 3. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+# Open http://localhost:3000 in your browser
+```
+
+---
+
+## 🗺️ Module Breakdown
+
+| Subsystem | Key Capabilities |
+| :--- | :--- |
+| **Ingestion & Parsing** | Chunking, token-aware segmentation, fact extraction, source provenance. |
+| **Action Graph** | Directed dependency acyclic graph, cycle prevention, blocked-state cascades. |
+| **AI Gateway** | Multi-provider LLM abstraction (Gemini, Ollama, OpenAI) with deterministic validation. |
+| **Connectors & Tools** | GitHub, Google Calendar, and Simulated connectors with strict input validation. |
+| **Execution Control Plane** | Policy engine, risk-tiered authorizations, human approval gates, audit trails. |
+| **Verification Engine** | Read-only inspection tools, deterministic assertion matching, evidence logging. |
+| **Autonomous Progression** | Safe, bounded loop (`MANUAL`, `ASSISTED`, `AUTONOMOUS_WITHIN_POLICY`). |
+| **Frontend Experience** | Real-time action graph workbench, execution dashboard, and human-in-the-loop review. |
 
 ---
 
 ## ⚖️ License
 
 NEXUS is open-source software licensed under the Apache 2.0 License.
+

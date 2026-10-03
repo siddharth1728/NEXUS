@@ -97,3 +97,21 @@ class ApprovalDecision(enum.StrEnum):
 
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
+
+
+class RiskTier(enum.StrEnum):
+    """Deterministic action risk classification."""
+
+    READ_ONLY = "READ_ONLY"
+    LOW_RISK_MUTATION = "LOW_RISK_MUTATION"
+    HIGH_RISK_MUTATION = "HIGH_RISK_MUTATION"
+    SENSITIVE = "SENSITIVE"
+
+
+class AutonomyMode(enum.StrEnum):
+    """Explicit autonomy modes for the loop."""
+
+    MANUAL = "MANUAL"
+    ASSISTED = "ASSISTED"
+    APPROVAL_REQUIRED = "APPROVAL_REQUIRED"
+    AUTONOMOUS_WITHIN_POLICY = "AUTONOMOUS_WITHIN_POLICY"

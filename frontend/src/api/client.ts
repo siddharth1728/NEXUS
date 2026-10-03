@@ -12,7 +12,6 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   // or allow it to be passed. In a real app, this would come from auth context.
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'x-tenant-id': 'dev-tenant',
     ...((options.headers as Record<string, string>) || {}),
   };
 
