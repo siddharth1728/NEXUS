@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { CommandPalette } from "@/components/ui/CommandPalette";
+import { NotificationPopover } from "@/components/ui/NotificationPopover";
 import { Search, Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -83,6 +84,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 ⌘K
               </kbd>
             </button>
+
+            {/* Notification Popover */}
+            <NotificationPopover />
 
             {/* Engine Status Pill */}
             <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#F0FDF4] border border-[#BBF7D0] text-xs font-mono text-[#15803D]">

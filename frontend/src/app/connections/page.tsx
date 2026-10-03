@@ -5,9 +5,11 @@ import {
   GitBranch, 
   Calendar, 
   Server, 
-  RefreshCw
+  RefreshCw,
+  Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { AddConnectionDialog } from "@/components/ui/AddConnectionDialog";
 
 interface Connector {
   id: string;
@@ -24,7 +26,8 @@ interface Connector {
 
 export default function ConnectionsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [connectors] = useState<Connector[]>([
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [connectors, setConnectors] = useState<Connector[]>([
     {
       id: "github",
       name: "GitHub",
@@ -82,6 +85,30 @@ export default function ConnectionsPage() {
     }, 800);
   };
 
+  const handleConnected = (newConn: { name: string; provider: string }) => {
+    const exists = connectors.some(c => c.provider === newConn.provider);
+    if (!exists) {
+      setConnectors(prev => [
+        ...prev,
+        {
+          id: newConn.provider,
+          name: newConn.name,
+          provider: newConn.provider,
+          status: "connected",
+          health: "Healthy",
+          lastChecked: "Just now · Authenticated & Healthy",
+          icon: Server,
+          targetAccount: "authorized-tenant-scope",
+          rateLimit: "Standard Tier Active",
+          capabilities: [
+            { name: "Resource Read", type: "READ", policy: "Permissive" },
+            { name: "Resource Mutate", type: "WRITE", policy: "Approval Required" }
+          ]
+        }
+      ]);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Editorial Header */}
@@ -107,6 +134,15 @@ export default function ConnectionsPage() {
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
             <span>{isRefreshing ? "Checking..." : "Probe Health"}</span>
+          </Button>
+
+          <Button 
+            variant="primary" 
+            size="md" 
+            onClick={() => setIsAddDialogOpen(true)}
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            <span>Connect System</span>
           </Button>
         </div>
       </div>
@@ -194,6 +230,12 @@ export default function ConnectionsPage() {
           );
         })}
       </div>
+
+      <AddConnectionDialog 
+        isOpen={isAddDialogOpen}
+        onClose={() => setIsAddDialogOpen(false)}
+        onConnected={handleConnected}
+      />
     </div>
   );
 }

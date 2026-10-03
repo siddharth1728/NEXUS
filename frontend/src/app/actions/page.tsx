@@ -7,6 +7,8 @@ import { api, ActionItem } from "@/api/client";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { SourceDrawer, ProvenanceData } from "@/components/ui/SourceDrawer";
+import { ActionCreationDialog } from "@/components/ui/ActionCreationDialog";
+import { EmptyActionsIllustration } from "@/components/ui/MicroIllustrations";
 import { 
   Search, 
   Calendar, 
@@ -22,6 +24,7 @@ export default function ActionsPage() {
   const [selectedFilter, setSelectedFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [creationOpen, setCreationOpen] = useState(false);
   const [selectedProvenance, setSelectedProvenance] = useState<ProvenanceData | null>(null);
 
   // Fetch actions from live backend
@@ -90,6 +93,11 @@ export default function ActionsPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Button variant="secondary" size="md" onClick={() => setCreationOpen(true)}>
+            <Sparkles className="w-4 h-4 mr-1.5 text-[#2563EB]" />
+            <span>Synthesize Action</span>
+          </Button>
+
           <Button variant="primary" size="md" onClick={() => router.push("/execution")}>
             <Plus className="w-4 h-4 mr-1.5" />
             <span>Execute Action</span>
@@ -144,12 +152,19 @@ export default function ActionsPage() {
             Loading actions from workspace...
           </div>
         ) : filteredActions.length === 0 ? (
-          <div className="p-16 text-center bg-white rounded-2xl border border-[#E5E7EB] space-y-3">
-            <Sparkles className="w-10 h-10 text-[#2563EB] mx-auto" />
-            <h3 className="text-xl font-semibold text-[#171717]">No actions match current filters</h3>
-            <p className="text-sm text-[#5F6368] max-w-md mx-auto">
-              Add a source document or clear search filters and NEXUS will turn relevant information into actionable work.
-            </p>
+          <div className="p-16 text-center bg-white rounded-2xl border border-[#E5E7EB] space-y-4">
+            <EmptyActionsIllustration className="mx-auto" size={100} />
+            <div className="space-y-1">
+              <h3 className="text-xl font-semibold text-[#171717]">Turn information into work</h3>
+              <p className="text-sm text-[#5F6368] max-w-md mx-auto">
+                No actions match this filter. Ingest an intelligence source or synthesize an action directly from requirements.
+              </p>
+            </div>
+            <div className="pt-2 flex items-center justify-center gap-3">
+              <Button size="sm" variant="primary" onClick={() => setCreationOpen(true)}>
+                Synthesize Action
+              </Button>
+            </div>
           </div>
         ) : (
           filteredActions.map((action, index) => {
@@ -239,6 +254,12 @@ export default function ActionsPage() {
         <span>Displaying {filteredActions.length} of {actions.length} synthesized actions</span>
         <span>Living Canvas Engine v1.0</span>
       </div>
+
+      {/* Action Creation Modal */}
+      <ActionCreationDialog 
+        isOpen={creationOpen} 
+        onClose={() => setCreationOpen(false)} 
+      />
 
       {/* Contextual Source Drawer */}
       <SourceDrawer 

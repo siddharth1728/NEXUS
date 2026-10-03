@@ -8,9 +8,10 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { SourceDrawer, ProvenanceData } from "@/components/ui/SourceDrawer";
 import { LivingLine } from "@/components/ui/LivingLine";
+import { OnboardingBanner } from "@/components/ui/OnboardingBanner";
+import { EmptyActionsIllustration } from "@/components/ui/MicroIllustrations";
 import { 
   ArrowRight, 
-  ShieldCheck, 
   PlayCircle, 
   FileText, 
   CheckCircle2, 
@@ -114,9 +115,12 @@ export default function Dashboard() {
             completedStages={["information", "understanding", "action"]}
           />
         </div>
+
+        {/* 3. First-Run / Onboarding Guide (Dismissable) */}
+        <OnboardingBanner />
       </section>
 
-      {/* 3. Primary Narrative: Attention Workspace */}
+      {/* 4. Primary Narrative: Attention Workspace */}
       <section className="space-y-6">
         <div className="flex items-baseline justify-between border-b border-[#ECECE9] pb-3">
           <div className="flex items-center gap-3">
@@ -141,60 +145,76 @@ export default function Dashboard() {
             Synchronizing live state from engine...
           </div>
         ) : attentionItems.length === 0 ? (
-          <div className="p-12 text-center bg-white rounded-2xl border border-[#E5E7EB] space-y-3">
-            <ShieldCheck className="w-10 h-10 text-[#15803D] mx-auto" />
-            <h3 className="text-lg font-semibold text-[#171717]">All caught up</h3>
-            <p className="text-sm text-[#5F6368] max-w-md mx-auto">
-              No pending actions require human review or unblocking. New actions will synthesize automatically as sources ingest.
-            </p>
+          <div className="p-12 text-center bg-white rounded-2xl border border-[#E5E7EB] space-y-4">
+            <EmptyActionsIllustration className="mx-auto" size={100} />
+            <div className="space-y-1">
+              <h3 className="text-xl font-semibold text-[#171717]">Turn information into work</h3>
+              <p className="text-sm text-[#5F6368] max-w-md mx-auto">
+                No pending actions require human review or unblocking. New actions will synthesize automatically as sources ingest.
+              </p>
+            </div>
+            <Link href="/documents" className="inline-block pt-2">
+              <Button size="sm" variant="primary">
+                Add Source Document
+              </Button>
+            </Link>
           </div>
         ) : (
           <div className="space-y-3">
             {attentionItems.map((action) => (
               <div 
                 key={action.id}
-                className="group bg-white hover:bg-[#FDFDFD] p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] hover:border-[#D1D5DB] transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs hover:shadow-xs"
+                className="group bg-white hover:bg-[#FDFDFD] p-6 rounded-2xl border border-[#E5E7EB] hover:border-[#D1D5DB] transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xs hover:shadow-xs"
               >
-                <div className="space-y-2 flex-1">
+                {/* Decision Structure: WHAT + WHY + STATUS */}
+                <div className="space-y-2.5 flex-1">
+                  {/* Status & ID */}
                   <div className="flex items-center gap-3 flex-wrap">
                     <StatusBadge status={action.status} size="md" />
-                    <span className="text-xs font-mono text-[#5F6368]">
+                    <span className="text-xs font-mono text-[#8A8F98]">
                       ID: {action.id.slice(0, 8)}
                     </span>
                     {action.source_context?.document_title && (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-[#5F6368] bg-[#F7F7F5] px-2.5 py-0.5 rounded-md border border-[#ECECE9]">
+                      <button
+                        onClick={() => openProvenance(action)}
+                        className="inline-flex items-center gap-1.5 text-xs text-[#5F6368] hover:text-[#171717] bg-[#F7F7F5] hover:bg-[#ECECE9] px-2.5 py-0.5 rounded-md border border-[#ECECE9] transition-all font-mono cursor-pointer"
+                        title="Inspect Provenance"
+                      >
                         <FileText className="w-3.5 h-3.5 text-[#2563EB]" />
-                        {action.source_context.document_title}
-                      </span>
+                        <span>Source: {action.source_context.document_title}</span>
+                      </button>
                     )}
                   </div>
 
-                  <h3 className="text-lg sm:text-xl font-medium text-[#171717] group-hover:text-[#2563EB] transition-colors leading-snug">
+                  {/* WHAT */}
+                  <h3 className="text-xl font-medium text-[#171717] group-hover:text-[#2563EB] transition-colors leading-snug">
                     <Link href={`/actions/${action.id}`}>
                       {action.title}
                     </Link>
                   </h3>
 
-                  {action.description && (
-                    <p className="text-sm text-[#5F6368] line-clamp-1 max-w-3xl">
-                      {action.description}
-                    </p>
-                  )}
+                  {/* WHY */}
+                  <p className="text-sm text-[#5F6368] line-clamp-1 max-w-3xl leading-relaxed">
+                    {action.description || (
+                      action.source_context?.excerpt ? `Grounded requirement: "${action.source_context.excerpt}"` : "Synthesized compliance action derived from source specifications."
+                    )}
+                  </p>
                 </div>
 
+                {/* NEXT STEP CTA */}
                 <div className="flex items-center gap-3 shrink-0 pt-2 md:pt-0">
                   <button
                     onClick={() => openProvenance(action)}
-                    className="text-xs font-medium text-[#5F6368] hover:text-[#171717] bg-[#F7F7F5] hover:bg-[#ECECE9] px-3 py-1.5 rounded-lg border border-[#E5E7EB] transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="text-xs font-medium text-[#5F6368] hover:text-[#171717] bg-[#F7F7F5] hover:bg-[#ECECE9] px-3.5 py-2 rounded-xl border border-[#E5E7EB] transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     <span>Provenance</span>
                     <ExternalLink className="w-3 h-3 text-[#8A8F98]" />
                   </button>
 
                   <Link href={`/actions/${action.id}`}>
-                    <Button variant="outline" size="sm" className="group-hover:border-[#2563EB] group-hover:text-[#2563EB]">
-                      <span>Inspect</span>
-                      <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    <Button variant="primary" size="sm">
+                      <span>Next: Inspect & Execute</span>
+                      <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                     </Button>
                   </Link>
                 </div>
