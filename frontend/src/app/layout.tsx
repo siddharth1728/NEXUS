@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Shell } from "@/components/layout/Shell";
+import { QueryProvider } from "@/components/shared/QueryProvider";
 
 export const metadata: Metadata = {
   title: "NEXUS | Context-to-Action Engine",
-  description: "NEXUS Engine Interface",
+  description: "Enterprise Autonomous Context-to-Action Engine",
 };
 
 export default function RootLayout({
@@ -13,9 +14,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className="antialiased text-sm h-screen overflow-hidden flex bg-background text-text">
-        <Shell>{children}</Shell>
+    <html lang="en">
+      <body className="antialiased text-sm h-screen overflow-hidden flex bg-[#F7F7F5] text-[#171717]">
+        <QueryProvider>
+          <Shell>{children}</Shell>
+        </QueryProvider>
       </body>
     </html>
   );
