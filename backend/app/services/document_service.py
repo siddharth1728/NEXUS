@@ -58,6 +58,12 @@ class DocumentService:
         )
         return await self.doc_repo.create(doc)
 
+    async def list_documents(
+        self, tenant_id: uuid.UUID, offset: int = 0, limit: int = 50
+    ) -> list[Document]:
+        """List documents scoped to a tenant."""
+        return await self.doc_repo.list_for_tenant(tenant_id, offset, limit)
+
     async def get_document(self, document_id: uuid.UUID, tenant_id: uuid.UUID) -> Document:
         """Get a document with strict tenant isolation."""
         doc = await self.doc_repo.get_document_for_tenant(document_id, tenant_id)

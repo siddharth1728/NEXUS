@@ -49,6 +49,18 @@ async def create_document(
     return DocumentResponse.model_validate(doc)
 
 
+@router.get("", response_model=list[DocumentResponse])
+async def list_documents(
+    offset: int = 0,
+    limit: int = 50,
+    tenant_id: uuid.UUID = Depends(get_current_tenant_id),
+    service: DocumentService = Depends(get_document_service),
+) -> list[DocumentResponse]:
+    """List documents for the current tenant."""
+    docs = await service.list_documents(tenant_id, offset=offset, limit=limit)
+    return [DocumentResponse.model_validate(doc) for doc in docs]
+
+
 @router.get("/{document_id}", response_model=DocumentResponse)
 async def get_document(
     document_id: uuid.UUID,
