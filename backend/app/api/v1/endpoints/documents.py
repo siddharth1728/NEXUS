@@ -50,6 +50,7 @@ async def create_document(
 
 
 @router.get("", response_model=list[DocumentResponse])
+@router.get("/", response_model=list[DocumentResponse], include_in_schema=False)
 async def list_documents(
     offset: int = 0,
     limit: int = 50,

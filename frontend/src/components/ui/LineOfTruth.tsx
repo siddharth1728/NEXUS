@@ -1,6 +1,8 @@
+"use client";
+
 import React from "react";
 import { cn } from "@/lib/utils";
-import { FileText, CheckSquare, Terminal, Eye, ShieldCheck, Check } from "lucide-react";
+import { FileText, CheckSquare, PlayCircle, Eye, ShieldCheck, Check } from "lucide-react";
 
 export type TruthStep = "source" | "action" | "execution" | "evidence" | "verification";
 
@@ -25,10 +27,10 @@ export function LineOfTruth({
   evidenceLabel = "Evidence Observed",
   verificationLabel = "Verified",
 }: LineOfTruthProps) {
-  const steps: { key: TruthStep; label: string; icon: any }[] = [
+  const steps: { key: TruthStep; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { key: "source", label: sourceLabel, icon: FileText },
     { key: "action", label: actionLabel, icon: CheckSquare },
-    { key: "execution", label: executionLabel, icon: Terminal },
+    { key: "execution", label: executionLabel, icon: PlayCircle },
     { key: "evidence", label: evidenceLabel, icon: Eye },
     { key: "verification", label: verificationLabel, icon: ShieldCheck },
   ];
@@ -40,12 +42,19 @@ export function LineOfTruth({
   };
 
   return (
-    <div className={cn("flex items-center w-full py-2", className)}>
+    <div className={cn("w-full py-2 select-none", className)}>
       <div className="flex items-center w-full justify-between relative">
-        {/* Continuous connector line behind */}
-        <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-[1px] bg-[#E5E7EB] z-0" />
+        {/* Dynamic Living Line behind nodes */}
+        <div className="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-[2px] bg-[#ECECE9] z-0">
+          <div 
+            className="h-full bg-[#15803D] transition-all duration-700"
+            style={{
+              width: `${(completedSteps.length / (steps.length - 1)) * 100}%`
+            }}
+          />
+        </div>
 
-        {steps.map((s, index) => {
+        {steps.map((s) => {
           const state = getStepState(s.key);
           const Icon = s.icon;
 
@@ -53,10 +62,10 @@ export function LineOfTruth({
             <div key={s.key} className="flex flex-col items-center relative z-10 group">
               <div
                 className={cn(
-                  "w-7 h-7 rounded-full flex items-center justify-center transition-all border",
-                  state === "completed" && "bg-[#F0FDF4] border-[#86EFAC] text-[#17803D]",
-                  state === "current" && "bg-[#EFF6FF] border-[#2563EB] text-[#2563EB] ring-2 ring-[#EFF6FF]",
-                  state === "upcoming" && "bg-white border-[#E5E7EB] text-[#9CA3AF]"
+                  "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 border bg-white",
+                  state === "completed" && "bg-[#F0FDF4] border-[#86EFAC] text-[#15803D]",
+                  state === "current" && "border-[#2563EB] text-[#2563EB] ring-4 ring-[#EFF6FF]",
+                  state === "upcoming" && "border-[#E5E7EB] text-[#8A8F98]"
                 )}
               >
                 {state === "completed" ? (
@@ -67,10 +76,10 @@ export function LineOfTruth({
               </div>
               <span
                 className={cn(
-                  "text-[10px] font-medium tracking-tight mt-1.5 whitespace-nowrap",
-                  state === "completed" && "text-[#17803D]",
-                  state === "current" && "text-[#2563EB] font-semibold",
-                  state === "upcoming" && "text-[#9CA3AF]"
+                  "text-[12px] font-medium tracking-tight mt-1.5 transition-colors whitespace-nowrap hidden sm:block",
+                  state === "completed" && "text-[#15803D] font-semibold",
+                  state === "current" && "text-[#171717] font-semibold",
+                  state === "upcoming" && "text-[#8A8F98]"
                 )}
               >
                 {s.label}
@@ -82,3 +91,4 @@ export function LineOfTruth({
     </div>
   );
 }
+

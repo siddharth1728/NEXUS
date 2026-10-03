@@ -1,8 +1,9 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export class ApiError extends Error {
-  constructor(public status: number, public data: any) {
-    super(data?.message || data?.detail || 'An API error occurred');
+  constructor(public status: number, public data: Record<string, unknown> | null | undefined) {
+    const msg = (data?.message as string) || (data?.detail as string) || 'An API error occurred';
+    super(msg);
     this.name = 'ApiError';
   }
 }
@@ -38,8 +39,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
 export const api = {
   get: <T>(endpoint: string, options?: RequestInit) => request<T>(endpoint, { ...options, method: 'GET' }),
-  post: <T>(endpoint: string, body?: any, options?: RequestInit) => request<T>(endpoint, { ...options, method: 'POST', body: body ? JSON.stringify(body) : undefined }),
-  patch: <T>(endpoint: string, body?: any, options?: RequestInit) => request<T>(endpoint, { ...options, method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
+  post: <T>(endpoint: string, body?: unknown, options?: RequestInit) => request<T>(endpoint, { ...options, method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+  patch: <T>(endpoint: string, body?: unknown, options?: RequestInit) => request<T>(endpoint, { ...options, method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(endpoint: string, options?: RequestInit) => request<T>(endpoint, { ...options, method: 'DELETE' }),
 };
 
@@ -101,7 +102,7 @@ export interface ExecutionItem {
   capability: string;
   target?: string;
   policy?: string;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
   expected_effect?: string;
   evidence?: {
     verified: boolean;

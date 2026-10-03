@@ -76,7 +76,7 @@ export interface ActionEdge {
   source_id: string;
   target_id: string;
   relation_type: EdgeRelationType;
-  metadata_payload: Record<string, any>;
+  metadata_payload: Record<string, unknown>;
   created_at: string;
 }
 
@@ -88,7 +88,7 @@ export interface Document {
   content_hash: string;
   storage_path: string;
   size_bytes: number;
-  metadata_payload: Record<string, any>;
+  metadata_payload: Record<string, unknown>;
   created_at: string;
 }
 
@@ -98,9 +98,9 @@ export interface ExecutionRequest {
   action_id: string;
   tool_name: string;
   connector_name: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   state: ExecutionState;
-  result_payload: Record<string, any> | null;
+  result_payload: Record<string, unknown> | null;
   error_message: string | null;
   created_at: string;
   updated_at: string;
@@ -110,8 +110,8 @@ export interface EvidenceRequirement {
   id: string;
   action_id: string;
   tool_id: string;
-  parameters: Record<string, any>;
-  expected_state: Record<string, any>;
+  parameters: Record<string, unknown>;
+  expected_state: Record<string, unknown>;
   created_at: string;
 }
 

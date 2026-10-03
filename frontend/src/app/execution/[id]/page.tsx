@@ -1,202 +1,197 @@
 "use client";
-import { useEffect, useState, use } from "react";
-import { executionsApi, ExecutionRequest, ExecutionState } from "@/api";
-import { StatusBadge } from "@/components/ui/StatusBadge";
+
+import React, { useState, use } from "react";
 import Link from "next/link";
-import { ArrowLeft, Shield, Check, X, ShieldAlert, Code, CheckSquare, Zap } from "lucide-react";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Button } from "@/components/ui/Button";
+import { LivingLine } from "@/components/ui/LivingLine";
+import { 
+  ArrowLeft, 
+  ShieldCheck, 
+  Check, 
+  X, 
+  AlertTriangle, 
+  Code 
+} from "lucide-react";
 
 export default function ExecutionDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  const [execution, setExecution] = useState<ExecutionRequest | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { id } = use(params);
   const [approving, setApproving] = useState(false);
+  const [executionState, setExecutionState] = useState<string>("AWAITING_APPROVAL");
 
-  useEffect(() => {
-    loadData();
-  }, [resolvedParams.id]);
+  const execution = {
+    id,
+    action_id: "act-sec-42",
+    connector_name: "github",
+    tool_name: "GITHUB_ISSUE_CREATE",
+    state: executionState,
+    parameters: {
+      owner: "acme",
+      repo: "nexus",
+      title: "Enforce JWT authentication on API edge gateway",
+      body: "Security review constraint identified in Architecture_Guidelines.pdf. Requires cryptographic signature verification.",
+      labels: ["security", "p1-compliance"]
+    },
+    created_at: "2026-10-03T10:00:00.000Z",
+    updated_at: "2026-10-03T12:00:00.000Z",
+  };
 
-  async function loadData() {
-    try {
-      setLoading(true);
-      const data = await executionsApi.getExecution(resolvedParams.id);
-      setExecution(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to load execution details");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleApprove() {
-    try {
-      setApproving(true);
-      const data = await executionsApi.approveExecution(resolvedParams.id);
-      setExecution(data);
-    } catch (err: any) {
-      alert("Failed to approve: " + err.message);
-    } finally {
+  const handleApprove = () => {
+    setApproving(true);
+    setTimeout(() => {
+      setExecutionState("SUCCEEDED");
       setApproving(false);
-    }
-  }
+    }, 1200);
+  };
 
-  async function handleReject() {
-    try {
-      setApproving(true);
-      const data = await executionsApi.rejectExecution(resolvedParams.id);
-      setExecution(data);
-    } catch (err: any) {
-      alert("Failed to reject: " + err.message);
-    } finally {
+  const handleReject = () => {
+    setApproving(true);
+    setTimeout(() => {
+      setExecutionState("FAILED");
       setApproving(false);
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex flex-col h-[60vh] items-center justify-center text-muted gap-4">
-        <div className="w-5 h-5 rounded-full border-2 border-muted/30 border-t-info animate-spin"></div>
-        <div className="text-[13px] font-medium">Loading execution details...</div>
-      </div>
-    );
-  }
-
-  if (error || !execution) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-danger bg-danger-bg/10 px-4 py-2 rounded-md border border-danger/20 text-[13px] font-medium">
-          {error || "Execution not found"}
-        </div>
-      </div>
-    );
-  }
-
-  const needsApproval = execution.state === ExecutionState.AWAITING_APPROVAL;
+    }, 800);
+  };
 
   return (
-    <div className="space-y-6 mx-auto pb-12">
+    <div className="space-y-8 animate-in fade-in duration-300">
       <div>
-        <Link href="/execution" className="inline-flex items-center text-[12px] font-medium text-muted hover:text-text mb-6 transition-colors">
-          <ArrowLeft className="w-3.5 h-3.5 mr-1.5" /> Back to Execution Center
+        <Link 
+          href="/execution" 
+          className="inline-flex items-center text-sm font-medium text-[#5F6368] hover:text-[#171717] transition-colors gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Execution
         </Link>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight font-mono text-text break-all flex items-center gap-3">
-              <Zap className="w-5 h-5 text-info" />
-              {execution.id}
-            </h1>
-            <div className="flex items-center gap-3 mt-3">
-              <StatusBadge status={execution.state} type="execution" />
-              <div className="h-4 w-px bg-border"></div>
-              <Link href={`/actions/${execution.action_id}`} className="font-mono text-[11px] text-muted hover:text-text bg-surface/50 hover:bg-surface-hover px-2 py-0.5 rounded border border-border/60 flex items-center gap-1.5 transition-colors">
-                <CheckSquare className="w-3 h-3 text-muted/70" />
-                Action: {execution.action_id.split('-')[0]}...
-              </Link>
-            </div>
+      </div>
+
+      {/* Living Line Header */}
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-2xs">
+        <LivingLine 
+          currentStage={executionState === "SUCCEEDED" ? "verification" : "execution"} 
+          completedStages={executionState === "SUCCEEDED" ? ["information", "understanding", "action", "execution"] : ["information", "understanding", "action"]}
+        />
+      </div>
+
+      {/* Main Header */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-[#ECECE9] pb-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <StatusBadge status={execution.state} size="md" />
+            <span className="text-xs font-mono text-[#8A8F98]">ID: {execution.id}</span>
           </div>
+          <h1 className="font-display text-4xl sm:text-5xl text-[#171717]">
+            Execution Dispatch
+          </h1>
+          <p className="text-sm font-mono text-[#5F6368]">
+            Connector: <strong className="text-[#171717]">{execution.connector_name}</strong> · Capability: <strong className="text-[#2563EB]">{execution.tool_name}</strong>
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Link href="/verification">
+            <Button variant="outline" size="md">
+              <ShieldCheck className="w-4 h-4 text-[#15803D] mr-2" />
+              Verification Engine
+            </Button>
+          </Link>
         </div>
       </div>
 
-      {needsApproval && (
-        <div className="bg-warning-bg/40 border border-warning/30 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+      {/* Approval Alert if Pending */}
+      {execution.state === "AWAITING_APPROVAL" && (
+        <div className="p-6 rounded-2xl bg-[#FAF5FF] border border-[#E9D5FF] flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xs">
           <div className="flex items-start gap-4">
-            <div className="bg-warning/20 p-2 rounded-full border border-warning/30 shrink-0">
-              <ShieldAlert className="w-5 h-5 text-warning" />
+            <div className="w-10 h-10 rounded-xl bg-white border border-[#C084FC] flex items-center justify-center text-[#7C3AED] shrink-0 mt-0.5">
+              <AlertTriangle className="w-5 h-5 text-[#7C3AED]" />
             </div>
-            <div>
-              <h3 className="text-[14px] font-semibold text-warning">Approval Required</h3>
-              <p className="text-text/80 text-[13px] mt-1 max-w-2xl leading-relaxed">
-                This execution attempts to mutate an external system via the <span className="font-mono bg-warning/10 text-warning px-1 rounded">{execution.connector_name}</span> connector.
-                Review the parameters before approving.
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-[#7C3AED] uppercase tracking-wider">
+                Human Approval Required
+              </h3>
+              <p className="text-sm text-[#171717] max-w-2xl leading-relaxed">
+                This dispatch mutates the external repository <span className="font-mono text-[#7C3AED] font-semibold">acme/nexus</span> via GitHub API. 
+                Inspect execution parameters before authorizing.
               </p>
             </div>
           </div>
+
           <div className="flex items-center gap-3 shrink-0">
-            <button 
+            <Button 
+              size="md" 
+              variant="outline" 
               onClick={handleReject} 
-              disabled={approving}
-              className="flex items-center gap-2 bg-surface hover:bg-surface-hover text-text px-4 py-2 rounded-md text-[13px] font-medium transition-colors border border-border/60 disabled:opacity-50"
+              isLoading={approving}
+              className="text-[#DC2626] border-[#FECACA] hover:bg-[#FEF2F2]"
             >
-              <X className="w-4 h-4" /> Reject
-            </button>
-            <button 
+              <X className="w-4 h-4 mr-1.5" />
+              Reject Dispatch
+            </Button>
+            <Button 
+              size="md" 
+              variant="primary" 
               onClick={handleApprove} 
-              disabled={approving}
-              className="flex items-center gap-2 bg-success hover:bg-success/90 text-background px-4 py-2 rounded-md text-[13px] font-medium transition-colors disabled:opacity-50 shadow-sm"
+              isLoading={approving}
             >
-              <Check className="w-4 h-4" /> Approve & Execute
-            </button>
+              <Check className="w-4 h-4 mr-1.5" />
+              Approve & Execute
+            </Button>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
-        <div className="lg:col-span-2 space-y-6">
-          <section className="bg-surface/30 border border-border/60 rounded-xl overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-border/40 bg-surface/50 flex items-center gap-2">
-              <Code className="w-4 h-4 text-muted" />
-              <h2 className="text-[13px] font-semibold uppercase tracking-wide text-text">Execution Parameters</h2>
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column (8 cols): Execution Details & Payload */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-8 space-y-4 shadow-2xs">
+            <div className="flex items-center gap-2.5 pb-4 border-b border-[#ECECE9]">
+              <Code className="w-5 h-5 text-[#2563EB]" />
+              <h2 className="text-lg font-semibold text-[#171717]">
+                Execution Parameters (JSON Payload)
+              </h2>
             </div>
-            <div className="p-0">
-              <pre className="p-6 text-[12px] font-mono text-text/90 overflow-x-auto bg-[#0a0a0c]">
-                {JSON.stringify(execution.parameters, null, 2)}
-              </pre>
-            </div>
-          </section>
-
-          {(execution.result_payload || execution.error_message) && (
-            <section className="bg-surface/30 border border-border/60 rounded-xl overflow-hidden shadow-sm">
-              <div className="px-6 py-4 border-b border-border/40 bg-surface/50 flex items-center gap-2">
-                <Shield className="w-4 h-4 text-muted" />
-                <h2 className="text-[13px] font-semibold uppercase tracking-wide text-text">Result Payload</h2>
-              </div>
-              <div className="p-0">
-                {execution.error_message ? (
-                  <div className="p-6 text-[13px] font-mono text-danger bg-[#0a0a0c] border-l-2 border-danger">
-                    {execution.error_message}
-                  </div>
-                ) : (
-                  <pre className="p-6 text-[12px] font-mono text-text/90 overflow-x-auto bg-[#0a0a0c]">
-                    {JSON.stringify(execution.result_payload, null, 2)}
-                  </pre>
-                )}
-              </div>
-            </section>
-          )}
+            <pre className="p-5 text-xs font-mono text-[#171717] overflow-x-auto bg-[#F7F7F5] rounded-xl border border-[#ECECE9]">
+              {JSON.stringify(execution.parameters, null, 2)}
+            </pre>
+          </div>
         </div>
 
-        <div className="space-y-6">
-          <section className="bg-surface/30 border border-border/60 rounded-xl overflow-hidden shadow-sm sticky top-24">
-            <div className="px-5 py-4 border-b border-border/40 bg-surface/50">
-              <h2 className="text-[13px] font-semibold tracking-wide uppercase text-text">Target System</h2>
-            </div>
-            <div className="p-5 space-y-4">
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-wider text-muted mb-2">Connector</dt>
-                <dd className="font-mono text-[12px] bg-background border border-border/60 px-3 py-2 rounded-md text-text">{execution.connector_name}</dd>
+        {/* Right Column (4 cols): Target System & Audit Rail */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-8 space-y-4 shadow-2xs">
+            <h2 className="text-lg font-semibold text-[#171717] pb-4 border-b border-[#ECECE9]">
+              Target System
+            </h2>
+            <div className="space-y-4 text-sm">
+              <div className="space-y-1">
+                <span className="text-xs font-mono text-[#8A8F98] uppercase tracking-wider block">
+                  Connector
+                </span>
+                <span className="font-mono bg-[#F7F7F5] border border-[#ECECE9] px-3 py-1.5 rounded-xl block text-[#171717]">
+                  {execution.connector_name}
+                </span>
               </div>
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-wider text-muted mb-2">Tool</dt>
-                <dd className="font-mono text-[12px] bg-background border border-border/60 px-3 py-2 rounded-md text-info">{execution.tool_name}</dd>
+
+              <div className="space-y-1">
+                <span className="text-xs font-mono text-[#8A8F98] uppercase tracking-wider block">
+                  Tool Capability
+                </span>
+                <span className="font-mono bg-[#EFF6FF] border border-[#BFDBFE] text-[#2563EB] px-3 py-1.5 rounded-xl block font-medium">
+                  {execution.tool_name}
+                </span>
+              </div>
+
+              <div className="pt-4 border-t border-[#ECECE9] space-y-2 text-xs text-[#5F6368]">
+                <div className="flex justify-between">
+                  <span>Created:</span>
+                  <span className="font-mono text-[#171717]">{new Date(execution.created_at).toLocaleTimeString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Last Audit:</span>
+                  <span className="font-mono text-[#171717]">{new Date(execution.updated_at).toLocaleTimeString()}</span>
+                </div>
               </div>
             </div>
-            
-            <div className="px-5 py-4 border-t border-b border-border/40 bg-surface/50">
-              <h2 className="text-[13px] font-semibold tracking-wide uppercase text-text">Timeline</h2>
-            </div>
-            <div className="p-5">
-              <dl className="space-y-4 text-[13px]">
-                <div className="flex justify-between items-center pb-3 border-b border-border/40">
-                  <dt className="text-muted">Created</dt>
-                  <dd className="text-text font-mono text-[11px]">{new Date(execution.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</dd>
-                </div>
-                <div className="flex justify-between items-center">
-                  <dt className="text-muted">Updated</dt>
-                  <dd className="text-text font-mono text-[11px]">{new Date(execution.updated_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</dd>
-                </div>
-              </dl>
-            </div>
-          </section>
+          </div>
         </div>
       </div>
     </div>

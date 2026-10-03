@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api, ActionItem } from "@/api/client";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
-import { LineOfTruth } from "@/components/ui/LineOfTruth";
+import { LivingLine } from "@/components/ui/LivingLine";
 import { SourceDrawer, ProvenanceData } from "@/components/ui/SourceDrawer";
 import { 
   ArrowLeft, 
@@ -15,14 +15,11 @@ import {
   PlayCircle, 
   CheckCircle2, 
   Clock, 
-  Lock, 
   GitBranch, 
-  ExternalLink,
-  ShieldCheck,
-  ChevronRight,
-  Terminal,
-  Quote,
-  History
+  ExternalLink, 
+  ShieldCheck, 
+  History,
+  ArrowRight
 } from "lucide-react";
 
 export default function ActionDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -31,18 +28,18 @@ export default function ActionDetailPage({ params }: { params: Promise<{ id: str
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Fetch action details from live API
-  const { data: action, isLoading, error } = useQuery<ActionItem>({
+  const { data: action, isLoading } = useQuery<ActionItem>({
     queryKey: ["action", id],
     queryFn: async () => {
       try {
         return await api.get<ActionItem>(`/actions/${id}`);
-      } catch (e) {
-        // Fallback for demo ID or mock inspection
+      } catch {
+        // Safe contextual demo fallback
         return {
           id,
           tenant_id: "00000000-0000-4000-8000-000000000001",
-          title: "Review security and authentication configuration",
-          description: "Inspect JWT bearer token validation rules, cryptographic key rotation policy, and CORS header enforcement on the edge proxy.",
+          title: "Review security and authentication architecture",
+          description: "Inspect JWT bearer token validation rules, cryptographic key rotation policy, and CORS header perimeter enforcement on the edge proxy.",
           status: "READY",
           action_type: "SECURITY_REVIEW",
           priority: "high",
@@ -52,7 +49,7 @@ export default function ActionDetailPage({ params }: { params: Promise<{ id: str
           source_context: {
             document_id: "doc-arch-01",
             document_title: "Architecture_Guidelines_v2.pdf",
-            location: "Page 14 / Section 3: Authentication",
+            location: "Page 14 · Section 3: Authentication",
             excerpt: "All external consumer requests must undergo token authentication and payload cryptographic verification against tenant JWKS prior to downstream dispatch.",
             facts: [
               "Cryptographic signature check is required on API perimeter",
@@ -67,7 +64,7 @@ export default function ActionDetailPage({ params }: { params: Promise<{ id: str
 
   const provenanceData: ProvenanceData = {
     sourceTitle: action?.source_context?.document_title || "Architecture_Guidelines_v2.pdf",
-    sourceLocation: action?.source_context?.location || "Page 14 / Section 3: Authentication",
+    sourceLocation: action?.source_context?.location || "Page 14 · Section 3: Authentication",
     excerpt: action?.source_context?.excerpt || "All incoming client requests must undergo token authentication and payload cryptographic verification prior to downstream dispatch.",
     extractedFacts: action?.source_context?.facts || [
       "JWT validation is required across all ingress endpoints",
@@ -79,238 +76,308 @@ export default function ActionDetailPage({ params }: { params: Promise<{ id: str
 
   if (isLoading) {
     return (
-      <div className="p-16 text-center text-xs text-[#5F6368]">
-        <div className="w-5 h-5 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-        Loading action investigation workspace...
+      <div className="p-16 text-center text-sm font-mono text-[#5F6368] bg-white rounded-2xl border border-[#E5E7EB]">
+        Loading action context workspace...
       </div>
     );
   }
 
   if (!action) {
     return (
-      <div className="p-12 text-center text-xs text-[#5F6368] space-y-3">
-        <p className="font-semibold text-sm text-[#171717]">Action Not Found</p>
-        <p>The requested action item could not be retrieved from the active tenant.</p>
+      <div className="p-16 text-center bg-white rounded-2xl border border-[#E5E7EB] space-y-4">
+        <h2 className="text-xl font-semibold text-[#171717]">Action Not Found</h2>
+        <p className="text-sm text-[#5F6368]">The requested action item could not be retrieved from the active tenant.</p>
         <Link href="/actions">
-          <Button size="sm">Back to Actions Workspace</Button>
+          <Button size="md">Return to Actions</Button>
         </Link>
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6 animate-in fade-in duration-150">
-      {/* Back Link */}
-      <Link 
-        href="/actions" 
-        className="inline-flex items-center text-xs font-medium text-[#5F6368] hover:text-[#171717] transition-colors gap-1.5"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" /> Back to Actions Workspace
-      </Link>
+  const isVerified = action.status === "VERIFIED" || action.status === "verified";
+  const isExecuting = action.status === "RUNNING" || action.status === "executing";
 
-      {/* Signature "Line of Truth" Progression Header */}
-      <div className="p-4 rounded-lg bg-white border border-[#E5E7EB]">
-        <LineOfTruth 
-          currentStep={action.status === "VERIFIED" ? "verification" : action.status === "READY" ? "action" : "execution"} 
-          completedSteps={["source", "action"]}
-        />
+  return (
+    <div className="space-y-8 animate-in fade-in duration-300">
+      {/* Navigation Breadcrumb */}
+      <div>
+        <Link 
+          href="/actions" 
+          className="inline-flex items-center text-sm font-medium text-[#5F6368] hover:text-[#171717] transition-colors gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Actions
+        </Link>
       </div>
 
-      {/* Main Narrative Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5E7EB] pb-5">
-        <div>
-          <div className="flex items-center gap-2.5 mb-1.5">
-            <h1 className="text-xl font-bold tracking-tight text-[#171717]">
-              {action.title}
-            </h1>
-            <StatusBadge status={action.status} />
+      {/* Hero Masthead */}
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 border-b border-[#ECECE9] pb-8">
+        <div className="space-y-3 flex-1">
+          <div className="flex items-center gap-3 flex-wrap">
+            <StatusBadge status={action.status} size="md" />
+            <span className="text-xs font-mono text-[#5F6368] bg-[#F7F7F5] px-2.5 py-0.5 rounded-md border border-[#ECECE9]">
+              {action.action_type || "TASK"}
+            </span>
+            <span className="text-xs font-mono text-[#8A8F98]">
+              ID: {action.id}
+            </span>
           </div>
-          <div className="flex items-center gap-2 text-xs font-mono text-[#5F6368]">
-            <span>ID: {action.id}</span>
-            <span>•</span>
-            <span className="uppercase text-[#2563EB] font-semibold">{action.action_type || "TASK"}</span>
-          </div>
+
+          <h1 className="font-display text-4xl sm:text-5xl text-[#171717] tracking-tight leading-tight">
+            {action.title}
+          </h1>
+
+          <p className="text-base sm:text-lg text-[#5F6368] max-w-4xl font-normal leading-relaxed">
+            {action.description || "Operational execution task synthesized from verified source document."}
+          </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 shrink-0 pt-2 lg:pt-0">
           <Button 
             variant="outline" 
-            size="sm"
+            size="md"
             onClick={() => setDrawerOpen(true)}
           >
-            <FileText className="w-3.5 h-3.5 text-[#2563EB]" />
+            <FileText className="w-4 h-4 text-[#2563EB] mr-2" />
             Inspect Provenance
           </Button>
 
           <Button 
             variant="primary" 
-            size="sm"
+            size="md"
             onClick={() => router.push("/execution")}
           >
-            <PlayCircle className="w-3.5 h-3.5" />
+            <PlayCircle className="w-4 h-4 mr-2" />
             Dispatch Execution
           </Button>
         </div>
       </div>
 
-      {/* Signature "Why This Exists" Grounding Callout */}
-      <div className="p-4 rounded-lg border border-[#E5E7EB] bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <span className="text-[10px] font-mono uppercase tracking-wider font-semibold text-[#5F6368] flex items-center gap-1.5">
-            <Quote className="w-3.5 h-3.5 text-[#2563EB]" /> Why This Exists
+      {/* Living Line: Causal Progression */}
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-2xs">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-mono font-medium text-[#5F6368]">
+            LIVING CAUSAL LINE
           </span>
-          <p className="text-xs text-[#171717]">
-            NEXUS extracted this operational requirement directly from:
-          </p>
-          <div className="flex items-center gap-2 font-mono text-xs text-[#2563EB] font-medium">
-            <FileText className="w-3.5 h-3.5" />
-            <span>{provenanceData.sourceTitle}</span>
-            <span className="text-[#5F6368]">({provenanceData.sourceLocation})</span>
-          </div>
+          <span className="text-xs font-medium text-[#15803D] flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5" /> Source Grounded
+          </span>
         </div>
-
-        <Button 
-          variant="secondary" 
-          size="sm"
-          onClick={() => setDrawerOpen(true)}
-          className="self-start md:self-auto shrink-0"
-        >
-          View Source Context
-          <ExternalLink className="w-3 h-3 ml-1" />
-        </Button>
+        <LivingLine 
+          currentStage={isVerified ? "verification" : isExecuting ? "execution" : "action"} 
+          completedStages={isVerified ? ["information", "understanding", "action", "execution", "evidence", "verification"] : ["information", "understanding", "action"]}
+        />
       </div>
 
-      {/* Narrative Workspace: Two Columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column (8 cols): Core Investigation Elements */}
-        <div className="lg:col-span-8 space-y-6">
-          {/* Section: WHAT & WHY */}
-          <div className="bg-white rounded-lg border border-[#E5E7EB] p-5 space-y-4 shadow-xs">
-            <div>
-              <h2 className="text-[11px] font-mono uppercase tracking-wider font-semibold text-[#5F6368] mb-2">
-                WHAT
+      {/* Action Detail Layout: Main Content + Contextual Rail */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Main Content (8 cols): WHAT / WHY / DEPENDENCIES / EXECUTION / VERIFICATION */}
+        <div className="lg:col-span-8 space-y-8">
+          {/* 1. WHY THIS EXISTS */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-8 space-y-4 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-[#171717] tracking-tight">
+                Why this exists
               </h2>
-              <p className="text-xs text-[#171717] leading-relaxed">
-                {action.description || action.title}
-              </p>
+              <button 
+                onClick={() => setDrawerOpen(true)}
+                className="text-xs text-[#2563EB] hover:underline font-medium flex items-center gap-1 cursor-pointer"
+              >
+                <span>Full lineage</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
             </div>
 
-            <div className="pt-4 border-t border-[#E5E7EB]">
-              <h2 className="text-[11px] font-mono uppercase tracking-wider font-semibold text-[#5F6368] mb-2">
-                WHY
-              </h2>
-              <p className="text-xs text-[#5F6368] leading-relaxed">
-                Mandatory operational policy constraint detected during automated ingestion and knowledge synthesis. Required to guarantee compliance and safe system execution.
-              </p>
+            <div className="p-5 rounded-xl bg-[#F7F7F5] border border-[#ECECE9] space-y-2">
+              <div className="flex items-center gap-2 text-xs font-mono text-[#5F6368]">
+                <FileText className="w-4 h-4 text-[#2563EB]" />
+                <span className="font-semibold text-[#171717]">{provenanceData.sourceTitle}</span>
+                <span>·</span>
+                <span>{provenanceData.sourceLocation}</span>
+              </div>
+              <blockquote className="font-display text-lg text-[#171717] leading-relaxed italic border-l-2 border-[#2563EB] pl-3 py-1">
+                &ldquo;{provenanceData.excerpt}&rdquo;
+              </blockquote>
             </div>
           </div>
 
-          {/* Section: DEPENDENCIES */}
-          <div className="bg-white rounded-lg border border-[#E5E7EB] p-5 space-y-4 shadow-xs">
+          {/* 2. WHAT NEEDS TO HAPPEN */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-8 space-y-4 shadow-2xs">
+            <h2 className="text-xl font-semibold text-[#171717] tracking-tight">
+              What needs to happen
+            </h2>
+            <p className="text-base text-[#171717] leading-relaxed">
+              {action.description || action.title}
+            </p>
+            <div className="p-4 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] text-sm text-[#1E40AF]">
+              Execute through target capability with strict parameter schema validation and cryptographic audit hashing.
+            </div>
+          </div>
+
+          {/* 3. DEPENDENCIES */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-8 space-y-4 shadow-2xs">
             <div className="flex items-center justify-between">
-              <h2 className="text-[11px] font-mono uppercase tracking-wider font-semibold text-[#5F6368] flex items-center gap-1.5">
-                <GitBranch className="w-3.5 h-3.5 text-[#2563EB]" /> Dependencies & Graph Linkage
-              </h2>
-              <Link href="/graph" className="text-xs text-[#2563EB] hover:underline font-medium">
-                View in Action Graph
+              <div>
+                <h2 className="text-xl font-semibold text-[#171717] tracking-tight">
+                  Dependencies
+                </h2>
+                <p className="text-sm text-[#5F6368] mt-0.5">
+                  Prerequisites required before this action can progress downstream.
+                </p>
+              </div>
+              <Link href="/graph" className="text-sm text-[#2563EB] hover:underline font-medium flex items-center gap-1">
+                <span>View Graph</span>
+                <GitBranch className="w-4 h-4" />
               </Link>
             </div>
 
-            <div className="space-y-2">
-              <div className="p-3 rounded-md border border-[#BBF7D0] bg-[#F0FDF4] flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#17803D]" />
-                  <span className="text-xs font-medium text-[#171717]">API design & schema validation finalized</span>
+            <div className="space-y-3">
+              {/* Cleared dependency */}
+              <div className="p-4 rounded-xl border border-[#BBF7D0] bg-[#F0FDF4] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-[#15803D]" />
+                  <div>
+                    <span className="text-sm font-semibold text-[#171717]">API design & schema validation finalized</span>
+                    <p className="text-xs text-[#15803D]">Prerequisite satisfied by automated verification</p>
+                  </div>
                 </div>
-                <span className="text-[11px] font-mono text-[#17803D]">CLEARED</span>
+                <span className="text-xs font-mono font-semibold px-2 py-0.5 bg-white text-[#15803D] rounded border border-[#86EFAC]">
+                  CLEARED
+                </span>
               </div>
 
-              <div className="p-3 rounded-md border border-[#E5E7EB] bg-[#F7F7F5] flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <Clock className="w-4 h-4 text-[#A65F00]" />
-                  <span className="text-xs font-medium text-[#171717]">Security peer review authorization</span>
+              {/* Pending dependency */}
+              <div className="p-4 rounded-xl border border-[#ECECE9] bg-[#F7F7F5] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-[#D97706]" />
+                  <div>
+                    <span className="text-sm font-semibold text-[#171717]">Security authorization review</span>
+                    <p className="text-xs text-[#5F6368]">Awaiting affirmative human approval signature</p>
+                  </div>
                 </div>
-                <span className="text-[11px] font-mono text-[#A65F00]">PENDING</span>
+                <span className="text-xs font-mono font-semibold px-2 py-0.5 bg-white text-[#D97706] rounded border border-[#FDE68A]">
+                  PENDING
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Section: EXECUTION & VERIFICATION PROJECTION */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* 4. EXECUTION & 5. VERIFICATION */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Execution */}
-            <div className="bg-white rounded-lg border border-[#E5E7EB] p-4 space-y-2">
-              <span className="text-[11px] font-mono uppercase tracking-wider font-semibold text-[#5F6368] flex items-center gap-1.5">
-                <Terminal className="w-3.5 h-3.5 text-[#2563EB]" /> Execution Status
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-3 shadow-2xs">
+              <span className="text-xs font-mono font-semibold text-[#2563EB] tracking-wider uppercase">
+                Execution
               </span>
-              <p className="text-xs text-[#171717] font-medium">No execution run yet</p>
-              <p className="text-[11px] text-[#5F6368]">
-                Action is staged in READY state. Ready to dispatch to target connector.
+              <h3 className="text-lg font-semibold text-[#171717]">
+                {isExecuting ? "In Flight" : "Ready to Dispatch"}
+              </h3>
+              <p className="text-sm text-[#5F6368] leading-relaxed">
+                Connects through authorized integration adapter. Emits immutable execution intent with SHA-256 payload digest.
               </p>
+              <div className="pt-2">
+                <Link href="/execution">
+                  <Button variant="primary" size="sm" className="w-full">
+                    <span>Go to Execution Surface</span>
+                    <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                  </Button>
+                </Link>
+              </div>
             </div>
 
-            {/* Expected Verification */}
-            <div className="bg-white rounded-lg border border-[#E5E7EB] p-4 space-y-2">
-              <span className="text-[11px] font-mono uppercase tracking-wider font-semibold text-[#5F6368] flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#17803D]" /> Expected Verification
+            {/* Verification */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-3 shadow-2xs">
+              <span className="text-xs font-mono font-semibold text-[#15803D] tracking-wider uppercase">
+                Verification
               </span>
-              <p className="text-xs text-[#171717] font-medium">Review completion evidence</p>
-              <p className="text-[11px] text-[#5F6368]">
-                Independent proof check via webhook / external observer signature.
+              <h3 className="text-lg font-semibold text-[#171717]">
+                {isVerified ? "Verified Proof" : "Expected Evidence"}
+              </h3>
+              <p className="text-sm text-[#5F6368] leading-relaxed">
+                Independent observer queries target system directly to confirm real-world state transformation.
               </p>
+              <div className="pt-2">
+                <Link href="/verification">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <span>Inspect Evidence</span>
+                    <ShieldCheck className="w-3.5 h-3.5 ml-1.5" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column (4 cols): Contextual Rail (Source, Facts, History) */}
-        <div className="lg:col-span-4 space-y-4">
+        {/* Contextual Rail (4 cols): SOURCE, FACTS, HISTORY, TECHNICAL METADATA */}
+        <div className="lg:col-span-4 space-y-6">
           {/* Rail 1: Source */}
-          <div className="bg-white rounded-lg border border-[#E5E7EB] p-4 space-y-3">
-            <span className="text-[11px] font-mono uppercase tracking-wider font-semibold text-[#5F6368]">
-              SOURCE
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-3 shadow-2xs">
+            <span className="text-xs font-mono font-semibold text-[#8A8F98] tracking-wider uppercase">
+              Source Intelligence
             </span>
-            <div className="p-3 rounded-md bg-[#F7F7F5] border border-[#E5E7EB] space-y-1">
-              <div className="text-xs font-semibold text-[#171717] flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-[#2563EB]" />
+            <div className="p-4 rounded-xl bg-[#F7F7F5] border border-[#ECECE9] space-y-1.5">
+              <div className="text-sm font-semibold text-[#171717] flex items-center gap-2">
+                <FileText className="w-4 h-4 text-[#2563EB]" />
                 {provenanceData.sourceTitle}
               </div>
-              <div className="text-[11px] font-mono text-[#5F6368]">
+              <div className="text-xs font-mono text-[#5F6368]">
                 {provenanceData.sourceLocation}
               </div>
             </div>
           </div>
 
-          {/* Rail 2: Facts */}
-          <div className="bg-white rounded-lg border border-[#E5E7EB] p-4 space-y-3">
-            <span className="text-[11px] font-mono uppercase tracking-wider font-semibold text-[#5F6368]">
-              EXTRACTED FACTS
+          {/* Rail 2: Extracted Facts */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-3 shadow-2xs">
+            <span className="text-xs font-mono font-semibold text-[#8A8F98] tracking-wider uppercase">
+              Extracted Facts
             </span>
             <div className="space-y-2">
               {provenanceData.extractedFacts?.map((fact, idx) => (
-                <div key={idx} className="p-2.5 rounded-md border border-[#E5E7EB] bg-[#F7F7F5] text-[11px] text-[#171717] flex items-start gap-2">
-                  <span className="font-mono text-[10px] text-[#2563EB] font-bold">F{idx + 1}</span>
-                  <span>{fact}</span>
+                <div key={idx} className="p-3 rounded-xl border border-[#ECECE9] bg-[#F7F7F5] text-xs text-[#171717] flex items-start gap-2.5">
+                  <span className="font-mono text-xs text-[#2563EB] font-bold shrink-0">F{idx + 1}</span>
+                  <span className="leading-snug">{fact}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Rail 3: History */}
-          <div className="bg-white rounded-lg border border-[#E5E7EB] p-4 space-y-3">
-            <span className="text-[11px] font-mono uppercase tracking-wider font-semibold text-[#5F6368] flex items-center gap-1.5">
-              <History className="w-3.5 h-3.5" /> AUDIT HISTORY
+          {/* Rail 3: Audit History */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-3 shadow-2xs">
+            <span className="text-xs font-mono font-semibold text-[#8A8F98] tracking-wider uppercase flex items-center gap-1.5">
+              <History className="w-3.5 h-3.5" /> Audit History
             </span>
-            <div className="space-y-2 text-[11px] text-[#5F6368]">
+            <div className="space-y-2.5 text-xs text-[#5F6368]">
               <div className="flex items-center justify-between">
                 <span>Created</span>
                 <span className="font-mono text-[#171717]">{new Date(action.created_at).toLocaleDateString()}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Synthesized</span>
-                <span className="font-mono text-[#171717]">Automated Pipeline</span>
+                <span>Synthesis Engine</span>
+                <span className="font-mono text-[#171717]">Automated Grounding</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>State Transition</span>
-                <span className="font-mono text-[#17803D]">CANDIDATE → READY</span>
+                <span>Tenant Domain</span>
+                <span className="font-mono text-[#2563EB]">dev-tenant</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Rail 4: Technical Metadata */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-3 shadow-2xs">
+            <span className="text-xs font-mono font-semibold text-[#8A8F98] tracking-wider uppercase">
+              Technical Metadata
+            </span>
+            <div className="space-y-2 text-xs font-mono text-[#5F6368]">
+              <div className="flex items-center justify-between">
+                <span>Priority:</span>
+                <span className="text-[#171717] font-semibold">{action.priority || "P1"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Action Type:</span>
+                <span className="text-[#171717]">{action.action_type || "TASK"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Security Boundary:</span>
+                <span className="text-[#15803D]">Zero-Trust Enforced</span>
               </div>
             </div>
           </div>

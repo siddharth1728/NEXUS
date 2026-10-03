@@ -13,14 +13,14 @@ import {
   Link2, 
   GitBranch, 
   Settings, 
-  Layers
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
   name: string;
   href: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   action?: () => void;
   badge?: string;
 }
@@ -30,7 +30,15 @@ interface NavSection {
   items: NavItem[];
 }
 
-export function Sidebar({ onOpenSearch }: { onOpenSearch?: () => void }) {
+export function Sidebar({ 
+  onOpenSearch, 
+  isMobile = false, 
+  onClose 
+}: { 
+  onOpenSearch?: () => void;
+  isMobile?: boolean;
+  onClose?: () => void;
+}) {
   const pathname = usePathname();
 
   const sections: NavSection[] = [
@@ -40,7 +48,7 @@ export function Sidebar({ onOpenSearch }: { onOpenSearch?: () => void }) {
       ],
     },
     {
-      title: "WORK",
+      title: "Work",
       items: [
         { name: "Actions", href: "/actions", icon: CheckSquare },
         { name: "Execution", href: "/execution", icon: PlayCircle },
@@ -48,32 +56,30 @@ export function Sidebar({ onOpenSearch }: { onOpenSearch?: () => void }) {
       ],
     },
     {
-      title: "KNOWLEDGE",
+      title: "Knowledge",
       items: [
         { name: "Documents", href: "/documents", icon: FileText },
         { 
           name: "Search", 
           href: "#", 
           icon: Search, 
-          action: onOpenSearch,
+          action: () => {
+            if (onOpenSearch) onOpenSearch();
+            if (onClose) onClose();
+          },
           badge: "⌘K"
         },
       ],
     },
     {
-      title: "SYSTEMS",
+      title: "Systems",
       items: [
         { name: "Connections", href: "/connections", icon: Link2 },
-      ],
-    },
-    {
-      title: "EXPLORE",
-      items: [
         { name: "Action Graph", href: "/graph", icon: GitBranch },
       ],
     },
     {
-      title: "SYSTEM",
+      title: "Preferences",
       items: [
         { name: "Settings", href: "/settings", icon: Settings },
       ],
@@ -81,29 +87,53 @@ export function Sidebar({ onOpenSearch }: { onOpenSearch?: () => void }) {
   ];
 
   return (
-    <aside className="w-60 flex-shrink-0 bg-[#FFFFFF] border-r border-[#E5E7EB] flex flex-col justify-between select-none">
+    <aside className={cn(
+      "w-64 flex-shrink-0 bg-white border-r border-[#E5E7EB] flex flex-col justify-between select-none h-full",
+      isMobile && "border-r-0"
+    )}>
       {/* Brand Header */}
-      <div className="h-13 px-4 border-b border-[#E5E7EB] flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-6 h-6 rounded-[5px] bg-[#171717] flex items-center justify-center text-white font-mono text-[11px] font-bold">
+      <div className="h-16 px-5 border-b border-[#ECECE9] flex items-center justify-between">
+        <Link 
+          href="/" 
+          onClick={onClose}
+          className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] rounded-md"
+        >
+          <div className="w-8 h-8 rounded-lg bg-[#171717] flex items-center justify-center text-white font-mono text-sm font-bold shadow-xs">
             N
           </div>
           <div className="flex flex-col">
-            <span className="font-semibold text-xs tracking-wider text-[#171717]">NEXUS</span>
-            <span className="text-[10px] text-[#5F6368] font-mono leading-none">ENGINE v1.0</span>
+            <span className="font-display text-xl text-[#171717] leading-none tracking-tight">
+              NEXUS
+            </span>
+            <span className="text-[11px] font-mono text-[#5F6368] mt-0.5 tracking-wider">
+              LIVING CANVAS
+            </span>
           </div>
         </Link>
-        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-[#F0FDF4] text-[#17803D] border border-[#BBF7D0]">
-          LIVE
-        </span>
+        
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#F0FDF4] border border-[#BBF7D0] text-[11px] font-mono font-medium text-[#15803D]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#15803D] animate-pulse" />
+            <span>Ready</span>
+          </div>
+          {isMobile && (
+            <button 
+              onClick={onClose}
+              className="p-1 rounded-md text-[#5F6368] hover:text-[#171717] hover:bg-[#F2F2F0]"
+              aria-label="Close navigation"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Navigation Links */}
-      <div className="flex-1 overflow-y-auto py-3 px-2 space-y-5">
+      {/* Navigation Sections */}
+      <div className="flex-1 overflow-y-auto py-5 px-3 space-y-6">
         {sections.map((section, idx) => (
-          <div key={idx} className="space-y-0.5">
+          <div key={idx} className="space-y-1">
             {section.title && (
-              <div className="px-2.5 pb-1.5 text-[10px] font-mono font-semibold tracking-wider text-[#5F6368]">
+              <div className="px-3 pb-1 text-xs font-mono font-semibold tracking-wider text-[#8A8F98]">
                 {section.title}
               </div>
             )}
@@ -116,14 +146,14 @@ export function Sidebar({ onOpenSearch }: { onOpenSearch?: () => void }) {
                   <button
                     key={item.name}
                     onClick={item.action}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-[5px] text-xs font-medium text-[#5F6368] hover:text-[#171717] hover:bg-[#F2F2F0] transition-colors text-left"
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-[#5F6368] hover:text-[#171717] hover:bg-[#F7F7F5] transition-all text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <Icon className="w-3.5 h-3.5 shrink-0 text-[#5F6368]" />
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-4 h-4 shrink-0 text-[#8A8F98]" />
                       <span>{item.name}</span>
                     </div>
                     {item.badge && (
-                      <kbd className="font-mono text-[10px] text-[#5F6368] bg-[#F2F2F0] border border-[#E5E7EB] px-1 py-0.2 rounded">
+                      <kbd className="font-mono text-xs text-[#5F6368] bg-[#F7F7F5] border border-[#E5E7EB] px-1.5 py-0.5 rounded">
                         {item.badge}
                       </kbd>
                     )}
@@ -135,19 +165,20 @@ export function Sidebar({ onOpenSearch }: { onOpenSearch?: () => void }) {
                 <Link
                   key={item.name}
                   href={item.href}
+                  onClick={onClose}
                   className={cn(
-                    "flex items-center justify-between px-2.5 py-1.5 rounded-[5px] text-xs font-medium transition-colors",
+                    "flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]",
                     isActive
-                      ? "bg-[#EFF6FF] text-[#2563EB] font-semibold"
-                      : "text-[#5F6368] hover:text-[#171717] hover:bg-[#F2F2F0]"
+                      ? "bg-[#EFF6FF] text-[#2563EB] font-semibold shadow-xs"
+                      : "text-[#5F6368] hover:text-[#171717] hover:bg-[#F7F7F5]"
                   )}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className={cn("w-3.5 h-3.5 shrink-0", isActive ? "text-[#2563EB]" : "text-[#5F6368]")} />
+                  <div className="flex items-center gap-3">
+                    <Icon className={cn("w-4 h-4 shrink-0", isActive ? "text-[#2563EB]" : "text-[#8A8F98]")} />
                     <span>{item.name}</span>
                   </div>
                   {item.badge && (
-                    <span className="text-[10px] font-mono px-1 py-0.2 rounded bg-[#E5E7EB] text-[#5F6368]">
+                    <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-[#ECECE9] text-[#5F6368]">
                       {item.badge}
                     </span>
                   )}
@@ -158,20 +189,25 @@ export function Sidebar({ onOpenSearch }: { onOpenSearch?: () => void }) {
         ))}
       </div>
 
-      {/* Tenant / User Footer */}
-      <div className="p-3 border-t border-[#E5E7EB] bg-[#F7F7F5]">
+      {/* Tenant / Context Workspace Footer */}
+      <div className="p-4 border-t border-[#ECECE9] bg-[#F7F7F5]">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-white border border-[#E5E7EB] flex items-center justify-center text-[10px] font-bold text-[#171717]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-full bg-white border border-[#E5E7EB] flex items-center justify-center text-xs font-bold text-[#171717] shadow-xs">
               DT
             </div>
             <div className="flex flex-col">
-              <span className="text-xs font-medium text-[#171717] leading-none">dev-tenant</span>
-              <span className="text-[10px] text-[#5F6368] leading-tight">Zero-Trust Active</span>
+              <span className="text-xs font-semibold text-[#171717] leading-none">dev-tenant</span>
+              <span className="text-[11px] text-[#5F6368] leading-tight font-mono mt-0.5">Zero-Trust Active</span>
             </div>
           </div>
-          <Link href="/settings" className="p-1 rounded text-[#5F6368] hover:text-[#171717] hover:bg-[#E5E7EB]">
-            <Settings className="w-3.5 h-3.5" />
+          <Link 
+            href="/settings" 
+            onClick={onClose}
+            className="p-1.5 rounded-md text-[#5F6368] hover:text-[#171717] hover:bg-white border border-transparent hover:border-[#E5E7EB] transition-all"
+            aria-label="Settings"
+          >
+            <Settings className="w-4 h-4" />
           </Link>
         </div>
       </div>

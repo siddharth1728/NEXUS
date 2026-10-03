@@ -1,10 +1,16 @@
 @import "tailwindcss";
 
 @theme {
+  --font-display: var(--font-display), "Instrument Serif", Georgia, Cambria, serif;
+  --font-sans: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
   --color-bg: var(--background);
   --color-surface: var(--surface);
   --color-surface-hover: var(--surface-hover);
   --color-surface-active: var(--surface-active);
+  --color-surface-soft: var(--surface-soft);
+  
   --color-border: var(--border);
   --color-border-subtle: var(--border-subtle);
   --color-border-strong: var(--border-strong);
@@ -28,36 +34,35 @@
   
   --color-review: var(--review);
   --color-review-subtle: var(--review-subtle);
-
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 :root {
-  /* Warm editorial light workspace palette */
+  /* NEXUS Living Canvas - Warm Editorial Light Palette */
   --background: #F7F7F5;
   --surface: #FFFFFF;
-  --surface-hover: #F2F2F0;
-  --surface-active: #EBEBE8;
+  --surface-soft: #F2F2F0;
+  --surface-hover: #EFEFEA;
+  --surface-active: #E6E6E1;
   
   --border: #E5E7EB;
-  --border-subtle: #F0F0EE;
+  --border-subtle: #ECECE9;
   --border-strong: #D1D5DB;
   
   --text-primary: #171717;
   --text-secondary: #5F6368;
-  --text-tertiary: #9CA3AF;
+  --text-tertiary: #8A8F98;
   
   --accent: #2563EB;
   --accent-hover: #1D4ED8;
   --accent-subtle: #EFF6FF;
   
-  --success: #17803D;
+  --success: #15803D;
   --success-subtle: #F0FDF4;
   
-  --warning: #A65F00;
+  --warning: #D97706;
   --warning-subtle: #FFFBEB;
   
-  --danger: #C62828;
+  --danger: #DC2626;
   --danger-subtle: #FEF2F2;
   
   --review: #7C3AED;
@@ -67,16 +72,31 @@
 body {
   background-color: var(--background);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Editorial Typography utilities */
+.font-display {
+  font-family: var(--font-display), "Instrument Serif", Georgia, serif;
+}
+
+.font-sans {
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-mono), "IBM Plex Mono", ui-monospace, Menlo, monospace;
 }
 
 * {
   border-color: var(--border);
 }
 
-/* Custom scrollbar for dense data panels */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -88,23 +108,55 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: #D1D5DB;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF;
 }
 
-/* Line of Truth subtle visual cue */
-.line-of-truth {
-  position: relative;
+/* The Living Line: SVG Motion & Pulse */
+@keyframes flowPulse {
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
 }
-.line-of-truth::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 15px;
-  width: 2px;
-  background-color: var(--border);
+
+.living-line-flow {
+  stroke-dasharray: 6 6;
+  animation: flowPulse 1.8s linear infinite;
 }
+
+@keyframes lineDraw {
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.living-line-draw {
+  stroke-dasharray: 1000;
+  animation: lineDraw 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Ambient glow for live status points */
+@keyframes subtlePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.6;
+  }
+}
+
+.subtle-pulse {
+  animation: subtlePulse 2.4s ease-in-out infinite;
+}
+
