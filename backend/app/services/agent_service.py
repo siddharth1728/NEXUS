@@ -7,7 +7,7 @@ from app.core.execution.agent_registry import AgentRegistry
 from app.core.execution.policy import PolicyEngine
 from app.core.execution.tool_registry import ToolRegistry
 from app.core.logging import get_logger
-from app.models.enums import Capability, PolicyDecision
+from app.models.enums import PolicyDecision
 from app.schemas.agent import Agent
 
 logger = get_logger(__name__)
@@ -34,11 +34,11 @@ class AgentService:
 
         # 1. Scope Verification
         logger.info(f"Delegating task to agent {agent.name} for tenant {tenant_id}")
-        
+
         # 2. Agent tries to resolve intent to a tool
         # In a real system, the agent uses LLM to map task -> tool. We mock this:
         requested_tool = self._mock_llm_tool_selection(agent, task)
-        
+
         if not requested_tool:
             return {"status": "FAILED", "reason": "No suitable tool found by agent"}
 
@@ -57,7 +57,7 @@ class AgentService:
             parameters={},
         )
         decision = self.policy_engine.evaluate(exec_req)
-        
+
         if decision == PolicyDecision.DENY:
             return {"status": "BLOCKED", "reason": "POLICY_DENIED"}
         elif decision == PolicyDecision.REQUIRE_APPROVAL:

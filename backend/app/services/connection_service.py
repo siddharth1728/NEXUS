@@ -40,7 +40,7 @@ class ConnectionService:
         self, tenant_id: str, provider: str, status: ConnectionStatus, metadata: dict[str, Any], user_id: str | None = None
     ) -> ConnectionSchema:
         """Create or update a connection record.
-        
+
         Credentials must NEVER be passed in the metadata field.
         """
         stmt = select(Connection).where(

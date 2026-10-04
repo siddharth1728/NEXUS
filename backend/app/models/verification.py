@@ -3,15 +3,15 @@
 import uuid
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import JSON, ForeignKey, String, Enum
+from sqlalchemy import JSON, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
     from app.models.action import Action
-    from app.models.tenant import Tenant
     from app.models.execution import ExecutionRecord
+    from app.models.tenant import Tenant
 
 
 class EvidenceRequirement(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -28,10 +28,10 @@ class EvidenceRequirement(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # What tool/connector to use for verification
     tool_id: Mapped[str] = mapped_column(String(128), nullable=False)
-    
+
     # Parameters to pass to the tool
     parameters: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
-    
+
     # Expected result assertions (e.g. {"state": "open"})
     expected_state: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 
@@ -60,7 +60,7 @@ class Evidence(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # The actual payload from the external system
     payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
-    
+
     # Provenance metadata (e.g. request ID, timestamp from provider)
     provenance: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 

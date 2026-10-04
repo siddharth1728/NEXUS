@@ -19,10 +19,10 @@ class WorkflowEngine:
         """Evaluate if an action should be unblocked based on its dependencies."""
         action_uuid = uuid.UUID(action_id)
         tenant_uuid = uuid.UUID(tenant_id)
-        
+
         # Get edges where this action is the source (it depends on target)
         dependencies, _ = await self.action_service.get_dependencies(action_uuid, tenant_uuid, limit=100)
-        
+
         all_resolved = True
         for edge in dependencies:
             target = await self.action_service.get_action(edge.target_id, tenant_uuid)
@@ -30,7 +30,7 @@ class WorkflowEngine:
             if target.status not in (ActionStatus.VERIFIED, ActionStatus.COMPLETED):
                 all_resolved = False
                 break
-        
+
         # Unblock if currently blocked and dependencies resolved
         action = await self.action_service.get_action(action_uuid, tenant_uuid)
         if all_resolved and action.status == ActionStatus.BLOCKED:
@@ -42,13 +42,13 @@ class WorkflowEngine:
         """Process a verification result and update action status accordingly."""
         action_uuid = uuid.UUID(action_id)
         tenant_uuid = uuid.UUID(tenant_id)
-        
-        action = await self.action_service.get_action(action_uuid, tenant_uuid)
-        
+
+        await self.action_service.get_action(action_uuid, tenant_uuid)
+
         if is_verified:
             # If verification passes, we go to VERIFIED
             await self.action_service.transition_state(action_uuid, tenant_uuid, ActionStatus.VERIFIED)
-            
+
             # Since this action is VERIFIED, we must evaluate actions that depend on it
             dependents, _ = await self.action_service.get_dependents(action_uuid, tenant_uuid, limit=100)
             for edge in dependents:

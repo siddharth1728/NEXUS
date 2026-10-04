@@ -1,5 +1,6 @@
 """AI Extraction Service for NEXUS Phase 01F."""
 
+import contextlib
 import json
 import uuid
 from pathlib import Path
@@ -97,10 +98,8 @@ class ExtractionService:
         )
         entities = []
         for re in raw_entities:
-            try:
+            with contextlib.suppress(ValidationError):
                 entities.append(EntityOutput(**re))
-            except ValidationError:
-                pass
 
         # 3. Temporal Extraction
         raw_temporal = await self._execute_extraction_stage(
@@ -108,10 +107,8 @@ class ExtractionService:
         )
         temporal_items = []
         for rt in raw_temporal:
-            try:
+            with contextlib.suppress(ValidationError):
                 temporal_items.append(TemporalOutput(**rt))
-            except ValidationError:
-                pass
 
         # 4. Requirement Extraction
         raw_reqs = await self._execute_extraction_stage(
@@ -119,10 +116,8 @@ class ExtractionService:
         )
         requirements = []
         for rr in raw_reqs:
-            try:
+            with contextlib.suppress(ValidationError):
                 requirements.append(RequirementOutput(**rr))
-            except ValidationError:
-                pass
 
         # 5. Candidate Action Extraction
         raw_actions = await self._execute_extraction_stage(
@@ -130,10 +125,8 @@ class ExtractionService:
         )
         actions = []
         for ra in raw_actions:
-            try:
+            with contextlib.suppress(ValidationError):
                 actions.append(CandidateActionOutput(**ra))
-            except ValidationError:
-                pass
 
         return ChunkExtractionOutput(
             facts=facts,

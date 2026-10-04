@@ -15,7 +15,7 @@ from app.models.enums import (
     PolicyDecision,
     RiskTier,
 )
-from app.schemas.action import ActionResponse, ActionUpdate
+from app.schemas.action import ActionResponse
 from app.schemas.execution import ExecutionRequestCreate
 from app.services.action_service import ActionService
 from app.services.execution_service import ExecutionService
@@ -49,7 +49,7 @@ class AutonomousLoopService:
         max_iterations: int = 5,
     ) -> dict[str, Any]:
         """Run the autonomous loop up to max_iterations.
-        
+
         Returns a summary of actions taken and the stop reason.
         """
         iteration = 0
@@ -79,7 +79,7 @@ class AutonomousLoopService:
             tool_id = self._get_tool_id_for_capability(capability)
             parameters = self._build_parameters_for_tool(tool_id, action)
             risk_tier = self._determine_risk_tier(capability.value)
-            
+
             # Policy enforcement
             policy_decision = self._evaluate_policy(mode, risk_tier)
             if policy_decision == PolicyDecision.DENY:
@@ -115,7 +115,7 @@ class AutonomousLoopService:
                 tenant_id=tenant_id,
                 new_status=ActionStatus.IN_PROGRESS
             )
-            
+
             exec_result = await self.execution_service.execute(
                 tenant_id=str(tenant_id),
                 execution_id=str(exec_req.id)
@@ -166,7 +166,7 @@ class AutonomousLoopService:
             )
             actions_taken.append({"action_id": action.id, "status": "COMPLETED"})
 
-            
+
             # Workflow service internally updates downstream blocked actions when an action completes
             # The next iteration will pick up newly eligible actions
 
@@ -219,7 +219,7 @@ class AutonomousLoopService:
     def _determine_risk_tier(self, capability: str | None) -> RiskTier:
         if not capability:
             return RiskTier.READ_ONLY
-            
+
         cap_str = capability.upper()
         if "READ" in cap_str or "SIMULATE" in cap_str:
             return RiskTier.READ_ONLY
@@ -232,12 +232,12 @@ class AutonomousLoopService:
     def _evaluate_policy(self, mode: AutonomyMode, risk: RiskTier) -> PolicyDecision:
         if mode in (AutonomyMode.MANUAL, AutonomyMode.ASSISTED, AutonomyMode.APPROVAL_REQUIRED):
             return PolicyDecision.REQUIRE_APPROVAL
-            
+
         if mode == AutonomyMode.AUTONOMOUS_WITHIN_POLICY:
             if risk in (RiskTier.READ_ONLY, RiskTier.LOW_RISK_MUTATION):
                 return PolicyDecision.ALLOW
             else:
                 # High risk or sensitive always requires approval, even in autonomous mode
                 return PolicyDecision.REQUIRE_APPROVAL
-                
+
         return PolicyDecision.REQUIRE_APPROVAL

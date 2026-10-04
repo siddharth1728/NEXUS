@@ -13,7 +13,7 @@ from app.core.document.simple_parser import SimpleTextParser
 async def test_simple_text_parser_structural_chunking(tmp_path: Path) -> None:
     # 1. Create a sample markdown file
     md_content = """# Title
-    
+
 This is a paragraph.
 
 - Item 1

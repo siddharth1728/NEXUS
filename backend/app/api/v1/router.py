@@ -4,13 +4,13 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     actions,
+    autonomous,
     connectors,
     documents,
     execution,
     extraction,
     health,
     synthesis,
-    autonomous,
 )
 
 api_v1_router = APIRouter()

@@ -59,7 +59,7 @@ class VectorRetriever(BaseRetriever):
             stmt = stmt.order_by(DocumentChunk.embedding.cosine_distance(query_vector))
             stmt = stmt.limit(query.top_k)
 
-            db_chunks = (await self.session.scalars(stmt)).all()
+            (await self.session.scalars(stmt)).all()
 
             # Reconstruct scores (1 - cosine_distance is cosine similarity)
             # We can select the distance in the query, but for simplicity we'll just return it.

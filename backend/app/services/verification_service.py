@@ -8,9 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.execution.tool import ExecutionContext
 from app.core.execution.tool_registry import ToolRegistry
-from app.models.enums import Capability
 from app.models.verification import Evidence, EvidenceRequirement
-from app.schemas.verification import EvidenceRequirementCreate, EvidenceResponse, VerificationResult
+from app.schemas.verification import EvidenceRequirementCreate, VerificationResult
 
 
 class VerificationService:
@@ -67,7 +66,7 @@ class VerificationService:
 
         try:
             result_payload = await tool.execute(params, context)
-            
+
             # Deterministic check: verify expected_state matches result_payload
             is_valid = self._evaluate_assertions(req.expected_state, result_payload)
             reason = "Evidence matches expected state." if is_valid else "Evidence does not match expected state."
@@ -116,14 +115,16 @@ class VerificationService:
             if not res.is_verified:
                 return False
 
+        return True
+
     def _evaluate_assertions(self, expected: dict[str, Any], actual: dict[str, Any]) -> bool:
         """Deep check if 'actual' dictionary contains all 'expected' key-values."""
         for key, expected_value in expected.items():
             if key not in actual:
                 return False
-            
+
             actual_val = actual[key]
-            
+
             if isinstance(expected_value, dict) and isinstance(actual_val, dict):
                 if not self._evaluate_assertions(expected_value, actual_val):
                     return False

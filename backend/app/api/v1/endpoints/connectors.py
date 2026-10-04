@@ -61,7 +61,7 @@ async def check_connector_health(
     connector = connector_registry.get(provider)
     if not connector:
         raise HTTPException(status_code=404, detail="Connector not registered")
-    context = ExecutionContext(tenant_id=str(tenant_id), user_id=None)
+    ExecutionContext(tenant_id=str(tenant_id), user_id=None)
 
     try:
         health_status = await connector.check_health(connection)

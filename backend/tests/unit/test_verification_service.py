@@ -1,11 +1,13 @@
-import uuid
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock
-from app.services.verification_service import VerificationService
-from app.schemas.verification import EvidenceRequirementCreate
-from app.models.enums import Capability
-from app.core.execution.tool_registry import ToolRegistry
 from pydantic import BaseModel
+
+from app.core.execution.tool_registry import ToolRegistry
+from app.models.enums import Capability
+from app.schemas.verification import EvidenceRequirementCreate
+from app.services.verification_service import VerificationService
+
 
 class DummyInput(BaseModel):
     issue_number: int
@@ -31,9 +33,10 @@ def mock_tool_registry():
 def verification_service(in_memory_db_session, mock_tool_registry):
     return VerificationService(in_memory_db_session, mock_tool_registry)
 
-from app.models.tenant import Tenant
 from app.models.action import Action
 from app.models.enums import ActionStatus
+from app.models.tenant import Tenant
+
 
 @pytest.fixture
 async def sample_action(in_memory_db_session):
@@ -76,7 +79,7 @@ async def test_verify_requirement_success(verification_service, sample_action):
         expected_state={"state": "open"}
     )
     req = await verification_service.create_requirement(str(tenant.id), req_data)
-    
+
     result = await verification_service.verify_requirement(str(tenant.id), str(req.id))
     assert result.is_verified is True
     assert result.evidence_id is not None
@@ -91,7 +94,7 @@ async def test_verify_requirement_failure(verification_service, sample_action):
         expected_state={"state": "closed"}
     )
     req = await verification_service.create_requirement(str(tenant.id), req_data)
-    
+
     result = await verification_service.verify_requirement(str(tenant.id), str(req.id))
     assert result.is_verified is False
     assert result.evidence_id is not None

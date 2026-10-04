@@ -84,7 +84,7 @@ async def setup_rag_data(in_memory_db_session: AsyncSession) -> dict[str, Any]:
 @pytest.mark.integration
 async def test_keyword_retriever(in_memory_db_session: AsyncSession, setup_rag_data: dict[str, Any]) -> None:
     t1 = setup_rag_data["tenant1"]
-    chunk1 = setup_rag_data["chunk1"]
+    setup_rag_data["chunk1"]
 
     retriever = KeywordRetriever(in_memory_db_session)
     query = RetrievalQuery(
@@ -104,7 +104,7 @@ async def test_keyword_retriever(in_memory_db_session: AsyncSession, setup_rag_d
 @pytest.mark.integration
 async def test_tenant_isolation(in_memory_db_session: AsyncSession, setup_rag_data: dict[str, Any]) -> None:
     t1 = setup_rag_data["tenant1"]
-    chunk_t2 = setup_rag_data["chunk_t2"]
+    setup_rag_data["chunk_t2"]
 
     retriever = KeywordRetriever(in_memory_db_session)
     query = RetrievalQuery(

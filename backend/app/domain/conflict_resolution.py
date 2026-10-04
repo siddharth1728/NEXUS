@@ -27,8 +27,8 @@ def detect_contradictory_actions(actions: Sequence[Action]) -> list[ConflictRepo
             b_text = f"{action_b.title} {action_b.description}".lower()
 
             # Look for common entities (e.g. words longer than 5 chars that exist in both)
-            a_words = set(w for w in a_text.split() if len(w) > 5)
-            b_words = set(w for w in b_text.split() if len(w) > 5)
+            a_words = {w for w in a_text.split() if len(w) > 5}
+            b_words = {w for w in b_text.split() if len(w) > 5}
 
             common_words = a_words.intersection(b_words)
 

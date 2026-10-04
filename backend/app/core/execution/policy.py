@@ -6,7 +6,7 @@ from app.schemas.execution import ExecutionRequestCreate
 
 class PolicyEngine:
     """Evaluates deterministic application rules for execution requests.
-    
+
     The policy engine must NOT call an LLM to decide authorization.
     """
 

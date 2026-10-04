@@ -1,6 +1,7 @@
 """Unit tests for the Agent Service."""
 
 import uuid
+
 import pytest
 
 from app.core.execution.agent_registry import AgentRegistry
@@ -10,6 +11,7 @@ from app.models.enums import Capability
 from app.schemas.agent import Agent
 from app.schemas.tool import ToolResolutionResult
 from app.services.agent_service import AgentService
+
 
 @pytest.fixture
 def agent_registry() -> AgentRegistry:
@@ -38,7 +40,7 @@ def policy_engine() -> PolicyEngine:
 def test_delegate_task_success(agent_registry, tool_registry, policy_engine):
     service = AgentService(agent_registry, tool_registry, policy_engine)
     tenant_id = uuid.uuid4()
-    
+
     result = service.delegate_task(tenant_id, "test_agent", "do something")
     assert result["status"] == "SUCCESS"
     assert result["tool_executed"] == "simulate"
@@ -46,7 +48,7 @@ def test_delegate_task_success(agent_registry, tool_registry, policy_engine):
 def test_delegate_task_agent_not_found(agent_registry, tool_registry, policy_engine):
     service = AgentService(agent_registry, tool_registry, policy_engine)
     tenant_id = uuid.uuid4()
-    
+
     with pytest.raises(ValueError):
         service.delegate_task(tenant_id, "unknown", "do something")
 

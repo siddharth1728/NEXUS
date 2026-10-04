@@ -39,7 +39,7 @@ async def test_gateway_fallback_to_default_provider(gateway: AIGateway) -> None:
     gateway.settings.ai.default_provider = "mock"
 
     # Request without explicit provider
-    request = AIRequest(provider="", model="test-model", prompt="Test default")
+    AIRequest(provider="", model="test-model", prompt="Test default")
 
     # We patch _get_provider locally to simulate fallback if provider string is empty
     # Wait, the request model has provider as a required string.
